@@ -9,15 +9,15 @@
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:18080"
     },
-    "https": {
-      "commandName": "Project",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:18443;http://localhost:18080"
-    },
+    //"https": {
+    //  "commandName": "Project",
+    //  "launchBrowser": true,
+    //  "environmentVariables": {
+    //    "ASPNETCORE_ENVIRONMENT": "Development"
+    //  },
+    //  "dotnetRunMessages": true,
+    //  "applicationUrl": "https://localhost:18443;http://localhost:18080"
+    //},
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
