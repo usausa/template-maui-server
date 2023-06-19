@@ -354,5 +354,6 @@ MigrationBackup/
 /Log/
 /Storage/
 *.db
+/Template.MobileServer.Web/Properties/ServiceDependencies/*
 desktop.ini
 __*
