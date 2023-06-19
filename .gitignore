@@ -350,5 +350,8 @@ MigrationBackup/
 .ionide/
 
 # Custom
+/Publish/
+/Log/
+/Storage/
 desktop.ini
 __*
