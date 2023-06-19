@@ -1,1 +1,1 @@
-# template-maui-server
+# Template project for Mobile Server

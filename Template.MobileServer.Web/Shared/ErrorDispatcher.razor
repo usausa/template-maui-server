@@ -1,0 +1,15 @@
+@if (Exception is Smart.AspNetCore.Exceptions.HttpStatusException httpStatusException)
+{
+    if (httpStatusException.StatusCode == 404)
+    {
+        <Error404 />
+    }
+    else if (httpStatusException.StatusCode == 403)
+    {
+        <Error403 />
+    }
+}
+else
+{
+    <Error500 Exception="Exception" RecoverRequest="RecoverRequest" />
+}

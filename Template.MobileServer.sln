@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Web", "Template.MobileServer.Web\Template.MobileServer.Web.csproj", "{49E8A0B0-1A15-4AD2-A03C-80F76B2D4479}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{872EA4B1-98EF-42EE-9758-1EDF86B0F4CE}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		Analyzers.ruleset = Analyzers.ruleset
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		LICENSE = LICENSE
+		README.md = README.md
+		Template.MobileServer.sln.DotSettings = Template.MobileServer.sln.DotSettings
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Tests", "Template.MobileServer.Tests\Template.MobileServer.Tests.csproj", "{92576821-EC5A-42A0-A998-DD19DBB0D5F6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Core", "Template.MobileServer.Core\Template.MobileServer.Core.csproj", "{D78FEA2E-2F34-451C-89DC-A7786B507FFF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{49E8A0B0-1A15-4AD2-A03C-80F76B2D4479}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49E8A0B0-1A15-4AD2-A03C-80F76B2D4479}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49E8A0B0-1A15-4AD2-A03C-80F76B2D4479}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49E8A0B0-1A15-4AD2-A03C-80F76B2D4479}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92576821-EC5A-42A0-A998-DD19DBB0D5F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92576821-EC5A-42A0-A998-DD19DBB0D5F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92576821-EC5A-42A0-A998-DD19DBB0D5F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92576821-EC5A-42A0-A998-DD19DBB0D5F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D78FEA2E-2F34-451C-89DC-A7786B507FFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D78FEA2E-2F34-451C-89DC-A7786B507FFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D78FEA2E-2F34-451C-89DC-A7786B507FFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D78FEA2E-2F34-451C-89DC-A7786B507FFF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {80792C41-5569-499F-A9EE-65FC4BF87250}
+	EndGlobalSection
+EndGlobal
