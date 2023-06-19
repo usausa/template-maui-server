@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Pages;
+namespace Template.MobileServer.Web.Pages;
 
 public class LoginPageTest
 {
