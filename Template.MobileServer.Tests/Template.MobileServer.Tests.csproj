@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <RootNamespace>Template.MobileServer</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="bunit" Version="1.20.8" />
+    <PackageReference Include="coverlet.msbuild" Version="6.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="6.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
+    <PackageReference Include="Moq" Version="4.18.4" />
+    <PackageReference Include="Usa.Smart.Mock.Data" Version="2.2.0" />
+    <PackageReference Include="xunit" Version="2.4.2" />
+    <PackageReference Include="xunit.analyzers" Version="1.1.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Template.MobileServer.Backend.Core\Template.MobileServer.Backend.Core.csproj" />
+    <ProjectReference Include="..\Template.MobileServer.Backend.Web\Template.MobileServer.Backend.Web.csproj" />
+    <ProjectReference Include="..\Template.MobileServer.Core\Template.MobileServer.Core.csproj" />
+    <ProjectReference Include="..\Template.MobileServer.Domain\Template.MobileServer.Domain.csproj" />
+    <ProjectReference Include="..\Template.MobileServer.Frontend\Template.MobileServer.Frontend.csproj" />
+    <ProjectReference Include="..\Template.MobileServer.Shared\Template.MobileServer.Api.csproj" />
+    <ProjectReference Include="..\Template.MobileServer.Web\Template.MobileServer.Web.csproj" />
+  </ItemGroup>
+
+</Project>

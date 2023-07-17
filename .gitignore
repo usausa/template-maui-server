@@ -398,6 +398,7 @@ FodyWeavers.xsd
 *.sln.iml
 
 # Custom
+/Template.MobileServer.Backend.Web/Properties/ServiceDependencies/*
 /Publish/
 /Log/
 /Storage/
