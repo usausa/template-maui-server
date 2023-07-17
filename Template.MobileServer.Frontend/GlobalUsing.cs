@@ -14,28 +14,36 @@ global using System.IO;
 global using System.Linq;
 global using System.Net;
 global using System.Net.Http;
+global using System.Reactive;
+global using System.Reactive.Disposables;
 global using System.Runtime.CompilerServices;
+global using System.Security.Claims;
 global using System.Text;
 global using System.Threading;
 global using System.Threading.Tasks;
 
-global using AutoMapper;
-
-global using Bunit;
-
-global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Components;
+global using Microsoft.AspNetCore.Components.Authorization;
+global using Microsoft.AspNetCore.Components.Web;
 global using Microsoft.AspNetCore.Http;
-global using Microsoft.AspNetCore.Mvc;
 
 global using Microsoft.Extensions.Logging;
 
+global using Microsoft.JSInterop;
+
+global using MudBlazor;
+
 global using Smart;
+global using Smart.AspNetCore.Components;
 global using Smart.Collections.Generic;
+global using Smart.ComponentModel;
 global using Smart.Text;
 
+// TODO
 global using Template.MobileServer.Api;
-global using Template.MobileServer.Backend.Models.Entity;
 global using Template.MobileServer.Domain;
-
-global using Xunit;
+global using Template.MobileServer.Frontend.Components;
+global using Template.MobileServer.Frontend.Infrastructure;
+global using Template.MobileServer.Frontend.Infrastructure.Bindings;
+//global using Template.MobileServer.Frontend.Infrastructure.Validation;

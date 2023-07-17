@@ -19,23 +19,8 @@ global using System.Text;
 global using System.Threading;
 global using System.Threading.Tasks;
 
-global using AutoMapper;
-
-global using Bunit;
-
-global using Microsoft.AspNetCore.Authentication;
-global using Microsoft.AspNetCore.Authorization;
-global using Microsoft.AspNetCore.Http;
-global using Microsoft.AspNetCore.Mvc;
-
-global using Microsoft.Extensions.Logging;
-
 global using Smart;
 global using Smart.Collections.Generic;
 global using Smart.Text;
 
-global using Template.MobileServer.Api;
-global using Template.MobileServer.Backend.Models.Entity;
 global using Template.MobileServer.Domain;
-
-global using Xunit;

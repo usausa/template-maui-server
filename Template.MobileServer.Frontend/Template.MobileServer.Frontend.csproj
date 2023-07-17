@@ -6,14 +6,27 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.7" PrivateAssets="all" />
     <PackageReference Include="MudBlazor" Version="6.4.1" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+    <PackageReference Include="System.Reactive" Version="6.0.0" />
+    <PackageReference Include="Usa.Smart.Blazor" Version="0.3.0" />
+    <PackageReference Include="Usa.Smart.Core" Version="2.2.0" />
+    <PackageReference Include="Usa.Smart.Reactive" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Template.MobileServer.Domain\Template.MobileServer.Domain.csproj" />
     <ProjectReference Include="..\Template.MobileServer.Shared\Template.MobileServer.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="libman.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

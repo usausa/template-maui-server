@@ -1,7 +1,6 @@
-namespace Template.MobileServer.Backend.Pages;
+namespace Template.MobileServer.Backend.Web.Pages;
 
 using System.Diagnostics;
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 

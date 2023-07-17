@@ -21,7 +21,7 @@ global using System.Threading.Tasks;
 
 global using AutoMapper;
 
-global using Bunit;
+global using FluentValidation;
 
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Authorization;
@@ -29,13 +29,16 @@ global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Mvc;
 
 global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Options;
 
 global using Smart;
 global using Smart.Collections.Generic;
 global using Smart.Text;
 
 global using Template.MobileServer.Api;
+global using Template.MobileServer.Backend;
 global using Template.MobileServer.Backend.Models.Entity;
+//global using Template.MobileServer.Backend.Services;
+//global using Template.MobileServer.Backend.Web.Infrastructure;
+//global using Template.MobileServer.Backend.Web.Settings;
 global using Template.MobileServer.Domain;
-
-global using Xunit;
