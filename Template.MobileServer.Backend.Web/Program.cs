@@ -156,8 +156,6 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    // TODO
-    app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
 
