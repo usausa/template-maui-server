@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -31,11 +31,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Template.MobileServer.Backend.Core\Template.MobileServer.Backend.Core.csproj" />
     <ProjectReference Include="..\Template.MobileServer.Backend.Web\Template.MobileServer.Backend.Web.csproj" />
-    <ProjectReference Include="..\Template.MobileServer.Core\Template.MobileServer.Core.csproj" />
     <ProjectReference Include="..\Template.MobileServer.Domain\Template.MobileServer.Domain.csproj" />
     <ProjectReference Include="..\Template.MobileServer.Frontend\Template.MobileServer.Frontend.csproj" />
     <ProjectReference Include="..\Template.MobileServer.Shared\Template.MobileServer.Api.csproj" />
-    <ProjectReference Include="..\Template.MobileServer.Web\Template.MobileServer.Web.csproj" />
   </ItemGroup>
 
 </Project>
