@@ -1,7 +1,6 @@
 namespace Template.MobileServer.Backend.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
-
 using Template.MobileServer.Api;
 
 [ApiController]

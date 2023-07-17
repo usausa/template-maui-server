@@ -10,8 +10,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Template.MobileServer.Backend.Core\Template.MobileServer.Backend.Core.csproj" />
+    <ProjectReference Include="..\Template.MobileServer.Domain\Template.MobileServer.Domain.csproj" />
     <ProjectReference Include="..\Template.MobileServer.Frontend\Template.MobileServer.Frontend.csproj" />
-    <ProjectReference Include="..\Template.MobileServer.Shared\Template.MobileServer.Shared.csproj" />
+    <ProjectReference Include="..\Template.MobileServer.Shared\Template.MobileServer.Api.csproj" />
   </ItemGroup>
 
 

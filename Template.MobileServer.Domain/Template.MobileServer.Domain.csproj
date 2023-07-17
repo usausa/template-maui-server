@@ -1,13 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <RootNamespace>Template.MobileServer.Backend</RootNamespace>
     <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Template.MobileServer.Domain\Template.MobileServer.Domain.csproj" />
-  </ItemGroup>
 
 </Project>

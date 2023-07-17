@@ -18,11 +18,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Frontend", "Template.MobileServer.Frontend\Template.MobileServer.Frontend.csproj", "{C9249426-F6F3-44BE-B61D-B2CFE4F43D7C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Backend", "Template.MobileServer.Backend\Template.MobileServer.Backend.csproj", "{BD30A61F-15DB-4DDE-877E-50DF81A5C590}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Backend.Web", "Template.MobileServer.Backend.Web\Template.MobileServer.Backend.Web.csproj", "{BD30A61F-15DB-4DDE-877E-50DF81A5C590}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Shared", "Template.MobileServer.Shared\Template.MobileServer.Shared.csproj", "{F96BBC80-3946-4AFE-81AF-08BA32D18672}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Api", "Template.MobileServer.Shared\Template.MobileServer.Api.csproj", "{F96BBC80-3946-4AFE-81AF-08BA32D18672}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Template.MobileServer.Backend.Core", "Template.MobileServer.Backend.Core\Template.MobileServer.Backend.Core.csproj", "{AE90451B-4CF4-4DE9-865A-FD81B239C890}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Template.MobileServer.Domain", "Template.MobileServer.Domain\Template.MobileServer.Domain.csproj", "{96E58B43-9D16-49E0-ACE6-7674E90164FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -46,6 +48,10 @@ Global
 		{AE90451B-4CF4-4DE9-865A-FD81B239C890}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE90451B-4CF4-4DE9-865A-FD81B239C890}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE90451B-4CF4-4DE9-865A-FD81B239C890}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96E58B43-9D16-49E0-ACE6-7674E90164FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96E58B43-9D16-49E0-ACE6-7674E90164FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96E58B43-9D16-49E0-ACE6-7674E90164FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96E58B43-9D16-49E0-ACE6-7674E90164FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
