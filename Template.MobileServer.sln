@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.1.32210.238
+VisualStudioVersion = 17.6.33723.286
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Web", "Template.MobileServer.Web\Template.MobileServer.Web.csproj", "{49E8A0B0-1A15-4AD2-A03C-80F76B2D4479}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{872EA4B1-98EF-42EE-9758-1EDF86B0F4CE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{577C8C33-5FEA-4023-8715-D231CA03F06C}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
@@ -18,9 +16,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Template.MobileServer.sln.DotSettings = Template.MobileServer.sln.DotSettings
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Tests", "Template.MobileServer.Tests\Template.MobileServer.Tests.csproj", "{92576821-EC5A-42A0-A998-DD19DBB0D5F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Frontend", "Template.MobileServer.Frontend\Template.MobileServer.Frontend.csproj", "{C9249426-F6F3-44BE-B61D-B2CFE4F43D7C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Core", "Template.MobileServer.Core\Template.MobileServer.Core.csproj", "{D78FEA2E-2F34-451C-89DC-A7786B507FFF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Backend", "Template.MobileServer.Backend\Template.MobileServer.Backend.csproj", "{BD30A61F-15DB-4DDE-877E-50DF81A5C590}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Template.MobileServer.Shared", "Template.MobileServer.Shared\Template.MobileServer.Shared.csproj", "{F96BBC80-3946-4AFE-81AF-08BA32D18672}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Template.MobileServer.Backend.Core", "Template.MobileServer.Backend.Core\Template.MobileServer.Backend.Core.csproj", "{AE90451B-4CF4-4DE9-865A-FD81B239C890}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,23 +30,27 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{49E8A0B0-1A15-4AD2-A03C-80F76B2D4479}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{49E8A0B0-1A15-4AD2-A03C-80F76B2D4479}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{49E8A0B0-1A15-4AD2-A03C-80F76B2D4479}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{49E8A0B0-1A15-4AD2-A03C-80F76B2D4479}.Release|Any CPU.Build.0 = Release|Any CPU
-		{92576821-EC5A-42A0-A998-DD19DBB0D5F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{92576821-EC5A-42A0-A998-DD19DBB0D5F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{92576821-EC5A-42A0-A998-DD19DBB0D5F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{92576821-EC5A-42A0-A998-DD19DBB0D5F6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D78FEA2E-2F34-451C-89DC-A7786B507FFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D78FEA2E-2F34-451C-89DC-A7786B507FFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D78FEA2E-2F34-451C-89DC-A7786B507FFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D78FEA2E-2F34-451C-89DC-A7786B507FFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9249426-F6F3-44BE-B61D-B2CFE4F43D7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9249426-F6F3-44BE-B61D-B2CFE4F43D7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9249426-F6F3-44BE-B61D-B2CFE4F43D7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9249426-F6F3-44BE-B61D-B2CFE4F43D7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD30A61F-15DB-4DDE-877E-50DF81A5C590}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD30A61F-15DB-4DDE-877E-50DF81A5C590}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD30A61F-15DB-4DDE-877E-50DF81A5C590}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD30A61F-15DB-4DDE-877E-50DF81A5C590}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F96BBC80-3946-4AFE-81AF-08BA32D18672}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F96BBC80-3946-4AFE-81AF-08BA32D18672}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F96BBC80-3946-4AFE-81AF-08BA32D18672}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F96BBC80-3946-4AFE-81AF-08BA32D18672}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE90451B-4CF4-4DE9-865A-FD81B239C890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE90451B-4CF4-4DE9-865A-FD81B239C890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE90451B-4CF4-4DE9-865A-FD81B239C890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE90451B-4CF4-4DE9-865A-FD81B239C890}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {80792C41-5569-499F-A9EE-65FC4BF87250}
+		SolutionGuid = {A9EDF087-8627-4E0D-A518-C6E526AE4988}
 	EndGlobalSection
 EndGlobal
