@@ -19,7 +19,7 @@ global using System.Text;
 global using System.Threading;
 global using System.Threading.Tasks;
 
-global using AutoMapper;
+//global using AutoMapper;
 
 // TODO
 global using Bunit;
@@ -32,14 +32,14 @@ global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.Extensions.Logging;
 
 global using Smart;
-global using Smart.Collections.Generic;
-global using Smart.Text;
+//global using Smart.Collections.Generic;
+//global using Smart.Text;
 
 // TODO
 global using Template.MobileServer;
 global using Template.MobileServer.Domain;
 //global using Template.MobileServer.Models.Connector;
-global using Template.MobileServer.Models.Entity;
+//global using Template.MobileServer.Models.Entity;
 //global using Template.MobileServer.Models.Paging;
 //global using Template.MobileServer.Models.View;
 //global using Template.MobileServer.Services;
