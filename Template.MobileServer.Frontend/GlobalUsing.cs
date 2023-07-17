@@ -43,7 +43,6 @@ global using Smart.Text;
 // TODO
 global using Template.MobileServer.Api;
 global using Template.MobileServer.Domain;
-global using Template.MobileServer.Frontend.Components;
 global using Template.MobileServer.Frontend.Infrastructure;
 global using Template.MobileServer.Frontend.Infrastructure.Bindings;
 //global using Template.MobileServer.Frontend.Infrastructure.Validation;
