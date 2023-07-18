@@ -13,6 +13,10 @@ public static class Styles
             Tertiary = Colors.Teal.Accent4,
             Info = Colors.LightBlue.Default,
             AppbarBackground = Colors.Blue.Darken4
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            AppbarHeight = "48px"
         }
     };
 

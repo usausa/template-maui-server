@@ -46,3 +46,5 @@ global using Template.MobileServer.Domain;
 global using Template.MobileServer.Frontend.Infrastructure;
 global using Template.MobileServer.Frontend.Infrastructure.Bindings;
 //global using Template.MobileServer.Frontend.Infrastructure.Validation;
+global using Template.MobileServer.Frontend.Shared.Shell;
+

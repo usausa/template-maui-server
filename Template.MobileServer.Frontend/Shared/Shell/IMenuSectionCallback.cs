@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Frontend.Pages.Shell;
+namespace Template.MobileServer.Frontend.Shared.Shell;
 
 using Microsoft.AspNetCore.Components;
 
