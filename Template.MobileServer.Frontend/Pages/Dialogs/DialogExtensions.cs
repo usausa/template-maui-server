@@ -1,6 +1,4 @@
-namespace KDH.Monitor.Server.Web.Pages.Dialogs;
-
-using MudBlazor;
+namespace Template.MobileServer.Frontend.Pages.Dialogs;
 
 public static class DialogExtensions
 {

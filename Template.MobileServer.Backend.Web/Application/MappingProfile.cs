@@ -2,7 +2,8 @@ namespace Template.MobileServer.Backend.Web.Application;
 
 public class MappingProfile : Profile
 {
-    //public MappingProfile()
-    //{
-    //}
+    public MappingProfile()
+    {
+        CreateMap<DataEntity, DataListResponseEntry>();
+    }
 }

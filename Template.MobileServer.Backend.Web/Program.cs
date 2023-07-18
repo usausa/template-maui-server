@@ -145,6 +145,9 @@ if (!File.Exists(connectionStringBuilder.DataSource))
 {
     var accessor = app.Services.GetRequiredService<IAccessorResolver<IDataAccessor>>().Accessor;
     accessor.Create();
+    await accessor.InsertAsync(new DataEntity { Id = 1, Name = "Data-1" });
+    await accessor.InsertAsync(new DataEntity { Id = 2, Name = "Data-2" });
+    await accessor.InsertAsync(new DataEntity { Id = 3, Name = "Data-3" });
 }
 
 // Configure the HTTP request pipeline.
