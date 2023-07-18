@@ -9,5 +9,5 @@ public class DataListResponseEntry
 
 public class DataListResponse
 {
-    public DataListResponseEntry[] Entries { get; set; }
+    public DataListResponseEntry[] Entries { get; set; } = default!;
 }
