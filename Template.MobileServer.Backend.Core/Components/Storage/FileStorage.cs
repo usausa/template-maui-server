@@ -11,7 +11,7 @@ public sealed class FileStorage : IStorage
     public FileStorage(FileStorageOptions options)
     {
         root = Path.GetFullPath(options.Root);
-        Directory.CreateDirectory(Path.GetDirectoryName(root)!);
+        Directory.CreateDirectory(root);
     }
 
     private string NormalizePath(string path)
