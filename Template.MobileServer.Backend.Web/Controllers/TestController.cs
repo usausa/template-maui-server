@@ -9,9 +9,18 @@ public class TestController : BaseApiController
     {
         return code switch
         {
+            400 => BadRequest(),
             404 => NotFound(),
             403 => Forbid(),
             _ => throw new NotSupportedException("Unknown error.")
         };
+    }
+
+    [HttpGet]
+    public async ValueTask<IActionResult> Delay(int timeout)
+    {
+        await Task.Delay(timeout);
+
+        return Ok();
     }
 }

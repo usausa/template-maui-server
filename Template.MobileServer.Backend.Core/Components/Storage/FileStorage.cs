@@ -1,5 +1,7 @@
 namespace Template.MobileServer.Backend.Components.Storage;
 
+using System.IO;
+
 public sealed class FileStorage : IStorage
 {
     private const int CopyBufferSize = 81920;
@@ -9,6 +11,7 @@ public sealed class FileStorage : IStorage
     public FileStorage(FileStorageOptions options)
     {
         root = Path.GetFullPath(options.Root);
+        Directory.CreateDirectory(Path.GetDirectoryName(root)!);
     }
 
     private string NormalizePath(string path)

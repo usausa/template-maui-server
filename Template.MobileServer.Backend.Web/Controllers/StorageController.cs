@@ -4,7 +4,9 @@ using Smart.AspNetCore.Filters;
 
 using Template.MobileServer.Backend.Components.Storage;
 
-public class StorageController : BaseApiController
+[Route("api/[controller]")]
+[ApiExplorerSettings(IgnoreApi = true)]
+public class StorageController : ControllerBase
 {
     private const string ContextType = "application/octet-stream";
 
