@@ -4,7 +4,7 @@ using Template.MobileServer.Backend.Web;
 
 public class TestController : BaseApiController
 {
-    [HttpGet]
+    [HttpGet("{code}")]
     public IActionResult Error(int code)
     {
         return code switch
