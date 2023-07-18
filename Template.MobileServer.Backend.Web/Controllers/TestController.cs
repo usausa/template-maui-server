@@ -11,7 +11,7 @@ public class TestController : BaseApiController
         {
             404 => NotFound(),
             403 => Forbid(),
-            _ => throw new Exception("Unknown error.")
+            _ => throw new NotSupportedException("Unknown error.")
         };
     }
 }
