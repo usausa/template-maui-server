@@ -4,7 +4,7 @@ using Template.MobileServer.Backend.Web;
 
 public class TestController : BaseApiController
 {
-    [HttpGet("{code}")]
+    [HttpPost("{code}")]
     public IActionResult Error(int code)
     {
         return code switch
@@ -16,7 +16,7 @@ public class TestController : BaseApiController
         };
     }
 
-    [HttpGet("{timeout}")]
+    [HttpPost("{timeout}")]
     public async ValueTask<IActionResult> Delay(int timeout)
     {
         await Task.Delay(timeout);
