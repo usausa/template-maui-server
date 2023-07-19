@@ -16,7 +16,7 @@ public class TestController : BaseApiController
         };
     }
 
-    [HttpGet]
+    [HttpGet("{timeout}")]
     public async ValueTask<IActionResult> Delay(int timeout)
     {
         await Task.Delay(timeout);
