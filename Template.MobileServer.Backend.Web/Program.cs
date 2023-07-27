@@ -1,3 +1,5 @@
+using System.IO.Compression;
+using System.Net.Mime;
 using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -22,6 +24,8 @@ using Template.MobileServer.Backend.Components.Storage;
 using Template.MobileServer.Backend.Services;
 using Template.MobileServer.Backend.Web.Application;
 using Template.MobileServer.Backend.Accessor;
+
+using Microsoft.AspNetCore.ResponseCompression;
 
 //--------------------------------------------------------------------------------
 // Configure builder
@@ -103,6 +107,20 @@ builder.Services.AddHealthChecks();
 // Swagger
 builder.Services.AddSwaggerGen();
 
+// Compression
+builder.Services.AddRequestDecompression();
+builder.Services.AddResponseCompression(options =>
+{
+    // Default false (for CRIME and BREACH attacks)
+    options.EnableForHttps = true;
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = new[] { MediaTypeNames.Application.Json };
+});
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Fastest;
+});
+
 // TODO Validation
 
 // HTTP
@@ -182,6 +200,10 @@ app.UseRouting();
 
 // TODO Metrics
 //app.MapMetrics();
+
+// Compression
+app.UseRequestDecompression();
+app.UseResponseCompression();
 
 app.MapRazorPages();
 app.MapControllers();
