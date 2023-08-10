@@ -137,7 +137,7 @@ var connectionString = connectionStringBuilder.ConnectionString;
 builder.Services.AddSingleton<IDbProvider>(new DelegateDbProvider(() => new SqliteConnection(connectionString)));
 builder.Services.AddSingleton<IDialect>(new DelegateDialect(
     static ex => ex is SqliteException { SqliteErrorCode: 1555 },
-    static x => Regex.Replace(x, @"[%_]", "[$0]")));
+    static x => Regex.Replace(x, "[%_]", "[$0]")));
 builder.Services.AddDataAccessor();
 
 // Mapper
