@@ -2,8 +2,6 @@ namespace Template.MobileServer.Backend.Web.Application.RateLimiting;
 
 using Microsoft.AspNetCore.RateLimiting;
 
-using Template.Web.Application.RateLimiting;
-
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddRateLimiter(this IServiceCollection services, RateLimitSetting setting)
