@@ -1,4 +1,4 @@
-namespace Template.Web.Application.RateLimiting;
+namespace Template.MobileServer.Backend.Web.Application.RateLimiting;
 
 public class RateLimitSetting
 {
