@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Text.Unicode;
 
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Hosting.WindowsServices;
 
@@ -21,11 +22,7 @@ using Smart.Data;
 using Smart.Data.Accessor;
 
 using Template.MobileServer.Backend.Components.Storage;
-using Template.MobileServer.Backend.Services;
-using Template.MobileServer.Backend.Web.Application;
 using Template.MobileServer.Backend.Accessor;
-
-using Microsoft.AspNetCore.ResponseCompression;
 
 //--------------------------------------------------------------------------------
 // Configure builder
