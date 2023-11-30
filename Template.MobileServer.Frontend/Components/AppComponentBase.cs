@@ -4,7 +4,7 @@ public abstract class AppComponentBase : ComponentBase, IDisposable
 {
     private CompositeDisposable? disposables;
 
-    protected ICollection<IDisposable> Disposables => disposables ??= new CompositeDisposable();
+    protected ICollection<IDisposable> Disposables => disposables ??= [];
 
     ~AppComponentBase()
     {

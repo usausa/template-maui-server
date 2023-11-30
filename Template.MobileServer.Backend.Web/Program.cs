@@ -41,7 +41,7 @@ builder.Host
 // Log
 builder.Logging.ClearProviders();
 builder.Host
-    .UseSerilog((hostingContext, loggerConfiguration) =>
+    .UseSerilog(static (hostingContext, loggerConfiguration) =>
     {
         loggerConfiguration.ReadFrom.Configuration(hostingContext.Configuration);
     });
@@ -52,14 +52,14 @@ builder.Services.AddHttpContextAccessor();
 // TODO Settings
 
 // Route
-builder.Services.Configure<RouteOptions>(options =>
+builder.Services.Configure<RouteOptions>(static options =>
 {
     options.AppendTrailingSlash = true;
 });
 
 // API
 builder.Services.AddExceptionLogging();
-builder.Services.AddTimeLogging(options =>
+builder.Services.AddTimeLogging(static options =>
 {
     options.Threshold = 10_000;
 });
@@ -67,14 +67,14 @@ builder.Services.AddSingleton<ExceptionStatusFilter>();
 
 // Add services to the container.
 builder.Services
-    .AddControllersWithViews(options =>
+    .AddControllersWithViews(static options =>
     {
         options.Filters.AddExceptionLogging();
         options.Filters.AddTimeLogging();
         options.Filters.AddService<ExceptionStatusFilter>();
         options.Conventions.Add(new LowercaseControllerModelConvention());
     })
-    .AddJsonOptions(options =>
+    .AddJsonOptions(static options =>
     {
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
         options.JsonSerializerOptions.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All);
@@ -82,7 +82,7 @@ builder.Services
     });
 builder.Services.AddRazorPages();
 
-builder.Services.AddMudServices(config =>
+builder.Services.AddMudServices(static config =>
 {
     // Snackbar
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
@@ -106,14 +106,14 @@ builder.Services.AddSwaggerGen();
 
 // Compression
 builder.Services.AddRequestDecompression();
-builder.Services.AddResponseCompression(options =>
+builder.Services.AddResponseCompression(static options =>
 {
     // Default false (for CRIME and BREACH attacks)
     options.EnableForHttps = true;
     options.Providers.Add<GzipCompressionProvider>();
     options.MimeTypes = new[] { MediaTypeNames.Application.Json };
 });
-builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+builder.Services.Configure<GzipCompressionProviderOptions>(static options =>
 {
     options.Level = CompressionLevel.Fastest;
 });

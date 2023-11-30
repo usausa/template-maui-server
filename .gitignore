@@ -397,11 +397,10 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-# Custom
-/Template.MobileServer.Backend.Web/Properties/ServiceDependencies/*
+# Customize
+desktop.ini
+__*
 /Publish/
 /Log/
 /Storage/
 *.db
-desktop.ini
-__*
