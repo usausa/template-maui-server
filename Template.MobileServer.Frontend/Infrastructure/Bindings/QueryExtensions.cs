@@ -44,7 +44,7 @@ public static class QueryExtensions
             return new BindingInfo<T>
             {
                 Factory = factory,
-                Mappers = [.. mappers]
+                Mappers = mappers.ToArray()
             };
         });
 
@@ -168,7 +168,7 @@ public static class QueryExtensions
                 }
             }
 
-            return [.. list];
+            return list.ToArray();
         }
 
         return [];

@@ -2,6 +2,7 @@ namespace Template.MobileServer.Backend.Web.Controllers;
 
 using Template.MobileServer.Backend.Web;
 
+#pragma warning disable ASP0023
 public class TestController : BaseApiController
 {
     [HttpGet("{code}")]
@@ -24,3 +25,4 @@ public class TestController : BaseApiController
         return Ok();
     }
 }
+#pragma warning restore ASP0023
