@@ -38,6 +38,10 @@ builder.Host
     .UseWindowsService()
     .UseSystemd();
 
+// Configuration
+//var serverSetting = builder.Configuration.GetSection("Server").Get<ServerSetting>()!;
+//builder.Services.AddSingleton(serverSetting);
+
 // Log
 builder.Logging.ClearProviders();
 builder.Host
@@ -206,4 +210,8 @@ app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 
+// Initialize
+await app.InitializeAsync();
+
+// Run
 await app.RunAsync();
