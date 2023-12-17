@@ -5,7 +5,7 @@ using Template.MobileServer.Backend.Web;
 #pragma warning disable ASP0023
 public class TestController : BaseApiController
 {
-    [HttpGet("{code}")]
+    [HttpGet("{code:int}")]
     public IActionResult Error(int code)
     {
         return code switch
@@ -17,7 +17,7 @@ public class TestController : BaseApiController
         };
     }
 
-    [HttpGet("{timeout}")]
+    [HttpGet("{timeout:int}")]
     public async ValueTask<IActionResult> Delay(int timeout)
     {
         await Task.Delay(timeout);

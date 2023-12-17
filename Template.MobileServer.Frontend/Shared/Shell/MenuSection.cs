@@ -1,4 +1,5 @@
 namespace Template.MobileServer.Frontend.Shared.Shell;
+
 public sealed class MenuSection : ComponentBase, IDisposable
 {
     [CascadingParameter]

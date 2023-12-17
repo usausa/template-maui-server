@@ -66,13 +66,14 @@ public sealed class FileStorage : IStorage
         return ValueTask.CompletedTask;
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Factory")]
     public ValueTask<Stream> ReadAsync(string path, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         path = NormalizePath(path);
+#pragma warning disable CA2000
         return ValueTask.FromResult((Stream)File.OpenRead(path));
+#pragma warning restore CA2000
     }
 
     public async ValueTask WriteAsync(string path, Stream stream, CancellationToken cancellationToken = default)
@@ -82,9 +83,7 @@ public sealed class FileStorage : IStorage
         path = NormalizePath(path);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
-#pragma warning disable CA2007
         await using var fs = File.OpenWrite(path);
-#pragma warning restore CA2007
         await stream.CopyToAsync(fs, CopyBufferSize, cancellationToken).ConfigureAwait(false);
     }
 }
