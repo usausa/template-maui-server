@@ -38,11 +38,14 @@ global using Smart.Collections.Generic;
 global using Smart.ComponentModel;
 global using Smart.Text;
 
+global using StringConvertHelper;
+
+global using StringValuesBinder;
+
 // TODO
 global using Template.MobileServer.Api;
 global using Template.MobileServer.Domain;
 global using Template.MobileServer.Frontend.Infrastructure;
-global using Template.MobileServer.Frontend.Infrastructure.Bindings;
 //global using Template.MobileServer.Frontend.Infrastructure.Validation;
 global using Template.MobileServer.Frontend.Shared.Shell;
 
