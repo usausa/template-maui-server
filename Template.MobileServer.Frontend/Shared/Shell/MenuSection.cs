@@ -3,10 +3,10 @@ namespace Template.MobileServer.Frontend.Shared.Shell;
 public sealed class MenuSection : ComponentBase, IDisposable
 {
     [CascadingParameter]
-    public IMenuSectionCallback Callback { get; set; } = default!;
+    public required IMenuSectionCallback Callback { get; set; } = default!;
 
     [Parameter]
-    public RenderFragment ChildContent { get; set; } = default!;
+    public required RenderFragment ChildContent { get; set; } = default!;
 
     protected override void OnInitialized()
     {
