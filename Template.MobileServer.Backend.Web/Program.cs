@@ -23,6 +23,7 @@ using Smart.Data.Accessor;
 
 using Template.MobileServer.Backend.Components.Storage;
 using Template.MobileServer.Backend.Accessor;
+using Template.MobileServer.Backend.Web;
 
 //--------------------------------------------------------------------------------
 // Configure builder
@@ -159,6 +160,13 @@ builder.Services.AddSingleton<DataService>();
 // Configure the HTTP request pipeline
 //--------------------------------------------------------------------------------
 var app = builder.Build();
+
+// Startup information
+ThreadPool.GetMinThreads(out var workerThreads, out var completionPortThreads);
+app.Logger.InfoServiceStart();
+app.Logger.InfoServiceSettingsEnvironment(typeof(Program).Assembly.GetName().Version, Environment.Version, Environment.CurrentDirectory);
+app.Logger.InfoServiceSettingsGC(GCSettings.IsServerGC, GCSettings.LatencyMode, GCSettings.LargeObjectHeapCompactionMode);
+app.Logger.InfoServiceSettingsThreadPool(workerThreads, completionPortThreads);
 
 // Prepare
 if (!File.Exists(connectionStringBuilder.DataSource))
