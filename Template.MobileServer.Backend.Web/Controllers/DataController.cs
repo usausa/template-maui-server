@@ -22,7 +22,7 @@ public class DataController : BaseApiController
     {
         return Ok(new DataListResponse
         {
-            Entries = (await DataService.QueryListAsync()).Select(x => Mapper.Map<DataEntity, DataListResponseEntry>(x)!).ToArray()
+            Entries = (await DataService.QueryListAsync()).Select(Mapper.Map<DataEntity, DataListResponseEntry>).ToArray()
         });
     }
 }
