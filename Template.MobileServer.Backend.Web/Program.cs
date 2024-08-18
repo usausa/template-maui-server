@@ -116,7 +116,7 @@ builder.Services.AddResponseCompression(static options =>
     // Default false (for CRIME and BREACH attacks)
     options.EnableForHttps = true;
     options.Providers.Add<GzipCompressionProvider>();
-    options.MimeTypes = new[] { MediaTypeNames.Application.Json };
+    options.MimeTypes = [MediaTypeNames.Application.Json];
 });
 builder.Services.Configure<GzipCompressionProviderOptions>(static options =>
 {
