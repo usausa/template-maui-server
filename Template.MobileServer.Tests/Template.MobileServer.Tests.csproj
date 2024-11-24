@@ -1,23 +1,26 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <RootNamespace>Template.MobileServer</RootNamespace>
     <IsPackable>false</IsPackable>
     <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="bunit" Version="1.26.64" />
-    <PackageReference Include="coverlet.collector" Version="6.0.0">
+    <PackageReference Include="bunit" Version="1.36.0" />
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageReference Include="Usa.Smart.Mock.Data" Version="2.3.0" />
-    <PackageReference Include="xunit" Version="2.6.6" />
-    <PackageReference Include="xunit.analyzers" Version="1.10.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="Usa.Smart.Mock.Data" Version="2.4.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.analyzers" Version="1.17.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -29,6 +32,13 @@
     <ProjectReference Include="..\Template.MobileServer.Domain\Template.MobileServer.Domain.csproj" />
     <ProjectReference Include="..\Template.MobileServer.Frontend\Template.MobileServer.Frontend.csproj" />
     <ProjectReference Include="..\Template.MobileServer.Shared\Template.MobileServer.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Usa.Smart.Analyzers.JapaneseComment" Version="1.3.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

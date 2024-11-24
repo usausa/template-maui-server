@@ -40,7 +40,7 @@ public static class ViewHelper
 
     public static string StatusColor(bool status)
     {
-        return status ? Colors.Green.Accent4 : Colors.Grey.Default;
+        return status ? Colors.Green.Accent4 : Colors.Gray.Default;
     }
 
     public static string BatteryIcon(double level)

@@ -16,7 +16,6 @@ using Serilog;
 
 using Smart.AspNetCore;
 using Smart.AspNetCore.ApplicationModels;
-using Smart.AspNetCore.Filters;
 using Smart.Data.Accessor.Extensions.DependencyInjection;
 using Smart.Data;
 using Smart.Data.Accessor;
@@ -63,20 +62,16 @@ builder.Services.Configure<RouteOptions>(static options =>
 });
 
 // API
-builder.Services.AddExceptionLogging();
 builder.Services.AddTimeLogging(static options =>
 {
     options.Threshold = 10_000;
 });
-builder.Services.AddSingleton<ExceptionStatusFilter>();
 
 // Add services to the container.
 builder.Services
     .AddControllersWithViews(static options =>
     {
-        options.Filters.AddExceptionLogging();
         options.Filters.AddTimeLogging();
-        options.Filters.AddService<ExceptionStatusFilter>();
         options.Conventions.Add(new LowercaseControllerModelConvention());
     })
     .AddJsonOptions(static options =>

@@ -30,6 +30,6 @@ public static class DialogServiceExtensions
             },
             null);
         var result = await reference.Result;
-        return (bool?)result.Data == true;
+        return (bool?)result!.Data == true;
     }
 }
