@@ -2,10 +2,8 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 using MudBlazor.Services;
 
-using Template.MobileServer.Frontend;
-
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
-builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<Template.MobileServer.Frontend.App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
