@@ -1,0 +1,28 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="Analyzers.ruleset" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+    <File Path="Template.MobileServer.sln.DotSettings" />
+    <File Path="test.runsettings" />
+  </Folder>
+  <Folder Name="/Backend/">
+    <Project Path="Template.MobileServer.Backend.Core/Template.MobileServer.Backend.Core.csproj" />
+    <Project Path="Template.MobileServer.Backend.Web/Template.MobileServer.Backend.Web.csproj" />
+  </Folder>
+  <Folder Name="/Frontend/">
+    <Project Path="Template.MobileServer.Frontend/Template.MobileServer.Frontend.csproj" />
+  </Folder>
+  <Folder Name="/Shared/">
+    <Project Path="Template.MobileServer.Domain/Template.MobileServer.Domain.csproj" />
+    <Project Path="Template.MobileServer.Shared/Template.MobileServer.Api.csproj" />
+  </Folder>
+  <Folder Name="/Test/">
+    <Project Path="Template.MobileServer.Tests/Template.MobileServer.Tests.csproj" />
+  </Folder>
+</Solution>
