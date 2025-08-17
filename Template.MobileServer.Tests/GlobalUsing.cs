@@ -33,8 +33,8 @@ global using Smart;
 global using Smart.Collections.Generic;
 global using Smart.Text;
 
-global using Template.MobileServer.Api;
+//global using Template.MobileServer.Api.Models;
 global using Template.MobileServer.Backend.Models.Entity;
-global using Template.MobileServer.Domain;
+global using Template.MobileServer.Backend.Domain;
 
 global using Xunit;
