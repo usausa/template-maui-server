@@ -16,13 +16,15 @@ using Serilog;
 
 using Smart.AspNetCore;
 using Smart.AspNetCore.ApplicationModels;
-using Smart.Data.Accessor.Extensions.DependencyInjection;
 using Smart.Data;
 using Smart.Data.Accessor;
+using Smart.Data.Accessor.Extensions.DependencyInjection;
 
-using Template.MobileServer.Backend.Components.Storage;
 using Template.MobileServer.Backend.Accessor;
+using Template.MobileServer.Backend.Components.Storage;
 using Template.MobileServer.Backend.Web;
+using Template.MobileServer.Backend.Web.Application;
+using Template.MobileServer.Backend.Web.Components;
 
 //--------------------------------------------------------------------------------
 // Configure builder
@@ -53,8 +55,6 @@ builder.Host
 // Add framework Services.
 builder.Services.AddHttpContextAccessor();
 
-// TODO Settings
-
 // Route
 builder.Services.Configure<RouteOptions>(static options =>
 {
@@ -67,7 +67,7 @@ builder.Services.AddTimeLogging(static options =>
     options.Threshold = 10_000;
 });
 
-// Add services to the container.
+// Controller
 builder.Services
     .AddControllersWithViews(static options =>
     {
@@ -80,8 +80,8 @@ builder.Services
         options.JsonSerializerOptions.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All);
         options.JsonSerializerOptions.Converters.Add(new Template.MobileServer.Backend.Components.Json.DateTimeConverter());
     });
-builder.Services.AddRazorPages();
 
+// Add MudBlazor services
 builder.Services.AddMudServices(static config =>
 {
     // Snackbar
@@ -95,14 +95,20 @@ builder.Services.AddMudServices(static config =>
     config.SnackbarConfiguration.SnackbarVariant = Variant.Outlined;
 });
 
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+// TODO
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
 // Health
 builder.Services.AddHealthChecks();
 
+// TODO
 // Swagger
-builder.Services.AddSwaggerGen();
+//builder.Services.AddSwaggerGen();
 
 // Compression
 builder.Services.AddRequestDecompression();
@@ -137,11 +143,11 @@ builder.Services.AddSingleton<IDialect>(new DelegateDialect(
     static x => Regex.Replace(x, "[%_]", "[$0]")));
 builder.Services.AddDataAccessor();
 
-// Mapper
-builder.Services.AddSingleton<IMapper>(new Mapper(new MapperConfiguration(c =>
-{
-    c.AddProfile<MappingProfile>();
-})));
+// TODO Mapper
+//builder.Services.AddSingleton<IMapper>(new Mapper(new MapperConfiguration(c =>
+//{
+//    c.AddProfile<MappingProfile>();
+//})));
 
 // Storage
 builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection("Storage"));
@@ -156,6 +162,7 @@ builder.Services.AddSingleton<DataService>();
 //--------------------------------------------------------------------------------
 var app = builder.Build();
 
+// TODO 見直し
 // Startup information
 ThreadPool.GetMinThreads(out var workerThreads, out var completionPortThreads);
 app.Logger.InfoServiceStart();
@@ -163,6 +170,7 @@ app.Logger.InfoServiceSettingsEnvironment(typeof(Program).Assembly.GetName().Ver
 app.Logger.InfoServiceSettingsGC(GCSettings.IsServerGC, GCSettings.LatencyMode, GCSettings.LargeObjectHeapCompactionMode);
 app.Logger.InfoServiceSettingsThreadPool(workerThreads, completionPortThreads);
 
+// TODO 見直し
 // Prepare
 if (!File.Exists(connectionStringBuilder.DataSource))
 {
@@ -173,48 +181,64 @@ if (!File.Exists(connectionStringBuilder.DataSource))
     await accessor.InsertAsync(new DataEntity { Id = 3, Name = "Data-3" });
 }
 
+// TODO 見直し https,swagger
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseWebAssemblyDebugging();
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
+//else
+//{
+//    app.UseHsts();
+//}
+
+// TODO 見直し
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
 {
-    app.UseWebAssemblyDebugging();
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
-{
-    app.UseHsts();
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
 
-app.UseHttpsRedirection();
-
-// TODO auth?
-
-// Static files
-app.UseBlazorFrameworkFiles();
-app.UseStaticFiles();
-
+// TODO 順序
 // Health
 app.UseHealthChecks("/health");
 
 // TODO Metrics
 //app.UseHttpMetrics();
 
-// Routing
-app.UseRouting();
+// TODO auth?
+
+// TODO 順序
+// Security
+app.UseAntiforgery();
 
 // TODO Metrics
 //app.MapMetrics();
 
+// TODO 順序
 // Compression
 app.UseRequestDecompression();
 app.UseResponseCompression();
 
-app.MapRazorPages();
+// API
 app.MapControllers();
-app.MapFallbackToFile("index.html");
+
+// Blazor
+app.MapStaticAssets();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 // Initialize
 await app.InitializeAsync();
 
 // Run
 await app.RunAsync();
+
+// TODO swagger
+// TODO open telemetry
+// TODO aspire
+// TODO controller up from work
+// TODO signalR
+// TODO grpc

@@ -31,4 +31,4 @@ global using Smart.Text;
 
 //global using Template.MobileServer.Backend;
 global using Template.MobileServer.Backend.Models.Entity;
-global using Template.MobileServer.Domain;
+global using Template.MobileServer.Backend.Domain;
