@@ -12,10 +12,7 @@
     <File Path="Template.MobileServer.sln.DotSettings" />
   </Folder>
   <Folder Name="/Backend/">
-    <Project Path="Template.MobileServer.Backend.Core/Template.MobileServer.Backend.Core.csproj" />
-    <Project Path="Template.MobileServer.Backend.Web/Template.MobileServer.Backend.Web.csproj" DefaultStartup="true" />
-  </Folder>
-  <Folder Name="/Test/">
-    <Project Path="Template.MobileServer.Tests/Template.MobileServer.Tests.csproj" />
+    <Project Path="Template.MobileServer.Core/Template.MobileServer.Core.csproj" />
+    <Project Path="Template.MobileServer.Web/Template.MobileServer.Web.csproj" DefaultStartup="true" />
   </Folder>
 </Solution>
