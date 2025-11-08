@@ -13,7 +13,7 @@
   </Folder>
   <Folder Name="/Backend/">
     <Project Path="Template.MobileServer.Backend.Core/Template.MobileServer.Backend.Core.csproj" />
-    <Project Path="Template.MobileServer.Backend.Web/Template.MobileServer.Backend.Web.csproj" />
+    <Project Path="Template.MobileServer.Backend.Web/Template.MobileServer.Backend.Web.csproj" DefaultStartup="true" />
   </Folder>
   <Folder Name="/Test/">
     <Project Path="Template.MobileServer.Tests/Template.MobileServer.Tests.csproj" />
