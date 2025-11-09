@@ -72,7 +72,6 @@
   <ItemGroup>
     <Folder Include="Api\Proto\Services\" />
     <Folder Include="Api\Realtime\Hubs\" />
-    <Folder Include="Settings\" />
   </ItemGroup>
 
   <ItemGroup>

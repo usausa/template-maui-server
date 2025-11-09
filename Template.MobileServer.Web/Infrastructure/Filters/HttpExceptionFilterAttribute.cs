@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Web.Application.Filters;
+namespace Template.MobileServer.Web.Infrastructure.Filters;
 
 using Microsoft.AspNetCore.Mvc.Filters;
 

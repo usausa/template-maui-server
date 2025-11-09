@@ -1,5 +1,8 @@
-﻿@using System.Net.Http
+@using System.Net.Http
 @using System.Net.Http.Json
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components.Web
@@ -9,4 +12,9 @@
 @using MudBlazor
 @using MudBlazor.Services
 @using Template.MobileServer.Web
+@using Template.MobileServer.Web.Infrastructure.Components
 @using Template.MobileServer.Web.Components
+@using Template.MobileServer.Web.Components.Dialogs
+@using static Template.MobileServer.Web.Components.ViewHelper
+@using Template.MobileServer.Web.State
+@using Smart.AspNetCore.Components

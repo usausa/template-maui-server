@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Web.Application.Components;
+namespace Template.MobileServer.Web.Infrastructure.Components;
 
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Primitives;

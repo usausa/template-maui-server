@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Web.Application.Validation;
+namespace Template.MobileServer.Web.Infrastructure.Validation;
 
 using FluentValidation;
 using FluentValidation.Internal;

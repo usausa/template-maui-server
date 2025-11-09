@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Web.Application.Logging;
+namespace Template.MobileServer.Web.Infrastructure.Logging;
 
 using Serilog.Core;
 using Serilog.Events;
