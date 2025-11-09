@@ -1,0 +1,1 @@
+SELECT * FROM Data ORDER BY Id
