@@ -4,7 +4,7 @@
         <MudIconButton OnClick="OnCloseClick" Class="mud-button-close" Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
     </TitleContent>
     <DialogContent>
-        @Message
+        <MudText Typo="Typo.body1">@Message</MudText>
     </DialogContent>
     <DialogActions>
         <div tabindex="-1" @onkeydown="HandleKeyDown">

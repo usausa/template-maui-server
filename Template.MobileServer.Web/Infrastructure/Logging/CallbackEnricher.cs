@@ -3,6 +3,7 @@ namespace Template.MobileServer.Web.Infrastructure.Logging;
 using Serilog.Core;
 using Serilog.Events;
 
+// TODO 使用箇所
 public sealed class CallbackEnricher : ILogEventEnricher
 {
     private readonly string name;
