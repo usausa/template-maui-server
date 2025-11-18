@@ -114,6 +114,9 @@ app.UseWhen(
     c => c.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase),
     b => b.UseExceptionHandler());
 
+// Not found handler
+app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+
 // Security
 app.UseAntiforgery();
 
