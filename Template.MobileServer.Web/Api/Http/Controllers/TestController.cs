@@ -1,6 +1,6 @@
-namespace Template.MobileServer.Web.Api.Rest.Controllers;
+namespace Template.MobileServer.Web.Api.Http.Controllers;
 
-using Template.MobileServer.Web.Api.Rest.Models;
+using Template.MobileServer.Web.Api.Http.Models;
 
 public sealed class TestController : BaseApiController
 {

@@ -1,8 +1,8 @@
-namespace Template.MobileServer.Web.Application;
+//namespace Template.MobileServer.Web.Application;
 
-public sealed class MappingProfile : Profile
-{
-    //public MappingProfile()
-    //{
-    //}
-}
+//public sealed class MappingProfile : Profile
+//{
+//    //public MappingProfile()
+//    //{
+//    //}
+//}

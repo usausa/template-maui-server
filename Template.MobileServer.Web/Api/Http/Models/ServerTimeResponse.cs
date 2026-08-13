@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Web.Api.Rest.Models;
+namespace Template.MobileServer.Web.Api.Http.Models;
 
 public sealed class ServerTimeResponse
 {

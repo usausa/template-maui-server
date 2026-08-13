@@ -23,9 +23,9 @@ global using System.Text;
 global using System.Threading;
 global using System.Threading.Tasks;
 
-global using AutoMapper;
+//global using AutoMapper;
 
-global using AutoMapperFragmentConfig;
+//global using AutoMapperFragmentConfig;
 
 global using FluentValidation;
 

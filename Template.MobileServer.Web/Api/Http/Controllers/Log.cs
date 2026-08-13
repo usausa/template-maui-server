@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Web.Api.Rest.Controllers;
+namespace Template.MobileServer.Web.Api.Http.Controllers;
 
 internal static partial class Log
 {

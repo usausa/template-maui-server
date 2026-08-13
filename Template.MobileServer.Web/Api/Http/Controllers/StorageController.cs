@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Web.Api.Rest.Controllers;
+namespace Template.MobileServer.Web.Api.Http.Controllers;
 
 using Smart.AspNetCore.Filters;
 

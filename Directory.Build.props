@@ -12,12 +12,16 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>0.0.1</Version>
+    <AnalysisMode>All</AnalysisMode>
+    <AnalysisLevel>latest</AnalysisLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <PropertyGroup>
-    <AnalysisMode>All</AnalysisMode>
-    <AnalysisLevel>latest</AnalysisLevel>
+    <Version>0.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +29,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Usa.Smart.Analyzers.JapaneseComment" Version="1.3.0">
+    <PackageReference Include="Usa.Smart.Analyzers.JapaneseComment" Version="1.10.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

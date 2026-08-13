@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Web.Api.Rest;
+namespace Template.MobileServer.Web.Api.Http;
 
 using Template.MobileServer.Web.Infrastructure.Filters;
 

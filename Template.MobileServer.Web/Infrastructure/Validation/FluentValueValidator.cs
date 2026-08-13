@@ -163,7 +163,7 @@ public sealed class FluentValidationValidator : ComponentBase, IDisposable
                 var prop = obj.GetType().GetProperty(nextToken.ToString());
                 if (prop == null)
                 {
-                    throw new InvalidOperationException($"Could not find property named {nextToken.ToString()} on object of type {obj.GetType().FullName}.");
+                    throw new InvalidOperationException($"Could not find property named {nextToken} on object of type {obj.GetType().FullName}.");
                 }
                 newObj = prop.GetValue(obj);
             }

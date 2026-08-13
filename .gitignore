@@ -438,7 +438,3 @@ CLAUDE.local.md
 # Custom
 desktop.ini
 __*
-/Publish/
-/Log/
-/Storage/
-*.db

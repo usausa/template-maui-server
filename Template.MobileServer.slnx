@@ -3,16 +3,20 @@
     <File Path=".editorconfig" />
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
+    <File Path="AGENTS.md" />
     <File Path="Analyzers.ruleset" />
-    <File Path="CodeCoverage.runsettings" />
+    <File Path="CLAUDE.md" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
     <File Path="LICENSE" />
     <File Path="README.md" />
     <File Path="Template.MobileServer.sln.DotSettings" />
   </Folder>
+  <Folder Name="/Aspire/">
+    <Project Path="Template.MobileServer.AppHost/Template.MobileServer.AppHost.csproj"  DefaultStartup="true" />
+  </Folder>
   <Folder Name="/Backend/">
     <Project Path="Template.MobileServer.Core/Template.MobileServer.Core.csproj" />
-    <Project Path="Template.MobileServer.Web/Template.MobileServer.Web.csproj" DefaultStartup="true" />
+    <Project Path="Template.MobileServer.Web/Template.MobileServer.Web.csproj" />
   </Folder>
 </Solution>

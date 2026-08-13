@@ -1,6 +1,6 @@
 namespace Template.MobileServer.Web.Infrastructure.Components;
 
-using Microsoft.AspNetCore.Components.Web;
+using Template.MobileServer.Web.Components;
 
 public sealed class ErrorBoundaryLogger : IErrorBoundaryLogger
 {
