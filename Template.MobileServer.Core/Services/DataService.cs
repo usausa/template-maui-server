@@ -1,48 +1,79 @@
 namespace Template.MobileServer.Services;
 
-using Smart.Data;
-using Smart.Data.Accessor;
-
-using Template.MobileServer.Accessor;
+using Template.MobileServer.Accessors;
+using Template.MobileServer.Models.Entity;
 
 public sealed class DataService
 {
     private readonly IDialect dialect;
 
-    private readonly IDataAccessor dataAccessor;
+    private readonly DataAccessor dataAccessor;
+
+    private readonly TimeProvider timeProvider;
 
     public DataService(
         IDialect dialect,
-        IAccessorResolver<IDataAccessor> dataAccessor)
+        DataAccessor dataAccessor,
+        TimeProvider timeProvider)
     {
         this.dialect = dialect;
-        this.dataAccessor = dataAccessor.Accessor;
+        this.dataAccessor = dataAccessor;
+        this.timeProvider = timeProvider;
     }
 
-    public ValueTask<int> CountAsync() =>
-        dataAccessor.CountAsync();
+    public void CreateTable() =>
+        dataAccessor.Create();
 
-    public ValueTask<DataEntity?> QueryAsync(int id) =>
-        dataAccessor.QueryAsync(id);
+    public ValueTask<int> CountAsync(string? name) =>
+        dataAccessor.CountAsync(name);
+
+    public ValueTask<List<DataEntity>> QueryPageAsync(string? name, int offset, int size) =>
+        dataAccessor.QueryPageAsync(name, offset, size);
 
     public ValueTask<List<DataEntity>> QueryListAsync() =>
         dataAccessor.QueryListAsync();
 
-    public async ValueTask<bool> InsertAsync(DataEntity entity)
+    public ValueTask<DataEntity?> QueryAsync(long id) =>
+        dataAccessor.QueryAsync(id);
+
+    public async ValueTask<long?> InsertAsync(string name, int value)
     {
         try
         {
-            await dataAccessor.InsertAsync(entity).ConfigureAwait(false);
-            return true;
+            return await dataAccessor.InsertAsync(name, value, timeProvider.GetLocalNow().DateTime);
         }
         catch (DbException ex)
         {
             if (dialect.IsDuplicate(ex))
             {
-                return false;
+                return null;
             }
 
             throw;
         }
+    }
+
+    public async ValueTask<DataWriteStatus> UpdateAsync(long id, string name, int value)
+    {
+        try
+        {
+            var rows = await dataAccessor.UpdateAsync(id, name, value);
+            return rows > 0 ? DataWriteStatus.Success : DataWriteStatus.NotFound;
+        }
+        catch (DbException ex)
+        {
+            if (dialect.IsDuplicate(ex))
+            {
+                return DataWriteStatus.Duplicate;
+            }
+
+            throw;
+        }
+    }
+
+    public async ValueTask<bool> DeleteAsync(long id)
+    {
+        var rows = await dataAccessor.DeleteAsync(id);
+        return rows > 0;
     }
 }

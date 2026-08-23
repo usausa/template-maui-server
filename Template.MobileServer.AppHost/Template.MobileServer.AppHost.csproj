@@ -1,4 +1,4 @@
-﻿<Project Sdk="Aspire.AppHost.Sdk/13.4.6">
+<Project Sdk="Aspire.AppHost.Sdk/13.4.6">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -6,6 +6,11 @@
     <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
     <UserSecretsId>88a44644-82c7-4f1e-b4dd-5ce9dcbdf871</UserSecretsId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Transitive pin: GHSA-hv8m-jj95-wg3x -->
+    <PackageReference Include="MessagePack" Version="3.1.8" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Template.MobileServer.Web\Template.MobileServer.Web.csproj" />

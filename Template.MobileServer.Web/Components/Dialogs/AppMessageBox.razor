@@ -1,21 +1,22 @@
-<MudDialog Class="dialog-dense" DefaultFocus="DefaultFocus.LastChild">
+<MudDialog DefaultFocus="DefaultFocus.LastChild">
     <TitleContent>
         <MudText Typo="Typo.h6">@Title</MudText>
-        <MudIconButton OnClick="OnCloseClick" Class="mud-button-close" Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
     </TitleContent>
     <DialogContent>
-        <MudText Typo="Typo.body1">@Message</MudText>
+        @Message
     </DialogContent>
     <DialogActions>
         <div tabindex="-1" @onkeydown="HandleKeyDown">
             <MudFocusTrap DefaultFocus="DefaultFocus.LastChild">
-                <Condition Value="Type == MessageBoxType.Information">
+                @if (Type == MessageBoxType.Information)
+                {
                     <MudButton Color="Color.Default" OnClick="OnOkClick">OK</MudButton>
-                </Condition>
-                <Condition Value="Type == MessageBoxType.Confirm">
+                }
+                @if (Type == MessageBoxType.Confirm)
+                {
                     <MudButton Color="Color.Primary" OnClick="OnOkClick">OK</MudButton>
                     <MudButton Color="Color.Default" OnClick="OnCancelClick">CANCEL</MudButton>
-                </Condition>
+                }
             </MudFocusTrap>
         </div>
     </DialogActions>

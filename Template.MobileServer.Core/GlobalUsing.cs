@@ -28,10 +28,11 @@ global using Smart.Collections.Generic;
 global using Smart.Data;
 global using Smart.Data.Accessor;
 global using Smart.Data.Accessor.Attributes;
-global using Smart.Data.Accessor.Builders;
 global using Smart.IO;
 global using Smart.Linq;
 global using Smart.Text;
 
+// ReSharper disable MissingBlankLines
 global using Template.MobileServer.Domain;
+global using Template.MobileServer.Models;
 global using Template.MobileServer.Models.Entity;

@@ -1,6 +1,11 @@
 namespace Template.MobileServer.Web.Components.Dialogs;
 
-public sealed partial class AppMessageBox : ComponentBase
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
+
+using MudBlazor;
+
+public sealed partial class AppMessageBox
 {
     [Parameter]
     public required MessageBoxType Type { get; set; }
@@ -13,8 +18,6 @@ public sealed partial class AppMessageBox : ComponentBase
 
     [CascadingParameter]
     public required IMudDialogInstance MudDialog { get; set; }
-
-    private void OnCloseClick() => MudDialog.Close();
 
     private void OnOkClick() => MudDialog.Close(true);
 

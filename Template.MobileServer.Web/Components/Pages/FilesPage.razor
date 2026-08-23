@@ -1,0 +1,39 @@
+@page "/files"
+
+<PageTitle>Files</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Files</MudText>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudFileUpload T="IBrowserFile" FilesChanged="UploadAsync" Accept="*">
+        <CustomContent>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Upload" OnClick="@context.OpenFilePickerAsync">アップロード</MudButton>
+        </CustomContent>
+    </MudFileUpload>
+</MudStack>
+
+@if (uploading)
+{
+    <MudProgressLinear Value="progress" Color="Color.Primary" Class="mb-4" Style="max-width: 400px;" />
+}
+
+<MudSimpleTable Dense="true" Style="max-width: 640px;">
+    <thead>
+        <tr>
+            <th>ファイル名</th>
+            <th style="width: 120px;">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var entry in entries)
+        {
+            <tr>
+                <td>@entry</td>
+                <td>
+                    <MudIconButton Icon="@Icons.Material.Filled.Download" Size="Size.Small" Href="@($"api/storage/{Uri.EscapeDataString(entry)}")" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteAsync(entry)" />
+                </td>
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>

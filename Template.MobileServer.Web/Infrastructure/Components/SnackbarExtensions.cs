@@ -1,16 +1,18 @@
 namespace Template.MobileServer.Web.Infrastructure.Components;
 
+using MudBlazor;
+
 public static class SnackbarExtensions
 {
     public static Snackbar? AddInfo(this ISnackbar snackbar, string message) =>
-        snackbar.Add(message, MudBlazor.Severity.Info);
+        snackbar.Add(message, Severity.Info);
 
     public static Snackbar? AddSuccess(this ISnackbar snackbar, string message) =>
-        snackbar.Add(message, MudBlazor.Severity.Success);
+        snackbar.Add(message, Severity.Success);
 
     public static Snackbar? AddWarning(this ISnackbar snackbar, string message) =>
-        snackbar.Add(message, MudBlazor.Severity.Warning);
+        snackbar.Add(message, Severity.Warning);
 
     public static Snackbar? AddError(this ISnackbar snackbar, string message) =>
-        snackbar.Add(message, MudBlazor.Severity.Error);
+        snackbar.Add(message, Severity.Error);
 }

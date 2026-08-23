@@ -1,135 +1,81 @@
-using System.Text.Encodings.Web;
-using System.Text.Json.Serialization;
-using System.Text.Unicode;
+using Microsoft.Extensions.Hosting.WindowsServices;
 
-using Microsoft.AspNetCore.HttpLogging;
-
-using MudBlazor.Services;
-
-using Serilog;
-
-using Smart.AspNetCore.ApplicationModels;
+using Template.MobileServer.Web.Application;
 
 //--------------------------------------------------------------------------------
 // Configure builder
 //--------------------------------------------------------------------------------
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
-
-var builder = WebApplication.CreateBuilder(args);
-
-// Log
-builder.Logging.ClearProviders();
-builder.Services.AddSerilog(option => option.ReadFrom.Configuration(builder.Configuration), writeToProviders: true);
-
-// TODO
-builder.Services.AddHttpLogging(options =>
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
-    options.LoggingFields = HttpLoggingFields.RequestBody | HttpLoggingFields.ResponseBody;
-
-    options.MediaTypeOptions.AddText("application/json");
-    options.MediaTypeOptions.AddText("application/*+json");
-
-    options.RequestBodyLogLimit = 16 * 1024;
-    options.ResponseBodyLogLimit = 16 * 1024;
-    options.CombineLogs = true;
+    Args = args,
+    ContentRootPath = WindowsServiceHelpers.IsWindowsService() ? AppContext.BaseDirectory : default
 });
 
-// Add framework Services.
-builder.Services.AddHttpContextAccessor();
+// System
+builder.ConfigureSystem();
 
-// Route
-builder.Services.Configure<RouteOptions>(options =>
-{
-    options.AppendTrailingSlash = true;
-});
+// Host
+builder.ConfigureHost();
 
-// Add MudBlazor services
-builder.Services.AddMudServices();
+// Logging
+builder.ConfigureLogging();
 
-// Add services to the container.
-builder.Services
-    .AddRazorComponents()
-    .AddInteractiveServerComponents();
+// Http
+builder.ConfigureHttp();
+// API
+builder.ConfigureApi();
+// Authentication
+builder.ConfigureAuthentication();
+// OpenApi
+builder.ConfigureOpenApi();
 
-// Add controller
-builder.Services
-    .AddControllers(options =>
-    {
-        options.Conventions.Add(new LowercaseControllerModelConvention());
-    })
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-        options.JsonSerializerOptions.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All);
-        options.JsonSerializerOptions.Converters.Add(new Template.MobileServer.Components.Json.DateTimeConverter());
-    });
+// Blazor
+builder.ConfigureBlazor();
 
-// Open API
-builder.Services.AddOpenApi();
+// Health
+builder.ConfigureHealth();
+// Metrics
+builder.ConfigureTelemetry();
 
-// TODO
-// Rate limit
-//var rateLimitSetting = builder.Configuration.GetSection("RateLimit").Get<RateLimitSetting>()!;
-//builder.Services.AddRateLimiter(config =>
-//{
-//    config.AddFixedWindowLimiter(LimitPolicy.Gateway, options =>
-//    {
-//        options.Window = TimeSpan.FromMilliseconds(rateLimitSetting.Window);
-//        options.PermitLimit = rateLimitSetting.PermitLimit;
-//        options.QueueLimit = rateLimitSetting.QueueLimit;
-//    });
-//    config.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-//});
-
-// Error handler
-builder.Services.AddProblemDetails();
-
-// Service
-// TODO
-//builder.Services.AddSingleton<DataService>();
-
-// Component
-// TODO
-
-// State
-// TODO
-//builder.Services.AddScoped<SessionState>();
+// Components
+builder.ConfigureComponents();
 
 //--------------------------------------------------------------------------------
 // Configure the HTTP request pipeline.
 //--------------------------------------------------------------------------------
 var app = builder.Build();
 
-app.MapOpenApi("/swagger/v1/swagger.json");
-app.UseSwaggerUI();
+// Startup information
+app.LogStartupInformation();
 
-// TODO
-// Logging
-app.UseWhen(
-    c => c.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase),
-    b => b.UseHttpLogging());
+// Forwarded headers
+app.UseForwardedHeaders();
 
 // Error handler
-app.UseWhen(
-    c => c.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase),
-    b => b.UseExceptionHandler());
+app.UseErrorHandler();
 
-// Not found handler
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+// Logging
+app.UseLogging();
 
-// Security
+// Authentication
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseAntiforgery();
 
-// Rate limit
-// TODO
-//app.UseRateLimiter();
+// Logging context
+app.UseLoggingContext();
 
-// Blazor
-app.MapStaticAssets();
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+// End point
+app.MapEndpoints();
 
-// API
-app.MapControllers();
+// Initialize
+await app.InitializeApplicationAsync();
 
-app.Run();
+// Run
+await app.RunAsync();
+
+[ExcludeFromCodeCoverage]
+public partial class Program
+{
+}

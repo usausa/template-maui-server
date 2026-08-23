@@ -1,6 +1,8 @@
 namespace Template.MobileServer.Web.Infrastructure.Components;
 
-using Template.MobileServer.Web.Components;
+using Microsoft.AspNetCore.Components.Web;
+
+using Template.MobileServer.Web.Application;
 
 public sealed class ErrorBoundaryLogger : IErrorBoundaryLogger
 {
@@ -13,7 +15,7 @@ public sealed class ErrorBoundaryLogger : IErrorBoundaryLogger
 
     public ValueTask LogErrorAsync(Exception exception)
     {
-        log.ErrorUnknownException(exception);
+        log.ErrorUnhandledException(exception);
         return ValueTask.CompletedTask;
     }
 }

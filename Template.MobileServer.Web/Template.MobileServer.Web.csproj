@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -7,13 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!--
-    <PackageReference Include="AutoMapper" Version="[14.0.0,15.0.0)" />
-    <PackageReference Include="AutoMapperFragmentConfig" Version="1.4.2" />
-    -->
     <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.11" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.11" />
+    <!-- Transitive pin: GHSA-v5pm-xwqc-g5wc -->
+    <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
+    <!-- Transitive pin: GHSA-2m69-gcr7-jv3q -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.11" />
     <PackageReference Include="Microsoft.FeatureManagement" Version="4.6.0" />
@@ -22,8 +23,9 @@
     <PackageReference Include="MiniDataProfiler.Listener.Logging" Version="1.5.0" />
     <PackageReference Include="MiniDataProfiler.Listener.OpenTelemetry" Version="1.5.0" />
     <PackageReference Include="MudBlazor" Version="9.8.0" />
+    <PackageReference Include="NSwag.AspNetCore" Version="14.7.1" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />
-    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.7.0-rc.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.HttpListener" Version="1.14.0-beta.1" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.17.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.17.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.17.0" />
@@ -33,15 +35,9 @@
     <PackageReference Include="Serilog.Enrichers.Span" Version="3.1.0" />
     <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.3" />
-    <PackageReference Include="System.Linq.Async" Version="7.0.1" />
-    <PackageReference Include="System.Reactive" Version="7.0.0" />
-    <PackageReference Include="Usa.Smart.AspNetCore" Version="2.14.0" />
-    <PackageReference Include="Usa.Smart.Blazor" Version="2.3.0" />
     <PackageReference Include="Usa.Smart.Core" Version="2.16.0" />
-    <PackageReference Include="Usa.Smart.Data.Accessor" Version="2.14.0" />
-    <PackageReference Include="Usa.Smart.Reactive" Version="2.15.0" />
-    <PackageReference Include="Usa.Smart.Text.Japanese" Version="2.10.0" />
+    <PackageReference Include="Usa.Smart.Data.Accessor.Extensions.DependencyInjection" Version="3.0.0-beta4" />
+    <PackageReference Include="Usa.Smart.Mapper" Version="1.0.0-beta4" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,26 +46,6 @@
 
   <ItemGroup>
     <Content Update="appsettings.*.json" CopyToPublishDirectory="Never" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="libman.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-    </Content>
-    <Content Update="bundleconfig.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Api\Rpc\EndPoints\" />
-    <Folder Include="Api\Realtime\Hubs\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <SqlFiles Remove="新しいフォルダー\**" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,0 @@
-CREATE TABLE IF NOT EXISTS Data (
-    Id    INTEGER  NOT NULL,
-    Name  TEXT     NOT NULL,
-    PRIMARY KEY (Id)
-);

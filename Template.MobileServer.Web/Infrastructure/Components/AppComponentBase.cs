@@ -1,15 +1,12 @@
 namespace Template.MobileServer.Web.Infrastructure.Components;
 
+using Microsoft.AspNetCore.Components;
+
 public abstract class AppComponentBase : ComponentBase, IDisposable
 {
-    private CompositeDisposable? disposables;
+    private List<IDisposable>? disposables;
 
     protected ICollection<IDisposable> Disposables => disposables ??= [];
-
-    ~AppComponentBase()
-    {
-        Dispose(false);
-    }
 
     public void Dispose()
     {
@@ -19,9 +16,14 @@ public abstract class AppComponentBase : ComponentBase, IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing)
+        if (disposing && (disposables is not null))
         {
-            disposables?.Dispose();
+            foreach (var disposable in disposables)
+            {
+                disposable.Dispose();
+            }
+
+            disposables = null;
         }
     }
 }
