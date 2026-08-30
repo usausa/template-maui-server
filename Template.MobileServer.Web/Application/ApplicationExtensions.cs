@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -243,6 +244,29 @@ public static class ApplicationExtensions
         builder.Services.AddAuthorization();
 
         return builder;
+    }
+
+    //--------------------------------------------------------------------------------
+    // Compress
+    //--------------------------------------------------------------------------------
+
+    public static IHostApplicationBuilder ConfigureCompression(this IHostApplicationBuilder builder)
+    {
+        builder.Services.AddResponseCompression(static options =>
+        {
+            options.EnableForHttps = true;
+            options.Providers.Add<BrotliCompressionProvider>();
+            options.Providers.Add<GzipCompressionProvider>();
+        });
+
+        return builder;
+    }
+
+    public static WebApplication UseCompression(this WebApplication app)
+    {
+        app.UseResponseCompression();
+
+        return app;
     }
 
     //--------------------------------------------------------------------------------
