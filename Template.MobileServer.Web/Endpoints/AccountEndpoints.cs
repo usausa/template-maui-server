@@ -21,6 +21,7 @@ public static class AccountEndpoints
     // Handler
     //--------------------------------------------------------------------------------
 
+    // [MEMO] モバイル契約維持: IdのみでJWTを発行する(Accountテーブルとの照合は行わない)
     private static Ok<AccountLoginResponse> HandleLogin(
         AccountLoginRequest request,
         TokenService tokenService) =>

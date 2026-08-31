@@ -5,7 +5,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
     <AspireUseCliBundle>true</AspireUseCliBundle>
-    <UserSecretsId>88a44644-82c7-4f1e-b4dd-5ce9dcbdf871</UserSecretsId>
+    <UserSecretsId>0d8f8f34-d568-4e0e-a352-e110c487090b</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

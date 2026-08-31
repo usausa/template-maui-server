@@ -13,7 +13,7 @@ public sealed partial class DataAccessor
     public partial ValueTask<List<DataEntity>> QueryPageAsync(string? name, int offset, int size);
 
     [Query]
-    public partial ValueTask<List<DataEntity>> QueryListAsync();
+    public partial ValueTask<List<DataEntity>> QueryAllAsync();
 
     [QueryFirst]
     public partial ValueTask<DataEntity?> QueryAsync(long id);

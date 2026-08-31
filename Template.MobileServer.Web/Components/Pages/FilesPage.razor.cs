@@ -6,14 +6,22 @@ using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 
 using Template.MobileServer.Infrastructure.Storage;
+using Template.MobileServer.Web.Components.Dialogs;
 using Template.MobileServer.Web.Infrastructure.Components;
 using Template.MobileServer.Web.Infrastructure.IO;
 
+// ストレージブラウザ(ディレクトリ階層のブラウズ/アップロード/ダウンロード/削除/フォルダ作成)
 public sealed partial class FilesPage
 {
     private const long MaxFileSize = 100L * 1024 * 1024;
 
-    private string[] entries = [];
+    private List<StorageEntry> entries = [];
+
+    private List<BreadcrumbItem> breadcrumbs = [];
+
+    private string currentPath = string.Empty;
+
+    private bool loading;
 
     private bool uploading;
 
@@ -28,12 +36,117 @@ public sealed partial class FilesPage
     [Inject]
     public required ISnackbar Snackbar { get; set; }
 
-    protected override Task OnInitializedAsync() =>
-        LoadAsync();
+    [Inject]
+    public required NavigationManager Navigation { get; set; }
+
+    [Parameter]
+    public string? Path { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        currentPath = (Path ?? string.Empty).Trim('/');
+        BuildBreadcrumbs();
+        await LoadAsync();
+    }
+
+    //--------------------------------------------------------------------------------
+    // Navigation
+    //--------------------------------------------------------------------------------
+
+    private void BuildBreadcrumbs()
+    {
+        breadcrumbs = [new BreadcrumbItem("ホーム", "files", disabled: currentPath.Length == 0)];
+
+        if (currentPath.Length > 0)
+        {
+            var segments = currentPath.Split('/');
+            var path = string.Empty;
+            for (var i = 0; i < segments.Length; i++)
+            {
+                path = path.Length == 0 ? segments[i] : path + "/" + segments[i];
+                breadcrumbs.Add(new BreadcrumbItem(segments[i], "files/" + EscapePath(path), disabled: i == segments.Length - 1));
+            }
+        }
+    }
+
+    private void MoveTo(string name) =>
+        Navigation.NavigateTo("files/" + EscapePath(MakeItemPath(name)));
+
+    private string MakeItemPath(string name) =>
+        currentPath.Length == 0 ? name : currentPath + "/" + name;
+
+    private string MakeDownloadUrl(string name) =>
+        "api/storage/" + EscapePath(MakeItemPath(name));
+
+    private static string EscapePath(string path) =>
+        String.Join('/', path.Split('/').Select(Uri.EscapeDataString));
+
+    //--------------------------------------------------------------------------------
+    // Operation
+    //--------------------------------------------------------------------------------
 
     private async Task LoadAsync()
     {
-        entries = await Storage.ListAsync(string.Empty);
+        loading = true;
+        try
+        {
+            if (await Storage.DirectoryExistsAsync(currentPath))
+            {
+                var list = await Storage.ListEntriesAsync(currentPath);
+                // ディレクトリ優先ソート
+                entries = list
+                    .OrderByDescending(static x => x.IsDirectory)
+                    .ThenBy(static x => x.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+            }
+            else
+            {
+                entries = [];
+                Snackbar.AddError("ディレクトリが存在しません。");
+            }
+        }
+        catch (StorageException)
+        {
+            entries = [];
+            Snackbar.AddError("不正なパスです。");
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task CreateDirectoryAsync()
+    {
+        var reference = await DialogService.ShowAsync<InputDialog>(
+            string.Empty,
+            new DialogParameters
+            {
+                { nameof(InputDialog.Title), "フォルダ作成" },
+                { nameof(InputDialog.Label), "フォルダ名" }
+            });
+        var result = await reference.Result;
+        if (result is not { Canceled: false })
+        {
+            return;
+        }
+
+        var name = (string)result.Data!;
+        try
+        {
+            await Storage.CreateDirectoryAsync(MakeItemPath(name));
+            Snackbar.AddSuccess($"{name} を作成しました。");
+        }
+        catch (StorageException)
+        {
+            Snackbar.AddError("不正なフォルダ名です。");
+        }
+        catch (IOException)
+        {
+            Snackbar.AddError("フォルダの作成に失敗しました。");
+        }
+
+        await LoadAsync();
     }
 
     private async Task UploadAsync(IBrowserFile? file)
@@ -47,10 +160,10 @@ public sealed partial class FilesPage
         progress = 0;
         try
         {
-            var fileName = Path.GetFileName(file.Name);
+            var fileName = System.IO.Path.GetFileName(file.Name);
             await using var browser = file.OpenReadStream(MaxFileSize);
             await using var progressStream = new ReadProgressStream(browser, file.Size, OnProgress);
-            await Storage.WriteAsync(fileName, progressStream);
+            await Storage.WriteAsync(MakeItemPath(fileName), progressStream);
 
             Snackbar.AddSuccess($"{fileName} をアップロードしました。");
         }
@@ -75,14 +188,18 @@ public sealed partial class FilesPage
         });
     }
 
-    private async Task DeleteAsync(string entry)
+    private async Task DeleteAsync(StorageEntry entry)
     {
-        if (!await DialogService.ShowConfirm("ファイル削除", $"{entry} を削除してよろしいですか？"))
+        var caption = entry.IsDirectory ? "フォルダ削除" : "ファイル削除";
+        var message = entry.IsDirectory
+            ? $"{entry.Name} を配下も含めて削除してよろしいですか？"
+            : $"{entry.Name} を削除してよろしいですか？";
+        if (!await DialogService.ShowConfirm(caption, message))
         {
             return;
         }
 
-        await Storage.DeleteAsync(entry);
+        await Storage.DeleteAsync(MakeItemPath(entry.Name));
         Snackbar.AddSuccess("削除しました。");
         await LoadAsync();
     }

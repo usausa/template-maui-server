@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 
 using Template.MobileServer.Web.Settings;
 
+// モバイルAPI用のJWTトークン発行
 public sealed class TokenService
 {
     private static readonly JsonWebTokenHandler Handler = new();

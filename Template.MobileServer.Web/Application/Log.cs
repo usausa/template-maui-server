@@ -22,6 +22,17 @@ internal static partial class Log
     [LoggerMessage(Level = LogLevel.Information, Message = "Telemetry: otelEndPoint=[{otelEndPoint}], prometheusUri=[{prometheusUri}]")]
     public static partial void InfoServiceSettingsTelemetry(this ILogger logger, string otelEndPoint, string prometheusUri);
 
+    // Worker
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Worker disabled. worker=[{worker}]")]
+    public static partial void InfoWorkerDisabled(this ILogger logger, string worker);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Worker start. worker=[{worker}]")]
+    public static partial void InfoWorkerStart(this ILogger logger, string worker);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Worker stop. worker=[{worker}]")]
+    public static partial void InfoWorkerStop(this ILogger logger, string worker);
+
     // Error
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Unhandled exception.")]

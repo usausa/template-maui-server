@@ -1,4 +1,5 @@
 @page "/data"
+@attribute [Authorize]
 
 <PageTitle>Data</PageTitle>
 
@@ -25,7 +26,9 @@
         <TemplateColumn Title="操作" CellStyle="width: 120px;">
             <CellTemplate>
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditAsync(context.Item)" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteAsync(context.Item)" />
+                <AuthorizeView Roles="@Roles.Administrator" Context="auth">
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteAsync(context.Item)" />
+                </AuthorizeView>
             </CellTemplate>
         </TemplateColumn>
     </Columns>

@@ -1,6 +1,7 @@
 namespace Template.MobileServer.Web.Endpoints;
 
 using Template.MobileServer.Web.Application;
+using Template.MobileServer.Web.Mappers;
 using Template.MobileServer.Web.Models.Api;
 using Template.MobileServer.Web.Models.Data;
 
@@ -14,14 +15,14 @@ public static class DataEndpoints
     {
         var group = app.MapGroup(ApiRoutes.Data);
 
-        // モバイルクライアント向け(HttpService の契約)
+        // モバイルクライアント向け(HttpServiceの契約、匿名)
         group.MapGet("/list", HandleListAsync);
 
-        // CRUD (要認証)
-        group.MapGet("/{id:long}", HandleGetAsync).RequireAuthorization();
-        group.MapPost("/", HandleCreateAsync).RequireAuthorization();
-        group.MapPut("/{id:long}", HandleUpdateAsync).RequireAuthorization();
-        group.MapDelete("/{id:long}", HandleDeleteAsync).RequireAuthorization();
+        // CRUD (JWT認証)
+        group.MapGet("/{id:long}", HandleGetAsync).RequireAuthorization(Policies.MobileApi);
+        group.MapPost("/", HandleCreateAsync).RequireAuthorization(Policies.MobileApi);
+        group.MapPut("/{id:long}", HandleUpdateAsync).RequireAuthorization(Policies.MobileApi);
+        group.MapDelete("/{id:long}", HandleDeleteAsync).RequireAuthorization(Policies.MobileApi);
     }
 
     //--------------------------------------------------------------------------------
@@ -30,7 +31,7 @@ public static class DataEndpoints
 
     private static async ValueTask<IResult> HandleListAsync(DataService dataService)
     {
-        var entities = await dataService.QueryListAsync();
+        var entities = await dataService.QueryAllAsync();
         return TypedResults.Ok(new DataListResponse
         {
             Entries = entities.Select(static x => new DataListResponseEntry { Id = x.Id, Name = x.Name }).ToList()
@@ -43,7 +44,7 @@ public static class DataEndpoints
     {
         var entity = await dataService.QueryAsync(id);
         return entity is not null
-            ? TypedResults.Ok(MapToResponse(entity))
+            ? TypedResults.Ok(DataMapper.ToResponse(entity))
             : TypedResults.NotFound();
     }
 
@@ -78,11 +79,4 @@ public static class DataEndpoints
         var deleted = await dataService.DeleteAsync(id);
         return deleted ? TypedResults.NoContent() : TypedResults.NotFound();
     }
-
-    //--------------------------------------------------------------------------------
-    // Mapper
-    //--------------------------------------------------------------------------------
-
-    private static DataResponse MapToResponse(DataEntity entity) =>
-        new(entity.Id, entity.Name, entity.Value, entity.CreatedAt);
 }

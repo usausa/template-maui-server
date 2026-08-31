@@ -1,0 +1,49 @@
+@page "/qr"
+@attribute [Authorize]
+
+<PageTitle>QR</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">QR</MudText>
+
+<MudText Class="mb-4">モバイルアプリの設定画面でQRコードを読み取ると、各値が端末に設定されます。空欄の項目はQRコードに含まれません。</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="6">
+        <MudTextField @bind-Value="apiEndPoint"
+                      @bind-Value:after="Update"
+                      Label="ApiEndPoint"
+                      Immediate="true"
+                      Class="mb-2" />
+        <MudTextField @bind-Value="monitorEndPoint"
+                      @bind-Value:after="Update"
+                      Label="MonitorEndPoint"
+                      Immediate="true"
+                      Class="mb-2" />
+        <MudTextField @bind-Value="aiServiceEndPoint"
+                      @bind-Value:after="Update"
+                      Label="AIServiceEndPoint"
+                      Immediate="true"
+                      Class="mb-2" />
+        <MudTextField @bind-Value="aiServiceKey"
+                      @bind-Value:after="Update"
+                      Label="AIServiceKey"
+                      Immediate="true"
+                      Class="mb-2" />
+    </MudItem>
+    <MudItem xs="12" md="6">
+        @if (!String.IsNullOrEmpty(qrImage))
+        {
+            <MudPaper Outlined="true" Class="pa-4 d-inline-block">
+                <img src="@qrImage" alt="設定QRコード" width="240" height="240" />
+            </MudPaper>
+            <MudText Typo="Typo.caption" Class="mt-4 d-block">生成値</MudText>
+            <MudPaper Outlined="true" Class="pa-2" Style="max-width: 480px;">
+                <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">@qrText</pre>
+            </MudPaper>
+        }
+        else
+        {
+            <MudText>値を入力するとQRコードが表示されます。</MudText>
+        }
+    </MudItem>
+</MudGrid>

@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Text.Unicode;
 
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpLogging;
@@ -35,10 +36,12 @@ using Serilog;
 using Smart.Data;
 
 using Template.MobileServer.Accessors;
+using Template.MobileServer.Infrastructure.Security;
 using Template.MobileServer.Infrastructure.Storage;
 using Template.MobileServer.Web.Application.Telemetry;
 using Template.MobileServer.Web.Components;
 using Template.MobileServer.Web.Endpoints;
+using Template.MobileServer.Web.Handlers;
 using Template.MobileServer.Web.Infrastructure.Authentication;
 using Template.MobileServer.Web.Infrastructure.ExceptionHandling;
 using Template.MobileServer.Web.Infrastructure.HealthChecks;
@@ -151,6 +154,9 @@ public static class ApplicationExtensions
             options.Limits.MaxRequestBodySize = Int32.MaxValue;
         });
 
+        // gzipリクエスト展開(MAUIクライアントはContent-Encoding: gzipで生ボディを送信する)
+        builder.Services.AddRequestDecompression();
+
         // XForward
         builder.Services.Configure<ForwardedHeadersOptions>(static options =>
         {
@@ -216,32 +222,93 @@ public static class ApplicationExtensions
     }
 
     //--------------------------------------------------------------------------------
+    // gRPC
+    //--------------------------------------------------------------------------------
+
+    public static IHostApplicationBuilder ConfigureGrpc(this IHostApplicationBuilder builder)
+    {
+        // gRPC (チャット)
+        builder.Services.AddGrpc();
+
+        return builder;
+    }
+
+    //--------------------------------------------------------------------------------
     // Authentication
     //--------------------------------------------------------------------------------
 
     public static IHostApplicationBuilder ConfigureAuthentication(this IHostApplicationBuilder builder)
     {
-        var setting = builder.Configuration.GetSection("Jwt").Get<JwtSetting>()!;
+        var setting = builder.Configuration.GetSection("Auth").Get<AuthSetting>()!;
+        var jwtSetting = builder.Configuration.GetSection("Jwt").Get<JwtSetting>()!;
+        var isDevelopment = builder.Environment.IsDevelopment();
 
+        // 2スキーム構成: 管理画面=Cookie(既定)、モバイルAPI=JWT Bearer
         builder.Services
-            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/login";
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(setting.ExpireMinutes);
+                options.SlidingExpiration = true;
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.SecurePolicy = isDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+
+                // API returns status code instead of redirect
+                options.Events = new CookieAuthenticationEvents
+                {
+                    OnRedirectToLogin = static context =>
+                    {
+                        if (context.Request.Path.StartsWithSegments(ApiPathPrefix, StringComparison.OrdinalIgnoreCase))
+                        {
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        }
+                        else
+                        {
+                            context.Response.Redirect(context.RedirectUri);
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                    OnRedirectToAccessDenied = static context =>
+                    {
+                        if (context.Request.Path.StartsWithSegments(ApiPathPrefix, StringComparison.OrdinalIgnoreCase))
+                        {
+                            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        }
+                        else
+                        {
+                            context.Response.Redirect(context.RedirectUri);
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                };
+            })
             .AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuer = setting.Issuer,
+                    ValidIssuer = jwtSetting.Issuer,
                     ValidateAudience = true,
-                    ValidAudience = setting.Audience,
+                    ValidAudience = jwtSetting.Audience,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(setting.SecretKey)),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSetting.SecretKey)),
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.FromSeconds(30),
                     NameClaimType = ClaimTypes.NameIdentifier
                 };
             });
 
-        builder.Services.AddAuthorization();
+        builder.Services.AddAuthorization(static options =>
+        {
+            options.AddPolicy(Policies.Administrator, static policy => policy.RequireRole(Roles.Administrator));
+            options.AddPolicy(Policies.MobileApi, new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme).RequireAuthenticatedUser().Build());
+        });
+
+        builder.Services.AddCascadingAuthenticationState();
 
         return builder;
     }
@@ -465,19 +532,34 @@ public static class ApplicationExtensions
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<FileStorageOptions>>().Value);
         builder.Services.AddSingleton<IStorage, FileStorage>();
 
-        // Authentication
+        // Security
+        builder.Services.AddSingleton(new DefaultPasswordProviderOptions());
+        builder.Services.AddSingleton<IPasswordProvider, DefaultPasswordProvider>();
+
+        // Authentication (モバイルAPI用JWT発行)
         builder.Services.AddSingleton<TokenService>();
 
         // Service & Usecase
         builder.Services.AddCoreServices();
+
+        // Notification
+        builder.Services.AddSingleton<Infrastructure.Notifications.NotificationBus>();
+        builder.Services.AddHostedService<Workers.NotificationWorker>();
+
+        // Chat (gRPC/Blazor共用のプロセス内ハブ)
+        builder.Services.AddSingleton<Infrastructure.Chat.ChatService>();
 
         // Setting
         builder.Services.AddOptions<ProfilerSetting>().BindConfiguration("Profiler").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<ProfilerSetting>>().Value);
         builder.Services.AddOptions<LogSetting>().BindConfiguration("Log").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<LogSetting>>().Value);
+        builder.Services.AddOptions<AuthSetting>().BindConfiguration("Auth").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<AuthSetting>>().Value);
         builder.Services.AddOptions<JwtSetting>().BindConfiguration("Jwt").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<JwtSetting>>().Value);
+        builder.Services.AddOptions<WorkerSetting>().BindConfiguration("Worker").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<WorkerSetting>>().Value);
 
         return builder;
     }
@@ -490,10 +572,10 @@ public static class ApplicationExtensions
     {
         ThreadPool.GetMinThreads(out var workerThreads, out var completionPortThreads);
 
-        var version = typeof(Program).Assembly.GetName().Version;
-        var otelEndpoint = app.Configuration.GetOtelExporterEndpoint();
         var prometheusSection = app.Configuration.GetSection("Prometheus");
         var prometheusUri = prometheusSection.GetValue("Uri", string.Empty);
+        var version = typeof(Program).Assembly.GetName().Version;
+        var otelEndpoint = app.Configuration.GetOtelExporterEndpoint();
 
         app.Logger.InfoServiceStart();
         app.Logger.InfoServiceSettingsRuntime(RuntimeInformation.OSDescription, RuntimeInformation.FrameworkDescription, RuntimeInformation.RuntimeIdentifier);
@@ -535,13 +617,19 @@ public static class ApplicationExtensions
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
 
-        // API
+        // Auth (管理画面用)
+        app.MapAuthEndpoints();
+
+        // API (モバイル契約)
         app.MapServerEndpoints();
         app.MapAccountEndpoints();
         app.MapSecretEndpoints();
         app.MapDataEndpoints();
         app.MapStorageEndpoints();
         app.MapTestEndpoints();
+
+        // gRPC (チャット、認証はハンドラーの[Authorize]でJWT Bearer)
+        app.MapGrpcService<ChatHandler>();
 
         // Health
         app.MapHealthChecks(HealthEndpointPath);
@@ -568,7 +656,8 @@ public static class ApplicationExtensions
         // Prepare database
         app.Services.GetRequiredService<DataService>().CreateTable();
 
-        return ValueTask.CompletedTask;
+        var setting = app.Services.GetRequiredService<AuthSetting>();
+        return app.Services.GetRequiredService<AccountService>().InitializeAsync(setting.InitialId, setting.InitialPassword, Roles.Administrator);
     }
 
     //--------------------------------------------------------------------------------

@@ -30,8 +30,8 @@ public sealed class DataService
     public ValueTask<List<DataEntity>> QueryPageAsync(string? name, int offset, int size) =>
         dataAccessor.QueryPageAsync(name, offset, size);
 
-    public ValueTask<List<DataEntity>> QueryListAsync() =>
-        dataAccessor.QueryListAsync();
+    public ValueTask<List<DataEntity>> QueryAllAsync() =>
+        dataAccessor.QueryAllAsync();
 
     public ValueTask<DataEntity?> QueryAsync(long id) =>
         dataAccessor.QueryAsync(id);

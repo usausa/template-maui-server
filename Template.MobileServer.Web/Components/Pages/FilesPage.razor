@@ -1,10 +1,16 @@
 @page "/files"
+@page "/files/{*Path}"
+@attribute [Authorize]
 
 <PageTitle>Files</PageTitle>
 
 <MudText Typo="Typo.h4" Class="mb-4">Files</MudText>
 
+<MudBreadcrumbs Items="breadcrumbs" Class="pa-0 mb-2" />
+
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadAsync">更新</MudButton>
+    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CreateNewFolder" OnClick="CreateDirectoryAsync">フォルダ作成</MudButton>
     <MudFileUpload T="IBrowserFile" FilesChanged="UploadAsync" Accept="*">
         <CustomContent>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Upload" OnClick="@context.OpenFilePickerAsync">アップロード</MudButton>
@@ -17,23 +23,34 @@
     <MudProgressLinear Value="progress" Color="Color.Primary" Class="mb-4" Style="max-width: 400px;" />
 }
 
-<MudSimpleTable Dense="true" Style="max-width: 640px;">
-    <thead>
-        <tr>
-            <th>ファイル名</th>
-            <th style="width: 120px;">操作</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var entry in entries)
-        {
-            <tr>
-                <td>@entry</td>
-                <td>
-                    <MudIconButton Icon="@Icons.Material.Filled.Download" Size="Size.Small" Href="@($"api/storage/{Uri.EscapeDataString(entry)}")" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteAsync(entry)" />
-                </td>
-            </tr>
-        }
-    </tbody>
-</MudSimpleTable>
+<MudTable Items="entries" Dense="true" Hover="true" Loading="loading" Style="max-width: 960px;">
+    <HeaderContent>
+        <MudTh Style="width: 48px;"></MudTh>
+        <MudTh>名前</MudTh>
+        <MudTh Style="width: 120px; text-align: right;">サイズ</MudTh>
+        <MudTh Style="width: 180px;">更新日時</MudTh>
+        <MudTh Style="width: 120px;">操作</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd><MudIcon Icon="@ViewHelper.GetIcon(context)" Size="Size.Small" /></MudTd>
+        <MudTd>
+            @if (context.IsDirectory)
+            {
+                <MudLink OnClick="() => MoveTo(context.Name)">@context.Name</MudLink>
+            }
+            else
+            {
+                @context.Name
+            }
+        </MudTd>
+        <MudTd Style="text-align: right;">@ViewHelper.FormatSize(context)</MudTd>
+        <MudTd>@ViewHelper.FormatTimestamp(context.LastModified)</MudTd>
+        <MudTd>
+            @if (!context.IsDirectory)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.Download" Size="Size.Small" Href="@MakeDownloadUrl(context.Name)" />
+            }
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteAsync(context)" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>

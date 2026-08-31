@@ -1,4 +1,5 @@
 @page "/"
+@attribute [Authorize]
 @inherits AppComponentBase
 
 <PageTitle>Home</PageTitle>
@@ -6,7 +7,29 @@
 <MudText Typo="Typo.h4">Home</MudText>
 <MudText Class="mt-2">Template.MobileServer</MudText>
 
+<MudSimpleTable Dense="true" Class="mt-4" Style="max-width: 480px;">
+    <tbody>
+        <tr>
+            <td>サーバー時刻</td>
+            <td>@serverTime</td>
+        </tr>
+        <tr>
+            <td>ストレージ使用量</td>
+            <td>@storageUsage</td>
+        </tr>
+        <tr>
+            <td>Data件数</td>
+            <td>@dataCount</td>
+        </tr>
+    </tbody>
+</MudSimpleTable>
+
 @if (featureEnabled)
 {
     <MudChip T="string" Color="Color.Success" Class="mt-4">Feature: CustomOption 有効</MudChip>
+}
+
+@if (!String.IsNullOrEmpty(lastNotification))
+{
+    <MudAlert Severity="Severity.Info" Class="mt-4" Style="max-width: 400px;">@lastNotification</MudAlert>
 }

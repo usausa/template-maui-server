@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Hosting.WindowsServices;
 
-using Template.MobileServer.Web.Application;
-
 //--------------------------------------------------------------------------------
 // Configure builder
 //--------------------------------------------------------------------------------
@@ -25,6 +23,8 @@ builder.ConfigureLogging();
 builder.ConfigureHttp();
 // API
 builder.ConfigureApi();
+// gRPC
+builder.ConfigureGrpc();
 // Authentication
 builder.ConfigureAuthentication();
 // Compress
@@ -62,6 +62,9 @@ app.UseCompression();
 
 // Logging
 app.UseLogging();
+
+// gzipリクエスト展開(Content-Encoding: gzipのアップロード対応)
+app.UseRequestDecompression();
 
 // Authentication
 app.UseAuthentication();

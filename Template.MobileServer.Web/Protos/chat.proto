@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option csharp_namespace = "Template.MobileServer.Chat";
+
+package chat;
+
+// チャットサービス定義
+service ChatRoom {
+  // 双方向ストリーミングで接続する(送信メッセージは全参加者へブロードキャスト)
+  rpc Connect (stream ChatMessage) returns (stream ChatMessage);
+}
+
+// チャットメッセージ
+message ChatMessage {
+  // ユーザー名(サーバー側でJWTのユーザー名に上書き)
+  string user = 1;
+  // 本文
+  string text = 2;
+  // タイムスタンプ(Unixミリ秒、サーバー側で設定)
+  int64 timestamp = 3;
+}

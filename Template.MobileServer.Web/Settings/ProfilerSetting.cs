@@ -1,5 +1,6 @@
 namespace Template.MobileServer.Web.Settings;
 
+#pragma warning disable CA1034
 public sealed class ProfilerSetting
 {
     [Required]
@@ -23,3 +24,4 @@ public sealed class ProfilerSetting
         public bool Enable { get; set; }
     }
 }
+#pragma warning restore CA1034

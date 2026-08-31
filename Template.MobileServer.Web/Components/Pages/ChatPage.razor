@@ -1,0 +1,27 @@
+@page "/chat"
+@attribute [Authorize]
+@inherits AppComponentBase
+
+<PageTitle>Chat</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Chat</MudText>
+
+<MudPaper id="chat-messages" Outlined="true" Class="pa-4 mb-4" Style="max-width: 720px; height: 480px; overflow-y: auto;">
+    <MudStack Spacing="2">
+        @foreach (var entry in entries)
+        {
+            <div>
+                <MudText Typo="Typo.caption">@entry.User - @ViewHelper.FormatTimestamp(entry.Timestamp.ToLocalTime().DateTime)</MudText>
+                <MudText>@entry.Text</MudText>
+            </div>
+        }
+    </MudStack>
+</MudPaper>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Style="max-width: 720px;">
+    <MudTextField @bind-Value="input"
+                  Label="メッセージ"
+                  Immediate="true"
+                  OnKeyDown="OnInputKeyDown" />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Send" OnClick="Send">送信</MudButton>
+</MudStack>

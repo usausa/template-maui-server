@@ -38,14 +38,35 @@ public sealed class FileStorage : IStorage
         return ValueTask.FromResult(Directory.Exists(path));
     }
 
-    public ValueTask<string[]> ListAsync(string path, CancellationToken cancellationToken = default)
+    public ValueTask<List<StorageEntry>> ListEntriesAsync(string path, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         path = NormalizePath(path);
-#pragma warning disable CS8619
-        return ValueTask.FromResult(Directory.GetDirectories(path).Concat(Directory.GetFiles(path)).Select(Path.GetFileName).ToArray());
-#pragma warning restore CS8619
+
+        var directory = new DirectoryInfo(path);
+        var entries = new List<StorageEntry>();
+        foreach (var info in directory.EnumerateDirectories())
+        {
+            entries.Add(new StorageEntry(info.Name, true, 0, info.LastWriteTime));
+        }
+
+        foreach (var info in directory.EnumerateFiles())
+        {
+            entries.Add(new StorageEntry(info.Name, false, info.Length, info.LastWriteTime));
+        }
+
+        return ValueTask.FromResult(entries);
+    }
+
+    public ValueTask CreateDirectoryAsync(string path, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        path = NormalizePath(path);
+        Directory.CreateDirectory(path);
+
+        return ValueTask.CompletedTask;
     }
 
     public ValueTask DeleteAsync(string path, CancellationToken cancellationToken = default)
@@ -53,7 +74,15 @@ public sealed class FileStorage : IStorage
         cancellationToken.ThrowIfCancellationRequested();
 
         path = NormalizePath(path);
-        File.Delete(path);
+        if (Directory.Exists(path))
+        {
+            // ディレクトリは再帰削除
+            Directory.Delete(path, recursive: true);
+        }
+        else
+        {
+            File.Delete(path);
+        }
 
         return ValueTask.CompletedTask;
     }
