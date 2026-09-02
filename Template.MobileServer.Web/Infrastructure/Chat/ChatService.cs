@@ -16,7 +16,7 @@ public sealed class ChatService
         {
             lock (history)
             {
-                return [.. history];
+                return history.ToArray();
             }
         }
     }
