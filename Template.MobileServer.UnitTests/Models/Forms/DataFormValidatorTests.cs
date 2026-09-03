@@ -3,7 +3,7 @@ namespace Template.MobileServer.Models.Forms;
 using Template.MobileServer.Domain;
 using Template.MobileServer.Web.Models.Forms;
 
-public sealed class DataFormValidatorTest
+public sealed class DataFormValidatorTests
 {
     [Fact]
     public void ValidateValidFormReturnsValid()

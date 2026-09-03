@@ -4,7 +4,7 @@ using Bunit;
 
 using Template.MobileServer.Web.Components.Layout;
 
-public sealed class NavMenuTest : MudBlazorTestBase
+public sealed class NavMenuTests : MudBlazorTestBase
 {
     [Fact]
     public void RenderShowsNavigationLinks()

@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Template.MobileServer.Web.Components.Pages;
 using Template.MobileServer.Web.Infrastructure.Chat;
 
-public sealed class ChatPageTest : MudBlazorTestBase
+public sealed class ChatPageTests : MudBlazorTestBase
 {
     // 送信: ページからの発言がChatService(gRPC配信と同じ経路)へ配信される
     [Fact]

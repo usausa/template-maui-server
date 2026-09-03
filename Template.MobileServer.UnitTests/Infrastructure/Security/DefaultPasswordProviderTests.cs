@@ -1,6 +1,6 @@
 namespace Template.MobileServer.Infrastructure.Security;
 
-public sealed class DefaultPasswordProviderTest
+public sealed class DefaultPasswordProviderTests
 {
     [Fact]
     public void MatchGeneratedHashReturnsTrue()

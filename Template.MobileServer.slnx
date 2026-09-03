@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/Aspire/">
-    <Project Path="Template.MobileServer.AppHost/Template.MobileServer.AppHost.csproj" />
+    <Project Path="Template.MobileServer.AppHost/Template.MobileServer.AppHost.csproj" DefaultStartup="true" />
   </Folder>
   <Folder Name="/Application/">
     <Project Path="Template.MobileServer.Core/Template.MobileServer.Core.csproj" />
