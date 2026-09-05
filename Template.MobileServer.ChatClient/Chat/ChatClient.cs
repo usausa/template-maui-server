@@ -242,5 +242,6 @@ internal sealed class ChatClient : IAsyncDisposable
     //--------------------------------------------------------------------------------
 
     // モバイル契約DTO(PascalCase JSON)
+    // ReSharper disable once NotAccessedPositionalProperty.Local
     private sealed record AccountLoginRequest(string Id);
 }
