@@ -9,11 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Transitive pin: GHSA-hv8m-jj95-wg3x -->
-    <PackageReference Include="MessagePack" Version="3.1.8" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Template.MobileServer.Web\Template.MobileServer.Web.csproj" />
   </ItemGroup>
 
