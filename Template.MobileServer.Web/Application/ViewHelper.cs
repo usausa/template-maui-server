@@ -28,22 +28,24 @@ public static class ViewHelper
     //--------------------------------------------------------------------------------
 
     private static readonly HashSet<string> ImageExtensions =
-        new([".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".svg", ".ico"], StringComparer.OrdinalIgnoreCase);
+        [with([".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".svg", ".ico"], StringComparer.OrdinalIgnoreCase)];
 
     private static readonly HashSet<string> VideoExtensions =
-        new([".mp4", ".avi", ".mov", ".wmv", ".mkv", ".webm"], StringComparer.OrdinalIgnoreCase);
+        [with([".mp4", ".avi", ".mov", ".wmv", ".mkv", ".webm"], StringComparer.OrdinalIgnoreCase)];
 
     private static readonly HashSet<string> AudioExtensions =
-        new([".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"], StringComparer.OrdinalIgnoreCase);
+        [with([".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"], StringComparer.OrdinalIgnoreCase)];
 
     private static readonly HashSet<string> ArchiveExtensions =
-        new([".zip", ".rar", ".7z", ".tar", ".gz"], StringComparer.OrdinalIgnoreCase);
+        [with([".zip", ".rar", ".7z", ".tar", ".gz"], StringComparer.OrdinalIgnoreCase)];
 
     private static readonly HashSet<string> TextExtensions =
-        new([".txt", ".log", ".md", ".csv"], StringComparer.OrdinalIgnoreCase);
+        [with([".txt", ".log", ".md", ".csv"], StringComparer.OrdinalIgnoreCase)];
 
     private static readonly HashSet<string> CodeExtensions =
-        new([".cs", ".js", ".ts", ".py", ".java", ".cpp", ".h", ".html", ".css", ".json", ".xml"], StringComparer.OrdinalIgnoreCase);
+    [
+        with([".cs", ".js", ".ts", ".py", ".java", ".cpp", ".h", ".html", ".css", ".json", ".xml"], StringComparer.OrdinalIgnoreCase)
+    ];
 
     // 拡張子によるアイコン出し分け
     public static string GetIcon(StorageEntry entry)
