@@ -2,7 +2,7 @@ namespace Template.MobileServer.ChatClient;
 
 using System.Windows;
 
-internal sealed partial class App : Application
+internal sealed partial class App
 {
     protected override void OnStartup(StartupEventArgs e)
     {

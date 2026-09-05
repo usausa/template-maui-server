@@ -49,7 +49,7 @@ public sealed partial class ChatPage
         if (scrollRequested)
         {
             scrollRequested = false;
-            await ScrollManager.ScrollToBottomAsync("#chat-messages", ScrollBehavior.Auto);
+            await ScrollManager.ScrollToBottomAsync("#chat-messages");
         }
     }
 

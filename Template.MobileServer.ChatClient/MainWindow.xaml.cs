@@ -1,8 +1,6 @@
 namespace Template.MobileServer.ChatClient;
 
-using System.Windows;
-
-internal sealed partial class MainWindow : Window
+internal sealed partial class MainWindow
 {
     public MainWindow()
     {

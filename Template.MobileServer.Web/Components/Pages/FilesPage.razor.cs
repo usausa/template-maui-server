@@ -42,11 +42,11 @@ public sealed partial class FilesPage
     [Parameter]
     public string? Path { get; set; }
 
-    protected override async Task OnParametersSetAsync()
+    protected override Task OnParametersSetAsync()
     {
         currentPath = (Path ?? string.Empty).Trim('/');
         BuildBreadcrumbs();
-        await LoadAsync();
+        return LoadAsync();
     }
 
     //--------------------------------------------------------------------------------
