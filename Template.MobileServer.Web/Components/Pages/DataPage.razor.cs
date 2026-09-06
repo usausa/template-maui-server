@@ -45,7 +45,7 @@ public sealed partial class DataPage
 
     private async Task<GridData<DataEntity>> LoadServerData(GridState<DataEntity> state, CancellationToken cancellationToken)
     {
-        var result = await DataUsecase.QueryPageAsync(searchName, state.Page, state.PageSize);
+        var result = await DataUsecase.QueryPageAsync(searchName, state.Page, state.PageSize, cancellationToken);
         return new GridData<DataEntity>
         {
             TotalItems = result.Total,

@@ -29,9 +29,9 @@ public static class DataEndpoints
     // Handler
     //--------------------------------------------------------------------------------
 
-    private static async ValueTask<IResult> HandleListAsync(DataService dataService)
+    private static async ValueTask<IResult> HandleListAsync(DataService dataService, CancellationToken cancellationToken)
     {
-        var entities = await dataService.QueryAllAsync();
+        var entities = await dataService.QueryAllAsync(cancellationToken);
         return TypedResults.Ok(new DataListResponse
         {
             Entries = entities.Select(static x => new DataListResponseEntry { Id = x.Id, Name = x.Name }).ToList()

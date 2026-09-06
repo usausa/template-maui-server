@@ -13,10 +13,10 @@ public sealed class DataUsecase
         this.dataService = dataService;
     }
 
-    public async ValueTask<PagedResult<DataEntity>> QueryPageAsync(string? name, int page, int size)
+    public async ValueTask<PagedResult<DataEntity>> QueryPageAsync(string? name, int page, int size, CancellationToken cancellationToken = default)
     {
-        var total = await dataService.CountAsync(name);
-        var items = await dataService.QueryPageAsync(name, page * size, size);
+        var total = await dataService.CountAsync(name, cancellationToken);
+        var items = await dataService.QueryPageAsync(name, page * size, size, cancellationToken);
         return new PagedResult<DataEntity>(total, page, size, items);
     }
 }

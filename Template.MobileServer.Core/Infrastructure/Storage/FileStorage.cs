@@ -104,7 +104,20 @@ public sealed class FileStorage : IStorage
         path = NormalizePath(path);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
-        await using var fs = File.Create(path);
-        await stream.CopyToAsync(fs, CopyBufferSize, cancellationToken);
+        var tempPath = $"{path}.{Guid.NewGuid():N}.tmp";
+        try
+        {
+            await using (var fs = File.Create(tempPath))
+            {
+                await stream.CopyToAsync(fs, CopyBufferSize, cancellationToken);
+            }
+
+            File.Move(tempPath, path, overwrite: true);
+        }
+        catch
+        {
+            File.Delete(tempPath);
+            throw;
+        }
     }
 }
