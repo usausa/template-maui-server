@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>Template.MobileServer</RootNamespace>
-    <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\Analyzers.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -22,8 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Template.MobileServer.Core\Template.MobileServer.Core.csproj" />
-    <ProjectReference Include="..\Template.MobileServer.Web\Template.MobileServer.Web.csproj" />
+    <ProjectReference Include="..\..\src\Template.MobileServer.Core\Template.MobileServer.Core.csproj" />
+    <ProjectReference Include="..\..\src\Template.MobileServer.Web\Template.MobileServer.Web.csproj" />
   </ItemGroup>
 
 </Project>
