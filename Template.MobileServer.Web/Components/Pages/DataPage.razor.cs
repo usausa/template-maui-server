@@ -45,7 +45,9 @@ public sealed partial class DataPage
 
     private async Task<GridData<DataEntity>> LoadServerData(GridState<DataEntity> state, CancellationToken cancellationToken)
     {
-        var result = await DataUsecase.QueryPageAsync(searchName, state.Page, state.PageSize, cancellationToken);
+        // 並べ替えはサーバー側で行うため、グリッドが選んだ列と昇降をそのまま渡す
+        var sort = state.SortDefinitions.FirstOrDefault();
+        var result = await DataUsecase.QueryPageAsync(searchName, sort?.SortBy, sort?.Descending ?? false, state.Page, state.PageSize, cancellationToken);
         return new GridData<DataEntity>
         {
             TotalItems = result.Total,
