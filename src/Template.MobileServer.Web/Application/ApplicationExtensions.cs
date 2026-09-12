@@ -541,7 +541,7 @@ public static class ApplicationExtensions
         // Authentication (モバイルAPI用JWT発行)
         builder.Services.AddSingleton<TokenService>();
 
-        // Service & Usecase
+        // Service
         builder.Services.AddCoreServices();
 
         // Notification

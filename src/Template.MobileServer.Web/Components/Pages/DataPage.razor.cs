@@ -20,9 +20,6 @@ public sealed partial class DataPage
     public required DataService DataService { get; set; }
 
     [Inject]
-    public required DataUsecase DataUsecase { get; set; }
-
-    [Inject]
     public required IDialogService DialogService { get; set; }
 
     [Inject]
@@ -47,7 +44,7 @@ public sealed partial class DataPage
     {
         // 並べ替えはサーバー側で行うため、グリッドが選んだ列と昇降をそのまま渡す
         var sort = state.SortDefinitions.FirstOrDefault();
-        var result = await DataUsecase.QueryPageAsync(searchName, sort?.SortBy, sort?.Descending ?? false, state.Page, state.PageSize, cancellationToken);
+        var result = await DataService.QueryPageAsync(searchName, sort?.SortBy, sort?.Descending ?? false, state.Page, state.PageSize, cancellationToken);
         return new GridData<DataEntity>
         {
             TotalItems = result.Total,
