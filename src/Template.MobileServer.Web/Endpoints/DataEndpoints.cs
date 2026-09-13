@@ -1,7 +1,6 @@
 namespace Template.MobileServer.Web.Endpoints;
 
 using Template.MobileServer.Web.Application;
-using Template.MobileServer.Web.Mappers;
 using Template.MobileServer.Web.Models.Api;
 using Template.MobileServer.Web.Models.Data;
 
@@ -44,7 +43,7 @@ public static class DataEndpoints
     {
         var entity = await dataService.QueryAsync(id);
         return entity is not null
-            ? TypedResults.Ok(DataMapper.ToResponse(entity))
+            ? TypedResults.Ok(entity.ToResponse())
             : TypedResults.NotFound();
     }
 

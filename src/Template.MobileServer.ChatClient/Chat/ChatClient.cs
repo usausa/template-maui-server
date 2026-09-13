@@ -11,6 +11,7 @@ using Grpc.Core;
 using Grpc.Net.Client;
 
 using Template.MobileServer.Chat;
+using Template.MobileServer.ChatClient.Mappers;
 
 // gRPCチャット接続クライアント(プラットフォーム非依存・MAUIへそのまま移植可能)
 // - login(REST)でJWTを取得してgRPC双方向ストリームに接続する
@@ -141,11 +142,7 @@ internal sealed class ChatClient : IAsyncDisposable
                     // 受信ループ(切断時は例外終了して再接続へ)
                     await foreach (var message in call.ResponseStream.ReadAllAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        var entry = new ChatMessageEntry(
-                            message.User,
-                            message.Text,
-                            DateTimeOffset.FromUnixTimeMilliseconds(message.Timestamp).LocalDateTime);
-                        MessageReceived?.Invoke(this, new ChatMessageEventArgs(entry));
+                        MessageReceived?.Invoke(this, new ChatMessageEventArgs(message.ToEntry()));
                     }
                 }
                 finally

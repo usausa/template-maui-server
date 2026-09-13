@@ -13,6 +13,7 @@
     <PackageReference Include="Grpc.Tools" Version="2.83.0" PrivateAssets="all" />
     <PackageReference Include="System.Reactive" Version="7.0.0" />
     <PackageReference Include="Usa.Smart.Core" Version="2.19.0" />
+    <PackageReference Include="Usa.Smart.Mapper" Version="1.0.0-beta9" />
     <PackageReference Include="Usa.Smart.Mvvm" Version="2.11.0" />
     <PackageReference Include="Usa.Smart.Reactive" Version="2.15.0" />
     <PackageReference Include="Usa.Smart.Windows" Version="2.31.0" />
