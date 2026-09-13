@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Components.Web;
 
 using MudBlazor;
 
+using Smart.Mapper;
+
 using Template.MobileServer.Web.Components.Dialogs;
 using Template.MobileServer.Web.Infrastructure.Components;
 using Template.MobileServer.Web.Models.Forms;
@@ -85,9 +87,12 @@ public sealed partial class DataPage
         }
     }
 
+    [Mapper]
+    private static partial DataForm ToForm(DataEntity entity);
+
     private async Task EditAsync(DataEntity entity)
     {
-        var form = await ShowEditDialog("データ編集", entity.ToForm());
+        var form = await ShowEditDialog("データ編集", ToForm(entity));
         if (form is null)
         {
             return;

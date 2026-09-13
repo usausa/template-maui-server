@@ -1,10 +1,12 @@
 namespace Template.MobileServer.Web.Endpoints;
 
+using Smart.Mapper;
+
 using Template.MobileServer.Web.Application;
 using Template.MobileServer.Web.Models.Api;
 using Template.MobileServer.Web.Models.Data;
 
-public static class DataEndpoints
+public static partial class DataEndpoints
 {
     //--------------------------------------------------------------------------------
     // Mapping
@@ -37,13 +39,16 @@ public static class DataEndpoints
         });
     }
 
+    [Mapper]
+    private static partial DataResponse ToResponse(DataEntity entity);
+
     private static async ValueTask<IResult> HandleGetAsync(
         DataService dataService,
         long id)
     {
         var entity = await dataService.QueryAsync(id);
         return entity is not null
-            ? TypedResults.Ok(entity.ToResponse())
+            ? TypedResults.Ok(ToResponse(entity))
             : TypedResults.NotFound();
     }
 

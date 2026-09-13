@@ -10,14 +10,15 @@ using System.Threading.Channels;
 using Grpc.Core;
 using Grpc.Net.Client;
 
+using Smart.Mapper;
+
 using Template.MobileServer.Chat;
-using Template.MobileServer.ChatClient.Mappers;
 
 // gRPCチャット接続クライアント(プラットフォーム非依存・MAUIへそのまま移植可能)
 // - login(REST)でJWTを取得してgRPC双方向ストリームに接続する
 // - 切断・接続失敗時は指数バックオフで自動再接続する(再接続時はJWTを再取得)
 // - 送信はキュー経由で直列化し、切断中の送信は再接続後に配送される
-internal sealed class ChatClient : IAsyncDisposable
+internal sealed partial class ChatClient : IAsyncDisposable
 {
     // 再接続バックオフ(初期1秒、最大30秒)
     private static readonly TimeSpan InitialRetryDelay = TimeSpan.FromSeconds(1);
@@ -108,6 +109,14 @@ internal sealed class ChatClient : IAsyncDisposable
     // Connection
     //--------------------------------------------------------------------------------
 
+    // 受信メッセージの変換。タイムスタンプはUnixミリ秒からローカル時刻へ(recordのコンストラクター引数はConverterで変換する)
+    [Mapper]
+    [MapProperty(nameof(ChatMessageEntry.Timestamp), nameof(ChatMessage.Timestamp), Converter = nameof(ToLocalTime))]
+    private static partial ChatMessageEntry ToEntry(ChatMessage message);
+
+    private static DateTime ToLocalTime(long timestamp) =>
+        DateTimeOffset.FromUnixTimeMilliseconds(timestamp).LocalDateTime;
+
     // 接続・受信・再接続のメインループ
     private async Task RunAsync(CancellationToken cancellationToken)
     {
@@ -142,7 +151,7 @@ internal sealed class ChatClient : IAsyncDisposable
                     // 受信ループ(切断時は例外終了して再接続へ)
                     await foreach (var message in call.ResponseStream.ReadAllAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        MessageReceived?.Invoke(this, new ChatMessageEventArgs(message.ToEntry()));
+                        MessageReceived?.Invoke(this, new ChatMessageEventArgs(ToEntry(message)));
                     }
                 }
                 finally
