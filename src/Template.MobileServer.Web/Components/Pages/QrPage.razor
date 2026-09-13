@@ -37,8 +37,8 @@
                 <img src="@qrImage" alt="設定QRコード" width="240" height="240" />
             </MudPaper>
             <MudText Typo="Typo.caption" Class="mt-4 d-block">生成値</MudText>
-            <MudPaper Outlined="true" Class="pa-2" Style="max-width: 480px;">
-                <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">@qrText</pre>
+            <MudPaper Outlined="true" Class="qr-card pa-2">
+                <pre class="qr-text">@qrText</pre>
             </MudPaper>
         }
         else

@@ -7,7 +7,7 @@
 <MudText Typo="Typo.h4">Home</MudText>
 <MudText Class="mt-2">Template.MobileServer</MudText>
 
-<MudSimpleTable Dense="true" Class="mt-4" Style="max-width: 480px;">
+<MudSimpleTable Dense="true" Class="summary-table mt-4">
     <tbody>
         <tr>
             <td>サーバー時刻</td>
@@ -31,5 +31,5 @@
 
 @if (!String.IsNullOrEmpty(lastNotification))
 {
-    <MudAlert Severity="Severity.Info" Class="mt-4" Style="max-width: 400px;">@lastNotification</MudAlert>
+    <MudAlert Severity="Severity.Info" Class="notification-alert mt-4">@lastNotification</MudAlert>
 }

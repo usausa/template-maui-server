@@ -21,6 +21,55 @@ html, body {
     border-radius: 4px;
 }
 
+/* Page layout */
+.page-card {
+    max-width: 400px;
+}
+
+.search-field {
+    max-width: 240px;
+}
+
+.upload-progress {
+    max-width: 400px;
+}
+
+.notification-alert {
+    max-width: 400px;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.files-table {
+    max-width: 960px;
+}
+
+.summary-table {
+    max-width: 480px;
+}
+
+.chat-messages {
+    max-width: 720px;
+    height: 480px;
+    overflow-y: auto;
+}
+
+.chat-input {
+    max-width: 720px;
+}
+
+.qr-card {
+    max-width: 480px;
+}
+
+.qr-text {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
 /* Blazor error UI */
 #blazor-error-ui {
     color-scheme: light only;

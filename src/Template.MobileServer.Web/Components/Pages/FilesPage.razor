@@ -20,14 +20,14 @@
 
 @if (uploading)
 {
-    <MudProgressLinear Value="progress" Color="Color.Primary" Class="mb-4" Style="max-width: 400px;" />
+    <MudProgressLinear Value="progress" Color="Color.Primary" Class="upload-progress mb-4" />
 }
 
-<MudTable Items="entries" Dense="true" Hover="true" Loading="loading" Style="max-width: 960px;">
+<MudTable Items="entries" Dense="true" Hover="true" Loading="loading" Class="files-table">
     <HeaderContent>
         <MudTh Style="width: 48px;"></MudTh>
         <MudTh>名前</MudTh>
-        <MudTh Style="width: 120px; text-align: right;">サイズ</MudTh>
+        <MudTh Class="text-right" Style="width: 120px;">サイズ</MudTh>
         <MudTh Style="width: 180px;">更新日時</MudTh>
         <MudTh Style="width: 120px;">操作</MudTh>
     </HeaderContent>
@@ -43,7 +43,7 @@
                 @context.Name
             }
         </MudTd>
-        <MudTd Style="text-align: right;">@ViewHelper.FormatSize(context)</MudTd>
+        <MudTd Class="text-right">@ViewHelper.FormatSize(context)</MudTd>
         <MudTd>@ViewHelper.FormatTimestamp(context.LastModified)</MudTd>
         <MudTd>
             @if (!context.IsDirectory)

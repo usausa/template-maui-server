@@ -6,7 +6,7 @@
 
 <MudText Typo="Typo.h4" Class="mb-4">Chat</MudText>
 
-<MudPaper id="chat-messages" Outlined="true" Class="pa-4 mb-4" Style="max-width: 720px; height: 480px; overflow-y: auto;">
+<MudPaper id="chat-messages" Outlined="true" Class="chat-messages pa-4 mb-4">
     <MudStack Spacing="2">
         @foreach (var entry in entries)
         {
@@ -18,7 +18,7 @@
     </MudStack>
 </MudPaper>
 
-<MudStack Row="true" AlignItems="AlignItems.Center" Style="max-width: 720px;">
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="chat-input">
     <MudTextField @bind-Value="input"
                   Label="メッセージ"
                   Immediate="true"
