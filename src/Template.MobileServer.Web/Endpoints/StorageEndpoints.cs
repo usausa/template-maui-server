@@ -14,7 +14,7 @@ public static class StorageEndpoints
     public static void MapStorageEndpoints(this WebApplication app)
     {
         // [MEMO] モバイル契約維持のため匿名のまま(JWT保護化は拡張候補)
-        var group = app.MapGroup(ApiRoutes.Storage)
+        var group = app.MapApiGroup(ApiRoutes.Storage)
             .AddEndpointFilter<StorageExceptionFilter>();
 
         // 簡易FTP契約: 末尾スラッシュまたは空パス=ディレクトリ一覧、それ以外=ファイルダウンロード

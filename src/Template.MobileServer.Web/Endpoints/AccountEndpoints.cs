@@ -12,7 +12,7 @@ public static class AccountEndpoints
 
     public static void MapAccountEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup(ApiRoutes.Account);
+        var group = app.MapApiGroup(ApiRoutes.Account);
 
         group.MapPost("/login", HandleLogin);
     }

@@ -11,7 +11,7 @@ public static class ServerEndpoints
 
     public static void MapServerEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup(ApiRoutes.Server);
+        var group = app.MapApiGroup(ApiRoutes.Server);
 
         group.MapGet("/time", HandleTime);
     }

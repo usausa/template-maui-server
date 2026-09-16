@@ -11,7 +11,7 @@ public static class TestEndpoints
 
     public static void MapTestEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup(ApiRoutes.Test);
+        var group = app.MapApiGroup(ApiRoutes.Test);
 
         group.MapGet("/time", HandleTime);
         group.MapGet("/error/{code:int}", HandleError);

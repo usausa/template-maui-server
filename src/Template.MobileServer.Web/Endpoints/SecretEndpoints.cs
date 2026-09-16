@@ -11,7 +11,7 @@ public static class SecretEndpoints
 
     public static void MapSecretEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup(ApiRoutes.Secret)
+        var group = app.MapApiGroup(ApiRoutes.Secret)
             .RequireAuthorization(Policies.MobileApi);
 
         group.MapGet("/message", HandleMessage);

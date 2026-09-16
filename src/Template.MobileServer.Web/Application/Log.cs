@@ -33,6 +33,11 @@ internal static partial class Log
     [LoggerMessage(Level = LogLevel.Information, Message = "Worker stop. worker=[{worker}]")]
     public static partial void InfoWorkerStop(this ILogger logger, string worker);
 
+    // Request
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Long execution. method=[{method}], route=[{route}], elapsed=[{elapsed}]")]
+    public static partial void WarnLongExecution(this ILogger logger, string method, string route, long elapsed);
+
     // Error
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Unhandled exception.")]
