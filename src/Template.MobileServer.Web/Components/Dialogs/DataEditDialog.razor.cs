@@ -12,7 +12,9 @@ public sealed partial class DataEditDialog
 {
     private static readonly DataFormValidator Validator = new();
 
+#pragma warning disable CA2213
     private MudForm form = default!;
+#pragma warning restore CA2213
 
     private DataForm model = default!;
 

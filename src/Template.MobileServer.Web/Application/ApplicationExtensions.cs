@@ -36,6 +36,7 @@ using Smart.Data;
 using Template.MobileServer.Accessors;
 using Template.MobileServer.Infrastructure.Storage;
 using Template.MobileServer.Web.Application.Authentication;
+using Template.MobileServer.Web.Application.Context;
 using Template.MobileServer.Web.Application.ExceptionHandling;
 using Template.MobileServer.Web.Application.HealthChecks;
 using Template.MobileServer.Web.Application.Telemetry;
@@ -588,6 +589,10 @@ public static class ApplicationExtensions
         builder.Services.AddSingleton<JwtTokenProvider>();
 
         // Service
+        builder.Services.AddSingleton<AmbientServiceContextProvider>();
+        builder.Services.AddSingleton<ServiceContextProvider>(static p => p.GetRequiredService<AmbientServiceContextProvider>());
+        builder.Services.AddScoped<BlazorServiceScope>();
+
         builder.Services.AddCoreServices();
 
         // Notification

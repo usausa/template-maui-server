@@ -7,14 +7,14 @@ public sealed class SettingService
 {
     private readonly SettingAccessor settingAccessor;
 
-    private readonly TimeProvider timeProvider;
+    private readonly ServiceContextProvider context;
 
     public SettingService(
         SettingAccessor settingAccessor,
-        TimeProvider timeProvider)
+        ServiceContextProvider context)
     {
         this.settingAccessor = settingAccessor;
-        this.timeProvider = timeProvider;
+        this.context = context;
     }
 
     public ValueTask<List<SettingEntity>> QueryAllAsync(CancellationToken cancellationToken = default) =>
@@ -25,6 +25,6 @@ public sealed class SettingService
         var trimmed = value?.Trim();
         return String.IsNullOrEmpty(trimmed)
             ? settingAccessor.DeleteAsync(key)
-            : settingAccessor.UpsertAsync(key, trimmed, timeProvider.GetLocalNow().DateTime);
+            : settingAccessor.UpsertAsync(key, trimmed, context.Current.Now.DateTime);
     }
 }

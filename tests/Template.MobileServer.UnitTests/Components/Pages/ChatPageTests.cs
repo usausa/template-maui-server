@@ -16,7 +16,6 @@ public sealed class ChatPageTests : MudBlazorTestBase
         // Arrange
         var chatService = new ChatService();
         Services.AddSingleton(chatService);
-        Services.AddSingleton(TimeProvider.System);
 
         var cut = Render<ChatPage>();
 
@@ -40,7 +39,6 @@ public sealed class ChatPageTests : MudBlazorTestBase
         // Arrange
         var chatService = new ChatService();
         Services.AddSingleton(chatService);
-        Services.AddSingleton(TimeProvider.System);
 
         var cut = Render<ChatPage>();
 

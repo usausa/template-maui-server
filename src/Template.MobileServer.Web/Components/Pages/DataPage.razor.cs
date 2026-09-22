@@ -9,7 +9,9 @@ using Template.MobileServer.Web.Components.Dialogs;
 
 public sealed partial class DataPage
 {
+#pragma warning disable CA2213
     private MudDataGrid<DataEntity> grid = default!;
+#pragma warning restore CA2213
 
     private string? searchName;
 

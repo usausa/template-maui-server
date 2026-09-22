@@ -10,16 +10,16 @@ public sealed class DataService
 
     private readonly DataAccessor dataAccessor;
 
-    private readonly TimeProvider timeProvider;
+    private readonly ServiceContextProvider context;
 
     public DataService(
         IDialect dialect,
         DataAccessor dataAccessor,
-        TimeProvider timeProvider)
+        ServiceContextProvider context)
     {
         this.dialect = dialect;
         this.dataAccessor = dataAccessor;
-        this.timeProvider = timeProvider;
+        this.context = context;
     }
 
     public ValueTask<int> CountAsync(string? name, CancellationToken cancellationToken = default) =>
@@ -50,7 +50,7 @@ public sealed class DataService
     {
         try
         {
-            entity.CreatedAt = timeProvider.GetLocalNow().DateTime;
+            entity.CreatedAt = context.Current.Now.DateTime;
             entity.Id = await dataAccessor.InsertAsync(entity.Name, entity.Value, entity.CreatedAt);
             return DataWriteStatus.Success;
         }
