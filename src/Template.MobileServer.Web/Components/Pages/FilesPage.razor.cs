@@ -7,7 +7,6 @@ using MudBlazor;
 
 using Template.MobileServer.Infrastructure.Storage;
 using Template.MobileServer.Web.Components.Dialogs;
-using Template.MobileServer.Web.Infrastructure.Components;
 using Template.MobileServer.Web.Infrastructure.IO;
 
 // ストレージブラウザ(ディレクトリ階層のブラウズ/アップロード/ダウンロード/削除/フォルダ作成)
@@ -120,20 +119,12 @@ public sealed partial class FilesPage
 
     private async Task CreateDirectoryAsync()
     {
-        var reference = await DialogService.ShowAsync<InputDialog>(
-            string.Empty,
-            new DialogParameters
-            {
-                { nameof(InputDialog.Title), "フォルダ作成" },
-                { nameof(InputDialog.Label), "フォルダ名" }
-            });
-        var result = await reference.Result;
-        if (result is not { Canceled: false })
+        var name = await DialogService.ShowInputDialog("フォルダ作成", "フォルダ名");
+        if (name is null)
         {
             return;
         }
 
-        var name = (string)result.Data!;
         try
         {
             await Storage.CreateDirectoryAsync(MakeItemPath(name));

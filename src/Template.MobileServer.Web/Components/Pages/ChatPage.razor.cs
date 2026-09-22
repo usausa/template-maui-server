@@ -1,12 +1,11 @@
 namespace Template.MobileServer.Web.Components.Pages;
 
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 
 using MudBlazor;
 
-using Template.MobileServer.Web.Infrastructure.Chat;
+using Template.MobileServer.Web.Services;
 
 // チャットページ(gRPCを経由せずChatService直結でプロセス内イベントを購読)
 public sealed partial class ChatPage
@@ -15,7 +14,7 @@ public sealed partial class ChatPage
 
     private string input = string.Empty;
 
-    private string userName = "unknown";
+    private string userName = "web";
 
     private bool scrollRequested;
 
@@ -28,15 +27,8 @@ public sealed partial class ChatPage
     [Inject]
     public required IScrollManager ScrollManager { get; set; }
 
-    [CascadingParameter]
-    public required Task<AuthenticationState> AuthenticationState { get; set; }
-
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        // 送信者名はログインユーザー名
-        var state = await AuthenticationState;
-        userName = state.User.Identity?.Name ?? "unknown";
-
         // 履歴を表示して以降の発言を購読する(購読解除はDispose)
         entries.AddRange(ChatService.History);
         ChatService.Received += OnReceived;
@@ -81,7 +73,7 @@ public sealed partial class ChatPage
             return;
         }
 
-        ChatService.Publish(userName, text, TimeProvider.GetUtcNow());
+        ChatService.Publish(String.IsNullOrWhiteSpace(userName) ? "web" : userName.Trim(), text, TimeProvider.GetUtcNow());
         input = string.Empty;
     }
 

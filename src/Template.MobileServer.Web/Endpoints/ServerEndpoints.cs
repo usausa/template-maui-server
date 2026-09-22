@@ -1,7 +1,19 @@
 namespace Template.MobileServer.Web.Endpoints;
 
 using Template.MobileServer.Web.Application;
-using Template.MobileServer.Web.Models.Api;
+
+//--------------------------------------------------------------------------------
+// Models
+//--------------------------------------------------------------------------------
+
+public sealed class ServerTimeResponse
+{
+    public DateTime DateTime { get; set; }
+}
+
+//--------------------------------------------------------------------------------
+// Endpoints
+//--------------------------------------------------------------------------------
 
 public static class ServerEndpoints
 {
@@ -17,7 +29,7 @@ public static class ServerEndpoints
     }
 
     //--------------------------------------------------------------------------------
-    // Handler
+    // Time
     //--------------------------------------------------------------------------------
 
     private static Ok<ServerTimeResponse> HandleTime(TimeProvider timeProvider) =>

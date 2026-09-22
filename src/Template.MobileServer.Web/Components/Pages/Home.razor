@@ -1,5 +1,4 @@
 @page "/"
-@attribute [Authorize]
 @inherits AppComponentBase
 
 <PageTitle>Home</PageTitle>
@@ -20,6 +19,14 @@
         <tr>
             <td>Data件数</td>
             <td>@dataCount</td>
+        </tr>
+        <tr>
+            <td>接続中の端末</td>
+            <td>@deviceCount</td>
+        </tr>
+        <tr>
+            <td>接続中の画面</td>
+            <td>@circuitCount</td>
         </tr>
     </tbody>
 </MudSimpleTable>

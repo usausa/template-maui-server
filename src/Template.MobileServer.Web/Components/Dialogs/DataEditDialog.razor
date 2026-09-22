@@ -3,15 +3,15 @@
         <MudText Typo="Typo.h6">@Title</MudText>
     </TitleContent>
     <DialogContent>
-        <MudForm @ref="form" Model="Form">
-            <MudTextField @bind-Value="Form.Name"
-                          For="@(() => Form.Name)"
+        <MudForm @ref="form" Model="model">
+            <MudTextField @bind-Value="model.Name"
+                          For="@(() => model.Name)"
                           Validation="@Validator.ValidateValue"
                           Label="名前"
                           MaxLength="@Length.Name"
                           Immediate="true" />
-            <MudNumericField @bind-Value="Form.Value"
-                             For="@(() => Form.Value)"
+            <MudNumericField @bind-Value="model.Value"
+                             For="@(() => model.Value)"
                              Validation="@Validator.ValidateValue"
                              Label="値"
                              Class="mt-4" />

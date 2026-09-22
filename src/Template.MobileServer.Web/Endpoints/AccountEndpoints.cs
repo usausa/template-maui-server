@@ -1,8 +1,26 @@
 namespace Template.MobileServer.Web.Endpoints;
 
 using Template.MobileServer.Web.Application;
-using Template.MobileServer.Web.Infrastructure.Authentication;
-using Template.MobileServer.Web.Models.Api;
+using Template.MobileServer.Web.Application.Authentication;
+
+//--------------------------------------------------------------------------------
+// Models
+//--------------------------------------------------------------------------------
+
+public sealed class AccountLoginRequest
+{
+    [Required]
+    public string Id { get; set; } = default!;
+}
+
+public sealed class AccountLoginResponse
+{
+    public string Token { get; set; } = default!;
+}
+
+//--------------------------------------------------------------------------------
+// Endpoints
+//--------------------------------------------------------------------------------
 
 public static class AccountEndpoints
 {
@@ -18,12 +36,12 @@ public static class AccountEndpoints
     }
 
     //--------------------------------------------------------------------------------
-    // Handler
+    // Login
     //--------------------------------------------------------------------------------
 
-    // [MEMO] モバイル契約維持: IdのみでJWTを発行する(Accountテーブルとの照合は行わない)
+    // [MEMO] Dummy login
     private static Ok<AccountLoginResponse> HandleLogin(
         AccountLoginRequest request,
-        TokenService tokenService) =>
-        TypedResults.Ok(new AccountLoginResponse { Token = tokenService.CreateToken(request.Id) });
+        JwtTokenProvider tokenProvider) =>
+        TypedResults.Ok(new AccountLoginResponse { Token = tokenProvider.CreateToken(request.Id) });
 }

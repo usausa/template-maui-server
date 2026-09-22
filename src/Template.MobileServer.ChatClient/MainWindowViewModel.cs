@@ -12,9 +12,6 @@ internal sealed partial class MainWindowViewModel : ExtendViewModelBase, IAsyncD
     private Chat.ChatClient? client;
 
     [ObservableProperty]
-    public partial string ServerUrl { get; set; }
-
-    [ObservableProperty]
     public partial string GrpcUrl { get; set; }
 
     [ObservableProperty]
@@ -45,8 +42,7 @@ internal sealed partial class MainWindowViewModel : ExtendViewModelBase, IAsyncD
         // ViewModel生成スレッド(UIスレッド)のコンテキストを保持する
         synchronizationContext = SynchronizationContext.Current;
 
-        ServerUrl = "http://localhost:8081/";
-        GrpcUrl = "http://localhost:8084/";
+        GrpcUrl = "http://localhost:9090/";
         UserId = "user";
         Input = string.Empty;
         State = ChatConnectionState.Disconnected;
@@ -71,14 +67,13 @@ internal sealed partial class MainWindowViewModel : ExtendViewModelBase, IAsyncD
     private async Task ConnectAsync()
     {
         if ((client is not null) ||
-            String.IsNullOrWhiteSpace(ServerUrl) ||
             String.IsNullOrWhiteSpace(GrpcUrl) ||
             String.IsNullOrWhiteSpace(UserId))
         {
             return;
         }
 
-        var chatClient = new Chat.ChatClient(ServerUrl.Trim(), GrpcUrl.Trim(), UserId.Trim());
+        var chatClient = new Chat.ChatClient(GrpcUrl.Trim(), UserId.Trim());
         chatClient.MessageReceived += OnMessageReceived;
         chatClient.StateChanged += OnStateChanged;
         client = chatClient;

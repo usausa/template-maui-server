@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <!-- protoはサーバー側の定義を共有する -->
-    <Protobuf Include="..\Template.MobileServer.Web\Protos\chat.proto" GrpcServices="Client" Link="Protos\chat.proto" />
+    <Protobuf Include="..\Template.MobileServer.Web\Handlers\Protos\chat.proto" GrpcServices="Client" Link="Protos\chat.proto" />
   </ItemGroup>
 
 </Project>

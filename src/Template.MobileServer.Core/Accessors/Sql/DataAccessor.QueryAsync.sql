@@ -1,1 +1,6 @@
-SELECT * FROM Data WHERE Id = /*@ id */0
+SELECT
+    *
+FROM
+    Data
+WHERE
+    Id = /*@ id */0

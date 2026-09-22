@@ -1,0 +1,53 @@
+@page "/devices"
+@inherits AppComponentBase
+
+<PageTitle>Devices</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Devices</MudText>
+
+<MudText Class="mb-2">接続中の端末: @devices.Count</MudText>
+
+<MudSimpleTable Dense="true" Hover="true" Class="devices-table mb-6">
+    <thead>
+        <tr>
+            <th>Device</th>
+            <th>Model</th>
+            <th>Platform</th>
+            <th>Battery</th>
+            <th>Network</th>
+            <th>Last received</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var device in devices)
+        {
+            <tr>
+                <td>@device.DeviceId</td>
+                <td>@device.Model</td>
+                <td>@device.Platform</td>
+                <td>@FormatBattery(device)</td>
+                <td>@device.Network</td>
+                <td>@FormatTimestamp(device.LastReceivedAt.ToLocalTime().DateTime)</td>
+                <td><MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" Class="disconnect-button" OnClick="@(() => Disconnect(device))">切断</MudButton></td>
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>
+
+<MudText Typo="Typo.h6" Class="mb-2">通知の送信</MudText>
+
+<MudStack Spacing="2" Class="notify-form">
+    <MudSelect T="string" @bind-Value="target" Label="送信先">
+        <MudSelectItem T="string" Value="@AllTargets">全端末</MudSelectItem>
+        @foreach (var device in devices)
+        {
+            <MudSelectItem T="string" Value="@device.ConnectionId">@FormatTarget(device)</MudSelectItem>
+        }
+    </MudSelect>
+    <MudTextField @bind-Value="title" Label="タイトル" Immediate="true" />
+    <MudTextField @bind-Value="body" Label="本文" Immediate="true" Lines="3" />
+    <div>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Send" Class="send-button" OnClick="SendAsync" Disabled="@(devices.Count == 0)">送信</MudButton>
+    </div>
+</MudStack>

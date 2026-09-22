@@ -1,6 +1,6 @@
 namespace Template.MobileServer.Web.Application;
 
-using Template.MobileServer.Web.Infrastructure.Filters;
+using Template.MobileServer.Web.Application.Telemetry;
 
 public static class EndpointExtensions
 {

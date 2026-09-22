@@ -5,7 +5,7 @@ using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 
 using Template.MobileServer.Web.Components.Pages;
-using Template.MobileServer.Web.Infrastructure.Chat;
+using Template.MobileServer.Web.Services;
 
 public sealed class ChatPageTests : MudBlazorTestBase
 {
@@ -17,17 +17,16 @@ public sealed class ChatPageTests : MudBlazorTestBase
         var chatService = new ChatService();
         Services.AddSingleton(chatService);
         Services.AddSingleton(TimeProvider.System);
-        AddAuthorization().SetAuthorized("tester");
 
         var cut = Render<ChatPage>();
 
         // Act
-        cut.Find("input").Input("Hello gRPC");
+        cut.FindAll("input")[1].Input("Hello gRPC");
         cut.Find("button").Click();
 
         // Assert
         var entry = Assert.Single(chatService.History);
-        Assert.Equal("tester", entry.User);
+        Assert.Equal("web", entry.User);
         Assert.Equal("Hello gRPC", entry.Text);
 
         // 自分の発言が即時表示される
@@ -42,7 +41,6 @@ public sealed class ChatPageTests : MudBlazorTestBase
         var chatService = new ChatService();
         Services.AddSingleton(chatService);
         Services.AddSingleton(TimeProvider.System);
-        AddAuthorization().SetAuthorized("tester");
 
         var cut = Render<ChatPage>();
 

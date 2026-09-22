@@ -1,1 +1,6 @@
-SELECT * FROM Data ORDER BY Id
+SELECT
+    *
+FROM
+    Data
+ORDER BY
+    Id

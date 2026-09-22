@@ -1,1 +1,4 @@
-DELETE FROM Data WHERE Id = /*@ id */0
+DELETE FROM
+    Data
+WHERE
+    Id = /*@ id */0

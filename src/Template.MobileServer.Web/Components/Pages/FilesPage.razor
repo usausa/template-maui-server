@@ -1,6 +1,5 @@
 @page "/files"
 @page "/files/{*Path}"
-@attribute [Authorize]
 
 <PageTitle>Files</PageTitle>
 
@@ -25,14 +24,14 @@
 
 <MudTable Items="entries" Dense="true" Hover="true" Loading="loading" Class="files-table">
     <HeaderContent>
-        <MudTh Style="width: 48px;"></MudTh>
+        <MudTh Class="w-48"></MudTh>
         <MudTh>名前</MudTh>
-        <MudTh Class="text-right" Style="width: 120px;">サイズ</MudTh>
-        <MudTh Style="width: 180px;">更新日時</MudTh>
-        <MudTh Style="width: 120px;">操作</MudTh>
+        <MudTh Class="text-right w-120">サイズ</MudTh>
+        <MudTh Class="w-180">更新日時</MudTh>
+        <MudTh Class="w-120">操作</MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd><MudIcon Icon="@ViewHelper.GetIcon(context)" Size="Size.Small" /></MudTd>
+        <MudTd><MudIcon Icon="@GetIcon(context)" Size="Size.Small" /></MudTd>
         <MudTd>
             @if (context.IsDirectory)
             {
@@ -43,8 +42,8 @@
                 @context.Name
             }
         </MudTd>
-        <MudTd Class="text-right">@ViewHelper.FormatSize(context)</MudTd>
-        <MudTd>@ViewHelper.FormatTimestamp(context.LastModified)</MudTd>
+        <MudTd Class="text-right">@FormatSize(context)</MudTd>
+        <MudTd>@FormatTimestamp(context.LastModified)</MudTd>
         <MudTd>
             @if (!context.IsDirectory)
             {

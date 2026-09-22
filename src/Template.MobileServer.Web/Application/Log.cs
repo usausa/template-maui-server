@@ -22,16 +22,13 @@ internal static partial class Log
     [LoggerMessage(Level = LogLevel.Information, Message = "Telemetry: otelEndPoint=[{otelEndPoint}], prometheusUri=[{prometheusUri}]")]
     public static partial void InfoServiceSettingsTelemetry(this ILogger logger, string otelEndPoint, string prometheusUri);
 
-    // Worker
+    // Circuit
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Worker disabled. worker=[{worker}]")]
-    public static partial void InfoWorkerDisabled(this ILogger logger, string worker);
+    [LoggerMessage(Level = LogLevel.Information, Message = "Circuit opened. id=[{id}], count=[{count}]")]
+    public static partial void InfoCircuitOpened(this ILogger logger, string id, int count);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Worker start. worker=[{worker}]")]
-    public static partial void InfoWorkerStart(this ILogger logger, string worker);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Worker stop. worker=[{worker}]")]
-    public static partial void InfoWorkerStop(this ILogger logger, string worker);
+    [LoggerMessage(Level = LogLevel.Information, Message = "Circuit closed. id=[{id}], count=[{count}]")]
+    public static partial void InfoCircuitClosed(this ILogger logger, string id, int count);
 
     // Request
 

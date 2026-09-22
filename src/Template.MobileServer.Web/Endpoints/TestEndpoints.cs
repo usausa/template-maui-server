@@ -1,7 +1,10 @@
 namespace Template.MobileServer.Web.Endpoints;
 
 using Template.MobileServer.Web.Application;
-using Template.MobileServer.Web.Models.Api;
+
+//--------------------------------------------------------------------------------
+// Endpoints
+//--------------------------------------------------------------------------------
 
 public static class TestEndpoints
 {
@@ -13,17 +16,13 @@ public static class TestEndpoints
     {
         var group = app.MapApiGroup(ApiRoutes.Test);
 
-        group.MapGet("/time", HandleTime);
         group.MapGet("/error/{code:int}", HandleError);
         group.MapGet("/delay/{timeout:int}", HandleDelayAsync);
     }
 
     //--------------------------------------------------------------------------------
-    // Handler
+    // Error
     //--------------------------------------------------------------------------------
-
-    private static Ok<TestTimeResponse> HandleTime(TimeProvider timeProvider) =>
-        TypedResults.Ok(new TestTimeResponse { DateTime = timeProvider.GetLocalNow().DateTime });
 
     private static IResult HandleError(int code) =>
         code switch
@@ -33,6 +32,10 @@ public static class TestEndpoints
             404 => TypedResults.NotFound(),
             _ => throw new InvalidOperationException("Test exception.")
         };
+
+    //--------------------------------------------------------------------------------
+    // Delay
+    //--------------------------------------------------------------------------------
 
     private static async ValueTask<IResult> HandleDelayAsync(
         [Range(0, 60_000)] int timeout,

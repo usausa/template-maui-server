@@ -6,7 +6,7 @@ public sealed class FileStorage : IStorage
 
     private readonly string root;
 
-    public FileStorage(FileStorageOptions options)
+    public FileStorage(FileStorageOption options)
     {
         root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(options.Root));
     }
@@ -76,7 +76,6 @@ public sealed class FileStorage : IStorage
         path = NormalizePath(path);
         if (Directory.Exists(path))
         {
-            // ディレクトリは再帰削除
             Directory.Delete(path, recursive: true);
         }
         else

@@ -3,10 +3,79 @@ namespace Template.MobileServer.Web.Endpoints;
 using Smart.Mapper;
 
 using Template.MobileServer.Web.Application;
-using Template.MobileServer.Web.Models.Api;
-using Template.MobileServer.Web.Models.Data;
 
-public static partial class DataEndpoints
+//--------------------------------------------------------------------------------
+// Models
+//--------------------------------------------------------------------------------
+
+public sealed class DataListEntry
+{
+    public long Id { get; set; }
+
+    public string Name { get; set; } = default!;
+}
+
+public sealed class DataListResponse
+{
+    public IReadOnlyList<DataListEntry> Entries { get; set; } = default!;
+
+    public int Total { get; set; }
+}
+
+public sealed class DataResponse
+{
+    public long Id { get; set; }
+
+    public string Name { get; set; } = default!;
+
+    public int Value { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+}
+
+public sealed class DataCreateRequest
+{
+    [Required]
+    [MaxLength(50)]
+    public string Name { get; set; } = default!;
+
+    [Range(0, 1_000_000)]
+    public int Value { get; set; }
+}
+
+public sealed class DataCreateResponse
+{
+    public long Id { get; set; }
+}
+
+public sealed class DataUpdateRequest
+{
+    [Required]
+    [MaxLength(50)]
+    public string Name { get; set; } = default!;
+
+    [Range(0, 1_000_000)]
+    public int Value { get; set; }
+}
+
+//--------------------------------------------------------------------------------
+// Mapper
+//--------------------------------------------------------------------------------
+
+public static partial class DataMapper
+{
+    [Mapper]
+    public static partial DataListEntry ToListEntry(this DataEntity entity);
+
+    [Mapper]
+    public static partial DataResponse ToResponse(this DataEntity entity);
+}
+
+//--------------------------------------------------------------------------------
+// Endpoints
+//--------------------------------------------------------------------------------
+
+public static class DataEndpoints
 {
     //--------------------------------------------------------------------------------
     // Mapping
@@ -16,31 +85,44 @@ public static partial class DataEndpoints
     {
         var group = app.MapApiGroup(ApiRoutes.Data);
 
-        // モバイルクライアント向け(HttpServiceの契約、匿名)
         group.MapGet("/list", HandleListAsync);
-
-        // CRUD (JWT認証)
-        group.MapGet("/{id:long}", HandleGetAsync).RequireAuthorization(Policies.MobileApi);
-        group.MapPost("/", HandleCreateAsync).RequireAuthorization(Policies.MobileApi);
-        group.MapPut("/{id:long}", HandleUpdateAsync).RequireAuthorization(Policies.MobileApi);
-        group.MapDelete("/{id:long}", HandleDeleteAsync).RequireAuthorization(Policies.MobileApi);
+        group.MapGet("/{id:long}", HandleGetAsync);
+        group.MapPost("/", HandleCreateAsync);
+        group.MapPut("/{id:long}", HandleUpdateAsync);
+        group.MapDelete("/{id:long}", HandleDeleteAsync);
     }
 
     //--------------------------------------------------------------------------------
-    // Handler
+    // List
     //--------------------------------------------------------------------------------
 
-    private static async ValueTask<IResult> HandleListAsync(DataService dataService, CancellationToken cancellationToken)
+    private static async ValueTask<IResult> HandleListAsync(
+        DataService dataService,
+        [Range(0, Int32.MaxValue)] int? offset,
+        [Range(1, 200)] int? size,
+        CancellationToken cancellationToken)
     {
-        var entities = await dataService.QueryAllAsync(cancellationToken);
+        if (size is null)
+        {
+            var entities = await dataService.QueryAllAsync(cancellationToken);
+            return TypedResults.Ok(new DataListResponse
+            {
+                Entries = entities.Select(static x => x.ToListEntry()).ToList(),
+                Total = entities.Count
+            });
+        }
+
+        var result = await dataService.QueryRangeAsync(offset ?? 0, size.Value, cancellationToken);
         return TypedResults.Ok(new DataListResponse
         {
-            Entries = entities.Select(static x => new DataListResponseEntry { Id = x.Id, Name = x.Name }).ToList()
+            Entries = result.Items.Select(static x => x.ToListEntry()).ToList(),
+            Total = result.Total
         });
     }
 
-    [Mapper]
-    private static partial DataResponse ToResponse(DataEntity entity);
+    //--------------------------------------------------------------------------------
+    // Get
+    //--------------------------------------------------------------------------------
 
     private static async ValueTask<IResult> HandleGetAsync(
         DataService dataService,
@@ -48,19 +130,27 @@ public static partial class DataEndpoints
     {
         var entity = await dataService.QueryAsync(id);
         return entity is not null
-            ? TypedResults.Ok(ToResponse(entity))
+            ? TypedResults.Ok(entity.ToResponse())
             : TypedResults.NotFound();
     }
+
+    //--------------------------------------------------------------------------------
+    // Create
+    //--------------------------------------------------------------------------------
 
     private static async ValueTask<IResult> HandleCreateAsync(
         DataService dataService,
         DataCreateRequest request)
     {
-        var id = await dataService.InsertAsync(request.Name, request.Value);
-        return id.HasValue
-            ? TypedResults.Created($"{ApiRoutes.Data}/{id.Value}", new DataCreateResponse(id.Value))
-            : TypedResults.Problem(statusCode: StatusCodes.Status409Conflict, title: "Duplicate name.");
+        var entity = new DataEntity { Name = request.Name, Value = request.Value };
+        return await dataService.InsertAsync(entity) == DataWriteStatus.Success
+            ? TypedResults.Created($"{ApiRoutes.Data}/{entity.Id}", new DataCreateResponse { Id = entity.Id })
+            : TypedResults.Problem(statusCode: StatusCodes.Status409Conflict, title: "Duplicate name");
     }
+
+    //--------------------------------------------------------------------------------
+    // Update
+    //--------------------------------------------------------------------------------
 
     private static async ValueTask<IResult> HandleUpdateAsync(
         DataService dataService,
@@ -72,15 +162,19 @@ public static partial class DataEndpoints
         {
             DataWriteStatus.Success => TypedResults.NoContent(),
             DataWriteStatus.NotFound => TypedResults.NotFound(),
-            _ => TypedResults.Problem(statusCode: StatusCodes.Status409Conflict, title: "Duplicate name.")
+            _ => TypedResults.Problem(statusCode: StatusCodes.Status409Conflict, title: "Duplicate name")
         };
     }
+
+    //--------------------------------------------------------------------------------
+    // Delete
+    //--------------------------------------------------------------------------------
 
     private static async ValueTask<IResult> HandleDeleteAsync(
         DataService dataService,
         long id)
     {
-        var deleted = await dataService.DeleteAsync(id);
-        return deleted ? TypedResults.NoContent() : TypedResults.NotFound();
+        var result = await dataService.DeleteAsync(id);
+        return result == DataWriteStatus.Success ? TypedResults.NoContent() : TypedResults.NotFound();
     }
 }

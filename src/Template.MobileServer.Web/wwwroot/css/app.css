@@ -2,25 +2,6 @@ html, body {
     margin: 0;
 }
 
-/* Login form */
-.login-field {
-    display: flex;
-    flex-direction: column;
-    margin-top: 16px;
-}
-
-.login-field label {
-    font-size: 0.875rem;
-    margin-bottom: 4px;
-}
-
-.login-field input {
-    padding: 8px 12px;
-    font-size: 1rem;
-    border: 1px solid rgba(0, 0, 0, 0.3);
-    border-radius: 4px;
-}
-
 /* Page layout */
 .page-card {
     max-width: 400px;
@@ -46,6 +27,19 @@ html, body {
     max-width: 960px;
 }
 
+/* Table column width */
+.w-48 {
+    width: 48px;
+}
+
+.w-120 {
+    width: 120px;
+}
+
+.w-180 {
+    width: 180px;
+}
+
 .summary-table {
     max-width: 480px;
 }
@@ -64,10 +58,35 @@ html, body {
     max-width: 480px;
 }
 
+.setting-table .setting-key {
+    width: 180px;
+    white-space: nowrap;
+    font-family: Consolas, monospace;
+}
+
+.setting-table .setting-value {
+    font-family: Consolas, monospace;
+    word-break: break-all;
+}
+
 .qr-text {
     margin: 0;
     white-space: pre-wrap;
     word-break: break-all;
+}
+
+.qr-image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.devices-table {
+    max-width: 960px;
+}
+
+.notify-form {
+    max-width: 480px;
 }
 
 /* Blazor error UI */

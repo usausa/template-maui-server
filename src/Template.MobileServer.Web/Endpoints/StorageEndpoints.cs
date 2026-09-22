@@ -2,8 +2,30 @@ namespace Template.MobileServer.Web.Endpoints;
 
 using Template.MobileServer.Infrastructure.Storage;
 using Template.MobileServer.Web.Application;
-using Template.MobileServer.Web.Infrastructure.Filters;
-using Template.MobileServer.Web.Models.Api;
+
+//--------------------------------------------------------------------------------
+// Models
+//--------------------------------------------------------------------------------
+
+public sealed class StorageListEntry
+{
+    public string Name { get; set; } = default!;
+
+    public bool Directory { get; set; }
+
+    public long? Size { get; set; }
+
+    public DateTime LastModified { get; set; }
+}
+
+public sealed class StorageListResponse
+{
+    public IReadOnlyList<StorageListEntry> Entries { get; set; } = default!;
+}
+
+//--------------------------------------------------------------------------------
+// Endpoints
+//--------------------------------------------------------------------------------
 
 public static class StorageEndpoints
 {
@@ -13,18 +35,26 @@ public static class StorageEndpoints
 
     public static void MapStorageEndpoints(this WebApplication app)
     {
-        // [MEMO] モバイル契約維持のため匿名のまま(JWT保護化は拡張候補)
         var group = app.MapApiGroup(ApiRoutes.Storage)
-            .AddEndpointFilter<StorageExceptionFilter>();
+            .AddEndpointFilter(static async (context, next) =>
+            {
+                try
+                {
+                    return await next(context);
+                }
+                catch (StorageException)
+                {
+                    return TypedResults.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid path.");
+                }
+            });
 
-        // 簡易FTP契約: 末尾スラッシュまたは空パス=ディレクトリ一覧、それ以外=ファイルダウンロード
         group.MapGet("/{**path}", HandleGetAsync);
         group.MapPost("/{**path}", HandleUploadAsync);
         group.MapDelete("/{**path}", HandleDeleteAsync);
     }
 
     //--------------------------------------------------------------------------------
-    // Handler
+    // Get
     //--------------------------------------------------------------------------------
 
     private static async ValueTask<IResult> HandleGetAsync(
@@ -44,7 +74,7 @@ public static class StorageEndpoints
             var entries = await storage.ListEntriesAsync(path, cancellationToken);
             return TypedResults.Ok(new StorageListResponse
             {
-                Entries = entries.Select(static x => new StorageListResponseEntry
+                Entries = entries.Select(static x => new StorageListEntry
                 {
                     Name = x.Name,
                     Directory = x.IsDirectory,
@@ -63,16 +93,24 @@ public static class StorageEndpoints
         return TypedResults.Stream(stream, "application/octet-stream", Path.GetFileName(path));
     }
 
+    //--------------------------------------------------------------------------------
+    // Upload
+    //--------------------------------------------------------------------------------
+
+    [DisableRequestSizeLimit]
     private static async ValueTask<IResult> HandleUploadAsync(
         HttpContext context,
         IStorage storage,
         string path)
     {
-        // クライアント(HttpService.UploadAsync)は本文に生ストリームを送る(親ディレクトリは自動作成)
         await storage.WriteAsync(path, context.Request.Body, context.RequestAborted);
 
         return TypedResults.Ok();
     }
+
+    //--------------------------------------------------------------------------------
+    // Delete
+    //--------------------------------------------------------------------------------
 
     private static async ValueTask<IResult> HandleDeleteAsync(
         IStorage storage,
@@ -85,7 +123,6 @@ public static class StorageEndpoints
             return TypedResults.NoContent();
         }
 
-        // ディレクトリは再帰削除
         if (await storage.DirectoryExistsAsync(path, cancellationToken))
         {
             await storage.DeleteAsync(path, cancellationToken);

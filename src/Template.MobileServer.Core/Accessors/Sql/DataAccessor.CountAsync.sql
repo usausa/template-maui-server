@@ -1,2 +1,9 @@
-SELECT COUNT(*) FROM Data
-WHERE (/*@ name */'' IS NULL) OR (Name LIKE '%' || /*@ name */'' || '%')
+SELECT
+    COUNT(*)
+FROM
+    Data
+WHERE
+    1 = 1
+/*% if (name != null) { */
+    AND Name LIKE /*@ name */'' ESCAPE '\'
+/*% } */

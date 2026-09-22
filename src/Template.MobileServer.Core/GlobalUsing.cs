@@ -36,3 +36,4 @@ global using Smart.Text;
 global using Template.MobileServer.Domain;
 global using Template.MobileServer.Models;
 global using Template.MobileServer.Models.Entity;
+global using Template.MobileServer.Models.Parameters;

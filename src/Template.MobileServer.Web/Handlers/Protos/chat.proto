@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "Template.MobileServer.Web.Handlers";
+
+package chat;
+
+service ChatRoom {
+  rpc Connect (stream ChatMessage) returns (stream ChatMessage);
+}
+
+message ChatMessage {
+  string user = 1;
+  string text = 2;
+  int64 timestamp = 3;
+}

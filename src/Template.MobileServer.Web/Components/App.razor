@@ -7,7 +7,7 @@
     <base href="/" />
     <link rel="stylesheet" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" />
     <link rel="stylesheet" href="@Assets["css/app.css"]" />
-    <ImportMap />
+    <ImportMap nonce="@Nonce.Value" />
     <HeadOutlet @rendermode="PageRenderMode" />
 </head>
 
@@ -33,7 +33,12 @@
     [CascadingParameter]
     public HttpContext HttpContext { get; set; } = default!;
 
-    // Static SSR for pages with [ExcludeFromInteractiveRouting] (login etc.)
+    [Inject]
+    public required CspNonce Nonce { get; set; }
+
+    private static readonly IComponentRenderMode InteractiveServerWithoutPrerender = new InteractiveServerRenderMode(prerender: false);
+
+    // Static SSR for pages with [ExcludeFromInteractiveRouting]
     private IComponentRenderMode? PageRenderMode =>
-        HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null;
+        HttpContext.AcceptsInteractiveRouting() ? InteractiveServerWithoutPrerender : null;
 }

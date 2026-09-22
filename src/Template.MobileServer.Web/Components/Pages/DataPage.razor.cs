@@ -5,11 +5,7 @@ using Microsoft.AspNetCore.Components.Web;
 
 using MudBlazor;
 
-using Smart.Mapper;
-
 using Template.MobileServer.Web.Components.Dialogs;
-using Template.MobileServer.Web.Infrastructure.Components;
-using Template.MobileServer.Web.Models.Forms;
 
 public sealed partial class DataPage
 {
@@ -43,9 +39,9 @@ public sealed partial class DataPage
 
     private async Task<GridData<DataEntity>> LoadServerData(GridState<DataEntity> state, CancellationToken cancellationToken)
     {
-        // 並べ替えはサーバー側で行うため、グリッドが選んだ列と昇降をそのまま渡す
+        // 並べ替えはサーバー側で行う。グリッドが選んだ列 (プロパティ名 = 列挙名) と昇降を渡す
         var sort = state.SortDefinitions.FirstOrDefault();
-        var result = await DataService.QueryPageAsync(searchName, sort?.SortBy, sort?.Descending ?? false, state.Page, state.PageSize, cancellationToken);
+        var result = await DataService.QueryPageAsync(searchName, RequestHelper.Parse(sort?.SortBy, DataSort.Id), sort?.Descending ?? false, state.Page, state.PageSize, cancellationToken);
         return new GridData<DataEntity>
         {
             TotalItems = result.Total,
@@ -69,14 +65,13 @@ public sealed partial class DataPage
 
     private async Task AddAsync()
     {
-        var form = await ShowEditDialog("データ追加", new DataForm());
-        if (form is null)
+        var entity = await DialogService.ShowEditDialog("データ追加", null);
+        if (entity is null)
         {
             return;
         }
 
-        var id = await DataService.InsertAsync(form.Name, form.Value);
-        if (id.HasValue)
+        if (await DataService.InsertAsync(entity) == DataWriteStatus.Success)
         {
             Snackbar.AddSuccess("追加しました。");
             await grid.ReloadServerData();
@@ -87,18 +82,15 @@ public sealed partial class DataPage
         }
     }
 
-    [Mapper]
-    private static partial DataForm ToForm(DataEntity entity);
-
     private async Task EditAsync(DataEntity entity)
     {
-        var form = await ShowEditDialog("データ編集", ToForm(entity));
-        if (form is null)
+        var edited = await DialogService.ShowEditDialog("データ編集", entity);
+        if (edited is null)
         {
             return;
         }
 
-        var result = await DataService.UpdateAsync(form.Id, form.Name, form.Value);
+        var result = await DataService.UpdateAsync(edited.Id, edited.Name, edited.Value);
         switch (result)
         {
             case DataWriteStatus.Success:
@@ -122,7 +114,7 @@ public sealed partial class DataPage
             return;
         }
 
-        if (await DataService.DeleteAsync(entity.Id))
+        if (await DataService.DeleteAsync(entity.Id) == DataWriteStatus.Success)
         {
             Snackbar.AddSuccess("削除しました。");
         }
@@ -132,18 +124,5 @@ public sealed partial class DataPage
         }
 
         await grid.ReloadServerData();
-    }
-
-    private async Task<DataForm?> ShowEditDialog(string title, DataForm form)
-    {
-        var reference = await DialogService.ShowAsync<DataEditDialog>(
-            string.Empty,
-            new DialogParameters
-            {
-                { nameof(DataEditDialog.Title), title },
-                { nameof(DataEditDialog.Form), form }
-            });
-        var result = await reference.Result;
-        return (result is { Canceled: false }) ? (DataForm)result.Data! : null;
     }
 }

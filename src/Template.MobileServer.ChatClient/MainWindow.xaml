@@ -24,8 +24,6 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="120" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
@@ -33,14 +31,12 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,4,4" VerticalAlignment="Center" Text="Server" />
-            <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,8,4" IsEnabled="{Binding CanConnect}" Text="{Binding ServerUrl, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Grid.Row="0" Grid.Column="2" Margin="0,0,4,4" VerticalAlignment="Center" Text="gRPC" />
-            <TextBox Grid.Row="0" Grid.Column="3" Margin="0,0,8,4" IsEnabled="{Binding CanConnect}" Text="{Binding GrpcUrl, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Grid.Row="0" Grid.Column="4" Margin="0,0,4,4" VerticalAlignment="Center" Text="User" />
-            <TextBox Grid.Row="0" Grid.Column="5" Margin="0,0,0,4" IsEnabled="{Binding CanConnect}" Text="{Binding UserId, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,4,4" VerticalAlignment="Center" Text="gRPC" />
+            <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,8,4" IsEnabled="{Binding CanConnect}" Text="{Binding GrpcUrl, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Grid.Row="0" Grid.Column="2" Margin="0,0,4,4" VerticalAlignment="Center" Text="User" />
+            <TextBox Grid.Row="0" Grid.Column="3" Margin="0,0,0,4" IsEnabled="{Binding CanConnect}" Text="{Binding UserId, UpdateSourceTrigger=PropertyChanged}" />
 
-            <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Orientation="Horizontal">
+            <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Orientation="Horizontal">
                 <Button Width="96" Margin="0,0,8,0" Command="{Binding ConnectCommand}" Content="接続" IsEnabled="{Binding CanConnect}" />
                 <Button Width="96" Command="{Binding DisconnectCommand}" Content="切断" IsEnabled="{Binding CanDisconnect}" />
             </StackPanel>

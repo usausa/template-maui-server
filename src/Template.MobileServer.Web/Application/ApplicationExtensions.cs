@@ -7,13 +7,11 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Text.Unicode;
 
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.FeatureManagement;
@@ -36,22 +34,28 @@ using Serilog;
 using Smart.Data;
 
 using Template.MobileServer.Accessors;
-using Template.MobileServer.Infrastructure.Security;
 using Template.MobileServer.Infrastructure.Storage;
+using Template.MobileServer.Web.Application.Authentication;
+using Template.MobileServer.Web.Application.ExceptionHandling;
+using Template.MobileServer.Web.Application.HealthChecks;
 using Template.MobileServer.Web.Application.Telemetry;
 using Template.MobileServer.Web.Components;
 using Template.MobileServer.Web.Endpoints;
 using Template.MobileServer.Web.Handlers;
-using Template.MobileServer.Web.Infrastructure.Authentication;
-using Template.MobileServer.Web.Infrastructure.ExceptionHandling;
-using Template.MobileServer.Web.Infrastructure.HealthChecks;
+using Template.MobileServer.Web.Hubs;
 using Template.MobileServer.Web.Infrastructure.Logging;
+using Template.MobileServer.Web.Infrastructure.Routing;
+using Template.MobileServer.Web.Infrastructure.Security;
 
 public static class ApplicationExtensions
 {
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
-    private const string ApiPathPrefix = "/api";
+
+    private const string SchemaPath = "Assets/Data/Schema.sql";
+
+    // アプリケーション用の gRPC ポート (Kestrel:Endpoints:Grpc)。OTEL 用のポート (Kestrel:Endpoints:Otel) は別
+    private const string GrpcEndpointConfigurationKey = "Kestrel:Endpoints:Grpc:Url";
 
     //--------------------------------------------------------------------------------
     // System
@@ -91,50 +95,76 @@ public static class ApplicationExtensions
 
     public static IHostApplicationBuilder ConfigureLogging(this IHostApplicationBuilder builder)
     {
+        var setting = builder.Configuration.GetSection("Log").Get<LogSetting>()!;
         var useOtlpExporter = builder.Configuration.IsOtelExporterEnabled();
 
         // Application log
         builder.Logging.ClearProviders();
         builder.Services.AddSerilog(
-            options =>
+            (provider, options) =>
             {
+                var accessor = provider.GetRequiredService<IHttpContextAccessor>();
                 options.ReadFrom.Configuration(builder.Configuration);
-                options.Enrich.With(new CallbackEnricher("UserId", static () => LoggingContext.UserId));
+                options.Enrich.With(new CallbackEnricher("RemoteIpAddress", () => accessor.HttpContext?.Connection.RemoteIpAddress?.ToString()));
+                options.Enrich.With(new CallbackEnricher("UserId", () => accessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)));
             },
             writeToProviders: useOtlpExporter);
 
         // HTTP log
-        builder.Services.AddHttpLogging(static options =>
+        builder.Services.AddHttpLogging(options =>
         {
             options.LoggingFields = HttpLoggingFields.RequestMethod |
                                     HttpLoggingFields.RequestPath |
                                     HttpLoggingFields.ResponseStatusCode |
                                     HttpLoggingFields.Duration;
+            if (setting.HttpDump)
+            {
+                options.LoggingFields |= HttpLoggingFields.RequestBody | HttpLoggingFields.ResponseBody;
+                options.CombineLogs = true;
+                options.RequestBodyLogLimit = setting.HttpDumpLimit;
+                options.ResponseBodyLogLimit = setting.HttpDumpLimit;
+                options.MediaTypeOptions.Clear();
+                options.MediaTypeOptions.AddText("application/json");
+                options.MediaTypeOptions.AddText("application/*+json");
+                options.MediaTypeOptions.AddText("application/xml");
+                options.MediaTypeOptions.AddText("application/*+xml");
+            }
         });
+
+        // Access log (W3C)
+        if (setting.W3CLog.Enable)
+        {
+            builder.Services.AddW3CLogging(options =>
+            {
+                options.LogDirectory = setting.W3CLog.Directory;
+                options.FileName = setting.W3CLog.FileName;
+                options.RetainedFileCountLimit = setting.W3CLog.RetainedFileCount;
+            });
+        }
 
         return builder;
     }
 
-    public static WebApplication UseLogging(this WebApplication app)
+    public static WebApplication UseW3CLog(this WebApplication app)
     {
         var setting = app.Services.GetRequiredService<LogSetting>();
-        if (setting.HttpLog)
+        if (setting.W3CLog.Enable)
         {
-            app.UseWhen(
-                static context => context.Request.Path.StartsWithSegments(ApiPathPrefix, StringComparison.OrdinalIgnoreCase),
-                static b => b.UseHttpLogging());
+            app.UseW3CLogging();
         }
 
         return app;
     }
 
-    public static WebApplication UseLoggingContext(this WebApplication app)
+    public static WebApplication UseHttpLog(this WebApplication app)
     {
-        app.Use(static (context, next) =>
+        var setting = app.Services.GetRequiredService<LogSetting>();
+        if (setting.HttpLog)
         {
-            LoggingContext.UserId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return next(context);
-        });
+            app.UseWhen(
+                static context => context.Request.Path.StartsWithSegments(ApiRoutes.Prefix, StringComparison.OrdinalIgnoreCase),
+                static b => b.UseHttpLogging());
+        }
 
         return app;
     }
@@ -148,14 +178,8 @@ public static class ApplicationExtensions
         // Add services to the container.
         builder.Services.AddHttpContextAccessor();
 
-        // Size limit (large file upload/download support)
-        builder.Services.Configure<KestrelServerOptions>(static options =>
-        {
-            options.Limits.MaxRequestBodySize = Int32.MaxValue;
-        });
-
-        // gzipリクエスト展開(MAUIクライアントはContent-Encoding: gzipで生ボディを送信する)
-        builder.Services.AddRequestDecompression();
+        // CSP nonce
+        builder.Services.AddScoped<CspNonce>();
 
         // XForward
         builder.Services.Configure<ForwardedHeadersOptions>(static options =>
@@ -170,18 +194,39 @@ public static class ApplicationExtensions
         return builder;
     }
 
+    public static WebApplication UseSecurityHeaders(this WebApplication app)
+    {
+        // HSTS
+        if (!app.Environment.IsDevelopment())
+        {
+            app.UseHsts();
+        }
+
+        // Headers. The nonce admits the import map that Blazor renders inline, MudBlazor needs inline styles,
+        // dotnet watch / Browser Link load their script from another localhost port and connect back to it
+        var development = app.Environment.IsDevelopment();
+        var scriptSources = development ? "'self' http://localhost:*" : "'self'";
+        var connectSources = development ? "'self' http://localhost:* ws://localhost:* wss://localhost:*" : "'self'";
+        app.UseMiddleware<SecurityHeadersMiddleware>(new SecurityHeadersOption
+        {
+            ReportOnly = app.Services.GetRequiredService<CspSetting>().ReportOnly,
+            ContentSecurityPolicy = $"default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src {scriptSources} 'nonce-{{nonce}}'; connect-src {connectSources}"
+        });
+
+        return app;
+    }
+
     //--------------------------------------------------------------------------------
     // API
     //--------------------------------------------------------------------------------
 
     public static IHostApplicationBuilder ConfigureApi(this IHostApplicationBuilder builder)
     {
-        // JSON
-        // [MEMO] クライアント(Rester既定=プロパティ名そのまま)との契約のため、Minimal API既定のcamelCaseを解除しPascalCaseにする
+        // JSON (camelCase。クライアントの Rester 既定と同じ)
         builder.Services.ConfigureHttpJsonOptions(static options =>
         {
-            options.SerializerOptions.PropertyNamingPolicy = null;
-            options.SerializerOptions.DictionaryKeyPolicy = null;
+            options.SerializerOptions.PropertyNamingPolicy = NamingPolicy.JsonPropertyNaming;
+            options.SerializerOptions.DictionaryKeyPolicy = NamingPolicy.JsonDictionaryKeyNaming;
             options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             options.SerializerOptions.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All);
             options.SerializerOptions.Converters.Add(new Template.MobileServer.Infrastructure.Json.DateTimeConverter());
@@ -205,14 +250,18 @@ public static class ApplicationExtensions
 
     public static WebApplication UseErrorHandler(this WebApplication app)
     {
-        // API: ProblemDetails
+        // API: ProblemDetails(本文の無い 401 / 403 / 404 なども、認証スキームによらず例外時と同じ形にする)
         app.UseWhen(
-            static context => context.Request.Path.StartsWithSegments(ApiPathPrefix, StringComparison.OrdinalIgnoreCase),
-            static b => b.UseExceptionHandler());
+            static context => context.Request.Path.StartsWithSegments(ApiRoutes.Prefix, StringComparison.OrdinalIgnoreCase),
+            static b =>
+            {
+                b.UseExceptionHandler();
+                b.UseStatusCodePages();
+            });
 
         // Page: error page
         app.UseWhen(
-            static context => !context.Request.Path.StartsWithSegments(ApiPathPrefix, StringComparison.OrdinalIgnoreCase),
+            static context => !context.Request.Path.StartsWithSegments(ApiRoutes.Prefix, StringComparison.OrdinalIgnoreCase),
             static b =>
             {
                 b.UseExceptionHandler("/error", createScopeForErrors: true);
@@ -230,6 +279,25 @@ public static class ApplicationExtensions
         // gRPC (チャット)
         builder.Services.AddGrpc();
 
+        // ポートでサービスを出し分ける (gRPC のサービスはアプリケーション用ポートのみ)
+        builder.Services.AddSingleton<MatcherPolicy, PortMatcherPolicy>();
+
+        return builder;
+    }
+
+    //--------------------------------------------------------------------------------
+    // SignalR
+    //--------------------------------------------------------------------------------
+
+    public static IHostApplicationBuilder ConfigureSignalR(this IHostApplicationBuilder builder)
+    {
+        // 端末の常時接続(監視)。KeepAlive / ClientTimeout はクライアントの KeepAliveInterval / ServerTimeout と対にする
+        builder.Services.AddSignalR(static options =>
+        {
+            options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+            options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+        });
+
         return builder;
     }
 
@@ -239,53 +307,11 @@ public static class ApplicationExtensions
 
     public static IHostApplicationBuilder ConfigureAuthentication(this IHostApplicationBuilder builder)
     {
-        var setting = builder.Configuration.GetSection("Auth").Get<AuthSetting>()!;
         var jwtSetting = builder.Configuration.GetSection("Jwt").Get<JwtSetting>()!;
-        var isDevelopment = builder.Environment.IsDevelopment();
 
-        // 2スキーム構成: 管理画面=Cookie(既定)、モバイルAPI=JWT Bearer
+        // モバイルAPI用の JWT Bearer のみ(管理画面は認証なし)
         builder.Services
-            .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-            .AddCookie(options =>
-            {
-                options.LoginPath = "/login";
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(setting.ExpireMinutes);
-                options.SlidingExpiration = true;
-                options.Cookie.HttpOnly = true;
-                options.Cookie.SameSite = SameSiteMode.Lax;
-                options.Cookie.SecurePolicy = isDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
-
-                // API returns status code instead of redirect
-                options.Events = new CookieAuthenticationEvents
-                {
-                    OnRedirectToLogin = static context =>
-                    {
-                        if (context.Request.Path.StartsWithSegments(ApiPathPrefix, StringComparison.OrdinalIgnoreCase))
-                        {
-                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        }
-                        else
-                        {
-                            context.Response.Redirect(context.RedirectUri);
-                        }
-
-                        return Task.CompletedTask;
-                    },
-                    OnRedirectToAccessDenied = static context =>
-                    {
-                        if (context.Request.Path.StartsWithSegments(ApiPathPrefix, StringComparison.OrdinalIgnoreCase))
-                        {
-                            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                        }
-                        else
-                        {
-                            context.Response.Redirect(context.RedirectUri);
-                        }
-
-                        return Task.CompletedTask;
-                    }
-                };
-            })
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -304,11 +330,8 @@ public static class ApplicationExtensions
 
         builder.Services.AddAuthorization(static options =>
         {
-            options.AddPolicy(Policies.Administrator, static policy => policy.RequireRole(Roles.Administrator));
             options.AddPolicy(Policies.MobileApi, new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme).RequireAuthenticatedUser().Build());
         });
-
-        builder.Services.AddCascadingAuthenticationState();
 
         return builder;
     }
@@ -326,12 +349,33 @@ public static class ApplicationExtensions
             options.Providers.Add<GzipCompressionProvider>();
         });
 
+        // MAUIクライアントはContent-Encoding: gzipで生ボディを送信する(Compression:Request)
+        builder.Services.AddRequestDecompression();
+
         return builder;
     }
 
+    // 圧縮は API だけ(画面は antiforgery トークンを含む HTML なので BREACH の余地を作らない)
     public static WebApplication UseCompression(this WebApplication app)
     {
-        app.UseResponseCompression();
+        var setting = app.Services.GetRequiredService<CompressionSetting>();
+        if (setting.Response || setting.Request)
+        {
+            app.UseWhen(
+                static context => context.Request.Path.StartsWithSegments(ApiRoutes.Prefix, StringComparison.OrdinalIgnoreCase),
+                b =>
+                {
+                    if (setting.Response)
+                    {
+                        b.UseResponseCompression();
+                    }
+
+                    if (setting.Request)
+                    {
+                        b.UseRequestDecompression();
+                    }
+                });
+        }
 
         return app;
     }
@@ -365,10 +409,18 @@ public static class ApplicationExtensions
         // Razor components
         builder.Services
             .AddRazorComponents()
-            .AddInteractiveServerComponents();
+            .AddInteractiveServerComponents(options =>
+            {
+                // 回線上の例外の詳細をブラウザへ流すのは開発環境だけ
+                options.DetailedErrors = builder.Environment.IsDevelopment();
+            });
 
         // Error boundary logging
-        builder.Services.AddScoped<Microsoft.AspNetCore.Components.Web.IErrorBoundaryLogger, Infrastructure.Components.ErrorBoundaryLogger>();
+        builder.Services.AddScoped<Microsoft.AspNetCore.Components.Web.IErrorBoundaryLogger, Components.ErrorBoundaryLogger>();
+
+        // Circuit tracking
+        builder.Services.AddSingleton<Circuits.CircuitTracker>();
+        builder.Services.AddScoped<Microsoft.AspNetCore.Components.Server.Circuits.CircuitHandler, Circuits.AppCircuitHandler>();
 
         // MudBlazor
         builder.Services.AddMudServices(static options =>
@@ -530,40 +582,45 @@ public static class ApplicationExtensions
         builder.Services.AddMemoryCache();
 
         // Storage
-        builder.Services.AddOptions<FileStorageOptions>().BindConfiguration("Storage").ValidateDataAnnotations().ValidateOnStart();
-        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<FileStorageOptions>>().Value);
+        builder.Services.AddOptions<FileStorageOption>().BindConfiguration("Storage").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<FileStorageOption>>().Value);
         builder.Services.AddSingleton<IStorage, FileStorage>();
 
-        // Security
-        builder.Services.AddSingleton(new DefaultPasswordProviderOptions());
-        builder.Services.AddSingleton<IPasswordProvider, DefaultPasswordProvider>();
-
-        // Authentication (モバイルAPI用JWT発行)
-        builder.Services.AddSingleton<TokenService>();
+        // Authentication (モバイルAPI用JWT発行。JwtSetting は検証側の AddJwtBearer と共用)
+        builder.Services.AddOptions<JwtSetting>().BindConfiguration("Jwt").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<JwtSetting>>().Value);
+        builder.Services.AddSingleton<JwtTokenProvider>();
 
         // Service
         builder.Services.AddCoreServices();
 
         // Notification
         builder.Services.AddSingleton<Infrastructure.Notifications.NotificationBus>();
+        builder.Services.AddOptions<Workers.NotificationWorkerOption>().BindConfiguration("Notification").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<Workers.NotificationWorkerOption>>().Value);
         builder.Services.AddHostedService<Workers.NotificationWorker>();
 
         // Chat (gRPC/Blazor共用のプロセス内ハブ)
-        builder.Services.AddSingleton<Infrastructure.Chat.ChatService>();
+        builder.Services.AddSingleton<Services.ChatService>();
+
+        // Monitor (端末の常時接続。一覧はBlazor共用、状態配信はワーカー、通知バスの中継は MonitorNotifier)
+        builder.Services.AddSingleton<Services.DeviceRegistry>();
+        builder.Services.AddSingleton<Services.MonitorNotifier>();
+        builder.Services.AddOptions<Workers.ServerStatusWorkerOption>().BindConfiguration("ServerStatus").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<Workers.ServerStatusWorkerOption>>().Value);
+        builder.Services.AddHostedService<Workers.ServerStatusWorker>();
 
         // Setting
-        builder.Services.AddOptions<ProfilerSetting>().BindConfiguration("Profiler").ValidateDataAnnotations().ValidateOnStart();
-        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<ProfilerSetting>>().Value);
+        builder.Services.AddOptions<CompressionSetting>().BindConfiguration("Compression").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<CompressionSetting>>().Value);
+        builder.Services.AddOptions<CspSetting>().BindConfiguration("Csp").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<CspSetting>>().Value);
         builder.Services.AddOptions<LogSetting>().BindConfiguration("Log").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<LogSetting>>().Value);
-        builder.Services.AddOptions<AuthSetting>().BindConfiguration("Auth").ValidateDataAnnotations().ValidateOnStart();
-        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<AuthSetting>>().Value);
+        builder.Services.AddOptions<ProfilerSetting>().BindConfiguration("Profiler").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<ProfilerSetting>>().Value);
         builder.Services.AddOptions<TelemetrySetting>().BindConfiguration("Telemetry").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<TelemetrySetting>>().Value);
-        builder.Services.AddOptions<JwtSetting>().BindConfiguration("Jwt").ValidateDataAnnotations().ValidateOnStart();
-        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<JwtSetting>>().Value);
-        builder.Services.AddOptions<WorkerSetting>().BindConfiguration("Worker").ValidateDataAnnotations().ValidateOnStart();
-        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<WorkerSetting>>().Value);
 
         return builder;
     }
@@ -619,10 +676,10 @@ public static class ApplicationExtensions
 
         // Blazor
         app.MapRazorComponents<App>()
-            .AddInteractiveServerRenderMode();
-
-        // Auth (管理画面用)
-        app.MapAuthEndpoints();
+            .AddInteractiveServerRenderMode(static options =>
+            {
+                options.ContentSecurityFrameAncestorsPolicy = "'none'";
+            });
 
         // API (モバイル契約)
         app.MapServerEndpoints();
@@ -632,8 +689,13 @@ public static class ApplicationExtensions
         app.MapStorageEndpoints();
         app.MapTestEndpoints();
 
-        // gRPC (チャット、認証はハンドラーの[Authorize]でJWT Bearer)
-        app.MapGrpcService<ChatHandler>();
+        // gRPC (チャット / サーバー情報、認証なし。アプリケーション用ポートのみ)
+        var grpcPort = GetEndpointPort(app.Configuration, GrpcEndpointConfigurationKey);
+        app.MapGrpcService<ChatHandler>().RequirePort(grpcPort);
+        app.MapGrpcService<ServerInfoHandler>().RequirePort(grpcPort);
+
+        // SignalR (端末の監視、認証なし)
+        app.MapHub<MonitorHub>(HubRoutes.Monitor);
 
         // Health
         app.MapHealthChecks(HealthEndpointPath);
@@ -654,19 +716,32 @@ public static class ApplicationExtensions
         // Prepare instrument
         app.Services.GetRequiredService<ApplicationInstrument>();
 
+        // Prepare notifier (subscribes the notification bus)
+        app.Services.GetRequiredService<Services.MonitorNotifier>();
+
         // Prepare storage
-        Directory.CreateDirectory(app.Services.GetRequiredService<FileStorageOptions>().Root);
+        Directory.CreateDirectory(app.Services.GetRequiredService<FileStorageOption>().Root);
 
-        // Prepare database
-        app.Services.GetRequiredService<DataService>().CreateTable();
-
-        var setting = app.Services.GetRequiredService<AuthSetting>();
-        return app.Services.GetRequiredService<AccountService>().InitializeAsync(setting.InitialId, setting.InitialPassword, Roles.Administrator);
+        // Prepare database (schema from the SQL file)
+        return app.Services.GetRequiredService<DatabaseService>().InitializeAsync(SchemaPath, CancellationToken.None);
     }
 
     //--------------------------------------------------------------------------------
     // Configuration
     //--------------------------------------------------------------------------------
+
+    // Kestrel のエンドポイント設定 (http://*:9090 など) からポートを取り出す
+    private static int GetEndpointPort(IConfiguration configuration, string key)
+    {
+        var url = configuration[key];
+        if (String.IsNullOrEmpty(url) ||
+            !Uri.TryCreate(url.Replace("*", "localhost", StringComparison.Ordinal).Replace("+", "localhost", StringComparison.Ordinal), UriKind.Absolute, out var uri))
+        {
+            throw new InvalidOperationException($"Endpoint is not configured. key=[{key}]");
+        }
+
+        return uri.Port;
+    }
 
     private static bool IsOtelExporterEnabled(this IConfiguration configuration) =>
         !String.IsNullOrWhiteSpace(configuration.GetOtelExporterEndpoint());

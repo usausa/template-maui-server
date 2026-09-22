@@ -25,6 +25,8 @@ builder.ConfigureHttp();
 builder.ConfigureApi();
 // gRPC
 builder.ConfigureGrpc();
+// SignalR
+builder.ConfigureSignalR();
 // Authentication
 builder.ConfigureAuthentication();
 // Compress
@@ -54,25 +56,28 @@ app.LogStartupInformation();
 // Forwarded headers
 app.UseForwardedHeaders();
 
+// Security headers
+app.UseSecurityHeaders();
+
+// W3C log
+app.UseW3CLog();
+
 // Error handler
 app.UseErrorHandler();
+
+// Routing
+app.UseRouting();
 
 // Compression
 app.UseCompression();
 
-// Logging
-app.UseLogging();
-
-// gzipリクエスト展開(Content-Encoding: gzipのアップロード対応)
-app.UseRequestDecompression();
+// HTTP log
+app.UseHttpLog();
 
 // Authentication
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
-
-// Logging context
-app.UseLoggingContext();
 
 // End point
 app.MapEndpoints();

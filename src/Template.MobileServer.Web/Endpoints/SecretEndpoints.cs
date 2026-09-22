@@ -1,7 +1,19 @@
 namespace Template.MobileServer.Web.Endpoints;
 
 using Template.MobileServer.Web.Application;
-using Template.MobileServer.Web.Models.Api;
+
+//--------------------------------------------------------------------------------
+// Models
+//--------------------------------------------------------------------------------
+
+public sealed class SecretMessageResponse
+{
+    public string Message { get; set; } = default!;
+}
+
+//--------------------------------------------------------------------------------
+// Endpoints
+//--------------------------------------------------------------------------------
 
 public static class SecretEndpoints
 {
@@ -18,7 +30,7 @@ public static class SecretEndpoints
     }
 
     //--------------------------------------------------------------------------------
-    // Handler
+    // Message
     //--------------------------------------------------------------------------------
 
     private static Ok<SecretMessageResponse> HandleMessage(ClaimsPrincipal user) =>

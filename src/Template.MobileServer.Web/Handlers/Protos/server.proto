@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option csharp_namespace = "Template.MobileServer.Web.Handlers";
+
+package info;
+
+service ServerInfo {
+  rpc GetServerTime (ServerTimeRequest) returns (ServerTimeReply);
+}
+
+message ServerTimeRequest {
+}
+
+message ServerTimeReply {
+  int64 timestamp = 1;
+}
