@@ -61,7 +61,7 @@ public sealed partial class ChatPage
     }
 
     //--------------------------------------------------------------------------------
-    // Event
+    // Events
     //--------------------------------------------------------------------------------
 
     private void OnReceived(object? sender, ChatEntryEventArgs e)
