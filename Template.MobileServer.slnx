@@ -6,9 +6,6 @@
     <Project Path="src/Template.MobileServer.Core/Template.MobileServer.Core.csproj" />
     <Project Path="src/Template.MobileServer.Web/Template.MobileServer.Web.csproj" />
   </Folder>
-  <Folder Name="/Client/">
-    <Project Path="src/Template.MobileServer.ChatClient/Template.MobileServer.ChatClient.csproj" />
-  </Folder>
   <Folder Name="/Test/">
     <Project Path="tests/Template.MobileServer.UnitTests/Template.MobileServer.UnitTests.csproj" />
   </Folder>
@@ -19,8 +16,6 @@
     <File Path="AGENTS.md" />
     <File Path="Analyzers.ruleset" />
     <File Path="CodeCoverage.runsettings" />
-    <File Path="Database.sql" />
-    <File Path="Database.Sample.sql" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
     <File Path="LICENSE" />

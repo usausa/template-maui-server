@@ -36,6 +36,7 @@
     <PackageReference Include="Serilog.Enrichers.Span" Version="3.1.0" />
     <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Usa.Smart.Blazor" Version="2.5.0" />
     <PackageReference Include="Usa.Smart.Core" Version="2.19.0" />
     <PackageReference Include="Usa.Smart.Data.Accessor.Extensions.DependencyInjection" Version="3.0.0-beta12" />
     <PackageReference Include="Usa.Smart.Mapper" Version="1.0.0-beta9" />

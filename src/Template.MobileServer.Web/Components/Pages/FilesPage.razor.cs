@@ -9,7 +9,6 @@ using Template.MobileServer.Infrastructure.Storage;
 using Template.MobileServer.Web.Components.Dialogs;
 using Template.MobileServer.Web.Infrastructure.IO;
 
-// ストレージブラウザ(ディレクトリ階層のブラウズ/アップロード/ダウンロード/削除/フォルダ作成)
 public sealed partial class FilesPage
 {
     private const long MaxFileSize = 100L * 1024 * 1024;
@@ -26,6 +25,10 @@ public sealed partial class FilesPage
 
     private int progress;
 
+    //--------------------------------------------------------------------------------
+    // Property
+    //--------------------------------------------------------------------------------
+
     [Inject]
     public required IStorage Storage { get; set; }
 
@@ -41,11 +44,28 @@ public sealed partial class FilesPage
     [Parameter]
     public string? Path { get; set; }
 
+    //--------------------------------------------------------------------------------
+    // Initialize
+    //--------------------------------------------------------------------------------
+
     protected override Task OnParametersSetAsync()
     {
         currentPath = (Path ?? string.Empty).Trim('/');
         BuildBreadcrumbs();
         return LoadAsync();
+    }
+
+    //--------------------------------------------------------------------------------
+    // Event
+    //--------------------------------------------------------------------------------
+
+    private void OnProgress(int percent)
+    {
+        _ = InvokeAsync(() =>
+        {
+            progress = percent;
+            StateHasChanged();
+        });
     }
 
     //--------------------------------------------------------------------------------
@@ -81,7 +101,7 @@ public sealed partial class FilesPage
         String.Join('/', path.Split('/').Select(Uri.EscapeDataString));
 
     //--------------------------------------------------------------------------------
-    // Operation
+    // Action
     //--------------------------------------------------------------------------------
 
     private async Task LoadAsync()
@@ -92,7 +112,6 @@ public sealed partial class FilesPage
             if (await Storage.DirectoryExistsAsync(currentPath))
             {
                 var list = await Storage.ListEntriesAsync(currentPath);
-                // ディレクトリ優先ソート
 #pragma warning disable IDE0028
                 entries = list
                     .OrderByDescending(static x => x.IsDirectory)
@@ -170,15 +189,6 @@ public sealed partial class FilesPage
         }
 
         await LoadAsync();
-    }
-
-    private void OnProgress(int percent)
-    {
-        _ = InvokeAsync(() =>
-        {
-            progress = percent;
-            StateHasChanged();
-        });
     }
 
     private async Task DeleteAsync(StorageEntry entry)

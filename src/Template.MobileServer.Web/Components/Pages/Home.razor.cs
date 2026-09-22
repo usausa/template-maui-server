@@ -25,7 +25,13 @@ public sealed partial class Home
 
     private string? lastNotification;
 
+    private bool HasNotification => !String.IsNullOrEmpty(lastNotification);
+
     private bool featureEnabled;
+
+    //--------------------------------------------------------------------------------
+    // Property
+    //--------------------------------------------------------------------------------
 
     [Inject]
     public required TimeProvider TimeProvider { get; set; }
@@ -51,17 +57,18 @@ public sealed partial class Home
     [Inject]
     public required ISnackbar Snackbar { get; set; }
 
+    //--------------------------------------------------------------------------------
+    // Initialize
+    //--------------------------------------------------------------------------------
+
     protected override async Task OnInitializedAsync()
     {
-        // Subscribe server notification (unsubscribed on dispose)
         NotificationBus.Received += OnNotificationReceived;
         CircuitTracker.Changed += OnCircuitChanged;
         circuitCount = CircuitTracker.Count;
 
-        // Feature flag example
         featureEnabled = await FeatureManager.IsEnabledAsync(FeatureFlags.CustomOption);
 
-        // 簡易ステータス表示
         serverTime = ViewHelper.FormatTimestamp(TimeProvider.GetLocalNow().DateTime);
         storageUsage = MakeStorageUsage();
         dataCount = await DataService.CountAsync(null);
@@ -79,14 +86,9 @@ public sealed partial class Home
         base.Dispose(disposing);
     }
 
-    // ストレージルートのドライブ使用量を取得する
-    private string MakeStorageUsage()
-    {
-        var root = Path.GetFullPath(StorageOptions.Root);
-        var drive = new DriveInfo(Path.GetPathRoot(root)!);
-        var used = drive.TotalSize - drive.AvailableFreeSpace;
-        return $"{ViewHelper.FormatBytes(used)} / {ViewHelper.FormatBytes(drive.TotalSize)}";
-    }
+    //--------------------------------------------------------------------------------
+    // Event
+    //--------------------------------------------------------------------------------
 
     private void OnCircuitChanged(object? sender, EventArgs e)
     {
@@ -105,5 +107,17 @@ public sealed partial class Home
             Snackbar.AddInfo(e.Message);
             StateHasChanged();
         });
+    }
+
+    //--------------------------------------------------------------------------------
+    // Helper
+    //--------------------------------------------------------------------------------
+
+    private string MakeStorageUsage()
+    {
+        var root = Path.GetFullPath(StorageOptions.Root);
+        var drive = new DriveInfo(Path.GetPathRoot(root)!);
+        var used = drive.TotalSize - drive.AvailableFreeSpace;
+        return $"{ViewHelper.FormatBytes(used)} / {ViewHelper.FormatBytes(drive.TotalSize)}";
     }
 }

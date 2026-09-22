@@ -7,44 +7,28 @@ using MudBlazor;
 
 using QRCoder;
 
-// モバイルアプリへ設定 QR で配布する値のキー (= アプリの Settings のプロパティ名)
 public static class ClientSettingKeys
 {
-    // 接続先はサーバー自身の URL から決める (保存しない)
+    // ReSharper disable InconsistentNaming
     public const string ApiEndPoint = "ApiEndPoint";
-
     public const string GrpcEndPoint = "GrpcEndPoint";
-
     public const string OtelEndPoint = "OtelEndPoint";
 
-    // 以下は Setting テーブルで管理する
-    // ReSharper disable InconsistentNaming (QRのキー名 = アプリのSettingsのプロパティ名に合わせる)
     public const string AIServiceEndPoint = "AIServiceEndPoint";
-
     public const string AIServiceKey = "AIServiceKey";
 
-    // ReSharper restore InconsistentNaming
-
     public const string OllamaEndPoint = "OllamaEndPoint";
-
     public const string OllamaModel = "OllamaModel";
 
     public const string ScpHost = "ScpHost";
-
     public const string ScpPort = "ScpPort";
-
     public const string ScpUser = "ScpUser";
-
     public const string ScpPassword = "ScpPassword";
+    // ReSharper restore InconsistentNaming
 
-    public static readonly string[] Connections = [ApiEndPoint, GrpcEndPoint, OtelEndPoint];
-
-    // QR に出力する順 (ScpPort は ScpHost があるときだけ)
     public static readonly string[] Stored = [AIServiceEndPoint, AIServiceKey, OllamaEndPoint, OllamaModel, ScpHost, ScpPort, ScpUser, ScpPassword];
 }
 
-// 設定QRコード表示ページ
-// [MEMO] template-maui の SettingParser 互換フォーマット(行単位の Key=Value)で生成する。キー名は端末側 Settings のプロパティ名
 public sealed partial class QrPage
 {
     private const string GrpcEndpointConfigurationKey = "Kestrel:Endpoints:Grpc:Url";
@@ -56,6 +40,14 @@ public sealed partial class QrPage
     private string qrText = string.Empty;
 
     private string qrImage = string.Empty;
+
+    private bool HasQrImage => !String.IsNullOrEmpty(qrImage);
+
+    private bool IsDirty => items.Any(static x => x.IsDirty);
+
+    //--------------------------------------------------------------------------------
+    // Property
+    //--------------------------------------------------------------------------------
 
     [Inject]
     public required NavigationManager Navigation { get; set; }
@@ -69,11 +61,12 @@ public sealed partial class QrPage
     [Inject]
     public required ISnackbar Snackbar { get; set; }
 
-    private bool IsDirty => items.Any(static x => x.IsDirty);
+    //--------------------------------------------------------------------------------
+    // Initialize
+    //--------------------------------------------------------------------------------
 
     protected override Task OnInitializedAsync()
     {
-        // 接続先はサーバー自身のURL(gRPCはKestrelのgRPCエンドポイントのポート、OTLP/HTTP はAPIと同じ)
         connections.Add(new(ClientSettingKeys.ApiEndPoint, Navigation.BaseUri));
         connections.Add(new(ClientSettingKeys.GrpcEndPoint, MakeGrpcEndPoint(Navigation.BaseUri, Configuration[GrpcEndpointConfigurationKey])));
         connections.Add(new(ClientSettingKeys.OtelEndPoint, Navigation.BaseUri));
@@ -86,18 +79,9 @@ public sealed partial class QrPage
         return ReloadAsync();
     }
 
-    // gRPCの接続先はサーバー自身のホストにgRPCエンドポイントのポートを組み合わせる
-    internal static string MakeGrpcEndPoint(string baseUri, string? grpcUrl)
-    {
-        if (String.IsNullOrEmpty(grpcUrl) ||
-            !Uri.TryCreate(grpcUrl.Replace("*", "localhost", StringComparison.Ordinal).Replace("+", "localhost", StringComparison.Ordinal), UriKind.Absolute, out var grpcUri))
-        {
-            return string.Empty;
-        }
-
-        var builder = new UriBuilder(baseUri) { Port = grpcUri.Port, Path = "/", Query = string.Empty };
-        return builder.Uri.ToString();
-    }
+    //--------------------------------------------------------------------------------
+    // Setting
+    //--------------------------------------------------------------------------------
 
     private async Task ReloadAsync()
     {
@@ -122,7 +106,10 @@ public sealed partial class QrPage
         Snackbar.AddSuccess("設定を保存しました。");
     }
 
-    // 接続先と入力値(空欄は既定値)からQRコードを再生成する
+    //--------------------------------------------------------------------------------
+    // Qr
+    //--------------------------------------------------------------------------------
+
     private void Update()
     {
         var builder = new StringBuilder();
@@ -156,7 +143,6 @@ public sealed partial class QrPage
         qrImage = "data:image/png;base64," + Convert.ToBase64String(qrCode.GetGraphic(5));
     }
 
-    // 空欄の項目は出力しない
     private static void AppendValue(StringBuilder builder, string key, string value)
     {
         if (value.Length > 0)
@@ -165,7 +151,26 @@ public sealed partial class QrPage
         }
     }
 
-    // 画面の 1 行。保存済みの値と編集中の値を持ち、空欄なら既定値を QR に使う
+    //--------------------------------------------------------------------------------
+    // Helper
+    //--------------------------------------------------------------------------------
+
+    internal static string MakeGrpcEndPoint(string baseUri, string? grpcUrl)
+    {
+        if (String.IsNullOrEmpty(grpcUrl) ||
+            !Uri.TryCreate(grpcUrl.Replace("*", "localhost", StringComparison.Ordinal).Replace("+", "localhost", StringComparison.Ordinal), UriKind.Absolute, out var grpcUri))
+        {
+            return string.Empty;
+        }
+
+        var builder = new UriBuilder(baseUri) { Port = grpcUri.Port, Path = "/", Query = string.Empty };
+        return builder.Uri.ToString();
+    }
+
+    //--------------------------------------------------------------------------------
+    // Item
+    //--------------------------------------------------------------------------------
+
     private sealed class SettingItem
     {
         private string saved = string.Empty;
@@ -175,6 +180,10 @@ public sealed partial class QrPage
         public string Placeholder { get; }
 
         public bool IsSecret { get; }
+
+        public InputType InputType { get; }
+
+        public Dictionary<string, object> Attributes { get; }
 
         public string? Value { get; set; }
 
@@ -187,6 +196,8 @@ public sealed partial class QrPage
             Key = key;
             Placeholder = placeholder;
             IsSecret = isSecret;
+            InputType = isSecret ? InputType.Password : InputType.Text;
+            Attributes = new Dictionary<string, object> { ["data-key"] = key };
         }
 
         public void Load(string value)

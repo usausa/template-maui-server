@@ -13,6 +13,10 @@ public sealed partial class DataPage
 
     private string? searchName;
 
+    //--------------------------------------------------------------------------------
+    // Property
+    //--------------------------------------------------------------------------------
+
     [Inject]
     public required DataService DataService { get; set; }
 
@@ -28,10 +32,21 @@ public sealed partial class DataPage
     [SupplyParameterFromQuery(Name = "name")]
     public string? Name { get; set; }
 
+    //--------------------------------------------------------------------------------
+    // Initialize
+    //--------------------------------------------------------------------------------
+
     protected override void OnInitialized()
     {
         searchName = Name;
     }
+
+    //--------------------------------------------------------------------------------
+    // Event
+    //--------------------------------------------------------------------------------
+
+    private Task OnSearchKeyDown(KeyboardEventArgs args) =>
+        args.Key == "Enter" ? SearchAsync() : Task.CompletedTask;
 
     //--------------------------------------------------------------------------------
     // Grid
@@ -39,7 +54,6 @@ public sealed partial class DataPage
 
     private async Task<GridData<DataEntity>> LoadServerData(GridState<DataEntity> state, CancellationToken cancellationToken)
     {
-        // 並べ替えはサーバー側で行う。グリッドが選んだ列 (プロパティ名 = 列挙名) と昇降を渡す
         var sort = state.SortDefinitions.FirstOrDefault();
         var result = await DataService.QueryPageAsync(searchName, RequestHelper.Parse(sort?.SortBy, DataSort.Id), sort?.Descending ?? false, state.Page, state.PageSize, cancellationToken);
         return new GridData<DataEntity>
@@ -56,11 +70,8 @@ public sealed partial class DataPage
         return grid.ReloadServerData();
     }
 
-    private Task OnSearchKeyDown(KeyboardEventArgs args) =>
-        args.Key == "Enter" ? SearchAsync() : Task.CompletedTask;
-
     //--------------------------------------------------------------------------------
-    // Operation
+    // Action
     //--------------------------------------------------------------------------------
 
     private async Task AddAsync()

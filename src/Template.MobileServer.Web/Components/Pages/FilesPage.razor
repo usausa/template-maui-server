@@ -17,10 +17,9 @@
     </MudFileUpload>
 </MudStack>
 
-@if (uploading)
-{
+<Condition Value="uploading">
     <MudProgressLinear Value="progress" Color="Color.Primary" Class="upload-progress mb-4" />
-}
+</Condition>
 
 <MudTable Items="entries" Dense="true" Hover="true" Loading="loading" Class="files-table">
     <HeaderContent>
@@ -33,22 +32,21 @@
     <RowTemplate>
         <MudTd><MudIcon Icon="@GetIcon(context)" Size="Size.Small" /></MudTd>
         <MudTd>
-            @if (context.IsDirectory)
-            {
-                <MudLink OnClick="() => MoveTo(context.Name)">@context.Name</MudLink>
-            }
-            else
-            {
-                @context.Name
-            }
+            <Condition Value="context.IsDirectory">
+                <ChildContent>
+                    <MudLink OnClick="() => MoveTo(context.Name)">@context.Name</MudLink>
+                </ChildContent>
+                <ElseContent>
+                    @context.Name
+                </ElseContent>
+            </Condition>
         </MudTd>
         <MudTd Class="text-right">@FormatSize(context)</MudTd>
         <MudTd>@FormatTimestamp(context.LastModified)</MudTd>
         <MudTd>
-            @if (!context.IsDirectory)
-            {
+            <Condition Value="@(!context.IsDirectory)">
                 <MudIconButton Icon="@Icons.Material.Filled.Download" Size="Size.Small" Href="@MakeDownloadUrl(context.Name)" />
-            }
+            </Condition>
             <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteAsync(context)" />
         </MudTd>
     </RowTemplate>

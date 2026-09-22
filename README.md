@@ -15,7 +15,7 @@ template-blazor-server をベースに、モバイル契約 API と管理画面�
 
 ## 構成(Web プロジェクト)
 
-- `Endpoints/` = Minimal API、`Handlers/` = gRPC(proto は `Handlers/Protos/`)、`Hubs/` = SignalR、`Workers/` = 常駐処理、`Components/` = 管理画面(View まわりのヘルパー `ViewHelper`(`_Imports.razor` で static インポート)/ `Styles` / `AppComponentBase` / `SnackbarExtensions` / `ErrorBoundaryLogger` は直下)、`Assets/Data/` = スキーマ / サンプルデータの SQL
+- `Endpoints/` = Minimal API、`Handlers/` = gRPC(proto は `Handlers/Protos/`)、`Hubs/` = SignalR、`Workers/` = 常駐処理、`Components/` = 管理画面(View まわりのヘルパー `ViewHelper`(`_Imports.razor` で static インポート)/ `Styles` / `AppComponentBase` / `SnackbarExtensions` / `ErrorBoundaryLogger` は直下。razor の分岐と繰り返しは `@if` / `@foreach` を書かず Smart.Blazor の `Condition` / `ListItem`、式は code-behind のプロパティに寄せる)、`Assets/Data/` = スキーマ / サンプルデータの SQL
 - 契約の DTO は使う側と同じファイルの先頭に置く: REST(`<対象><操作>Request` / `Response`、一覧の要素は `<対象>ListEntry`)は各 `Endpoints/*Endpoints.cs`、SignalR のメッセージ(`<内容>Message`)は `Hubs/MonitorHub.cs`、gRPC の生成型(単項は `Request` / `Reply`、ストリームは `Message`)は `Handlers` 名前空間
 - `Services/` = アプリケーション固有の機能(チャットのハブ、端末の登録と通知)。サービス・ワーカーの設定は適用先と同じ場所の `*Option`(`Workers/ServerStatusWorkerOption` ← `ServerStatus` / `Workers/NotificationWorkerOption` ← `Notification` / Core の `FileStorageOption` ← `Storage`)、パイプラインの設定は `Settings/*Setting`
 - `Application/` = アプリケーションの組み立てと横断的な定義。直下は汎用のヘルパー・定義だけ(DI 登録、`Log`、命名、ポリシー、`RequestHelper`)、`Log` や設定に依存するコンポーネントと Blazor の基盤側はサブフォルダ(`Telemetry/` = 計測とリクエストメトリクスのフィルター、`HealthChecks/`、`Authentication/` = JWT 発行と `JwtSetting`、`ExceptionHandling/` = API の未処理例外を ProblemDetails 500 に変換、`Circuits/` = 回線追跡)。ログメッセージ(`Log`)は使う名前空間ごとに置く(`Application/Log.cs` = 起動 / 回線 / リクエスト / API の未処理例外、`Workers/Log.cs`、`Hubs/Log.cs`、`Components/Log.cs` = ErrorBoundary)
@@ -92,43 +92,6 @@ dotnet run --project Template.MobileServer.Web
 - 端末 → サーバー: `ReportDeviceStatus(DeviceStatusMessage)`(端末 ID / 機種 / OS / 電池 / ネットワーク)。接続中の端末は `DeviceRegistry` に保持し、管理画面 `/devices` にリアルタイム表示。`/devices` の「切断」は `HubCallerContext.Abort()` で接続を閉じる(端末には再接続なしの Close が届き、端末側は初回接続からやり直す)
 - サーバー → 端末: `ServerStatus(ServerStatusMessage)`(`ServerStatus:Interval` ミリ秒ごと、既定 1 秒。プロセスの CPU 使用率(`Environment.CpuUsage` の差分、1 コア = 100%)/ ワーキングセット / 接続数。接続が無いときは配信しない)、`Notify(NotificationMessage)`(管理画面 `/devices` からの送信と、`NotificationBus` の通知(`Notification:Enable` の定期通知)の中継。中継は `MonitorNotifier` がバスを購読して行う)
 - メッセージの DTO は `Hubs/MonitorHub.cs` の先頭(`DeviceStatusMessage` / `ServerStatusMessage` / `NotificationMessage`。時刻は `DateTimeOffset`)
-
-## チャットクライアント(WPF サンプル)
-
-`Template.MobileServer.ChatClient` は gRPC チャットの対向クライアントサンプル(MAUI への移植を想定した層構造)。
-
-```
-dotnet run --project Template.MobileServer.ChatClient
-```
-
-既定値: gRPC = `http://localhost:9090/`、User = `user`。
-
-### 層構造
-
-| 層 | ファイル | 依存 |
-|---|---|---|
-| 通信コア | `Chat/ChatClient.cs` ほか `Chat/` 一式 | Grpc.Net.Client のみ(**WPF 参照なし**) |
-| ViewModel | `MainWindowViewModel.cs` | Smart.Mvvm(WPF 型に非依存、UI マーシャリングは SynchronizationContext) |
-| View | `MainWindow.xaml` / `App.xaml` | WPF のみ |
-
-通信コア(`ChatClient`)の仕様:
-
-- `ConnectAsync` = gRPC 双方向ストリーム接続(戻りの Task は初回接続の成否確定まで)。ユーザー名は各メッセージの `user` で送る
-- 切断・接続失敗時は指数バックオフ(1→2→…→最大 30 秒)で自動再接続
-- 送信はキュー経由で直列化。**切断中の送信はキューに保持され、再接続後に自動配送**(モバイル回線の断続を想定)
-- 受信・状態変化はイベント通知(バックグラウンドスレッドから発火)
-
-### MAUI への移植手順
-
-1. `Chat/` フォルダの 5 ファイルを**そのままコピー**(namespace の変更のみ。System.Windows 系の参照なし)
-2. csproj に `Grpc.Net.Client` / `Google.Protobuf` / `Grpc.Tools` を追加し、proto を共有参照:
-   `<Protobuf Include="..\Template.MobileServer.Web\Handlers\Protos\chat.proto" GrpcServices="Client" />`
-3. `MainWindowViewModel.cs` をコピーして ViewModel を移植。Smart.Mvvm の対応関係:
-   - `ExtendViewModelBase` / `MakeAsyncCommand` / `MakeDelegateCommand`: WPF = `Usa.Smart.Windows.Extensions`(Smart.Windows.ViewModels)⇔ MAUI = `Usa.Smart.Maui.Extensions`(Smart.Maui.ViewModels)。**同名・同 API のため using の読み替えのみ**
-   - `[ObservableProperty]` / `[ObservableGeneratorOption]`: 共通(`Usa.Smart.Mvvm`)
-   - UI スレッドへのマーシャリングは SynchronizationContext 経由のため Dispatcher 依存なし(そのまま動作)
-4. View(XAML)のみ MAUI で作り直す(CollectionView + Entry + Button 等。コードビハインドの自動スクロールも View 側で実装)
-5. Android エミュレータからの接続先は `localhost` ではなく `10.0.2.2` を指定
 
 ## QR 設定フォーマット
 

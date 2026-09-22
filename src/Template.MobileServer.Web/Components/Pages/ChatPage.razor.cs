@@ -7,7 +7,6 @@ using MudBlazor;
 
 using Template.MobileServer.Web.Services;
 
-// チャットページ(gRPCを経由せずChatService直結でプロセス内イベントを購読)
 public sealed partial class ChatPage
 {
     private readonly List<ChatEntry> entries = [];
@@ -18,6 +17,10 @@ public sealed partial class ChatPage
 
     private bool scrollRequested;
 
+    //--------------------------------------------------------------------------------
+    // Property
+    //--------------------------------------------------------------------------------
+
     [Inject]
     public required ChatService ChatService { get; set; }
 
@@ -27,9 +30,12 @@ public sealed partial class ChatPage
     [Inject]
     public required IScrollManager ScrollManager { get; set; }
 
+    //--------------------------------------------------------------------------------
+    // Initialize
+    //--------------------------------------------------------------------------------
+
     protected override void OnInitialized()
     {
-        // 履歴を表示して以降の発言を購読する(購読解除はDispose)
         entries.AddRange(ChatService.History);
         ChatService.Received += OnReceived;
         scrollRequested = entries.Count > 0;
@@ -37,7 +43,6 @@ public sealed partial class ChatPage
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // 新着時は末尾へ自動スクロール
         if (scrollRequested)
         {
             scrollRequested = false;
@@ -55,6 +60,10 @@ public sealed partial class ChatPage
         base.Dispose(disposing);
     }
 
+    //--------------------------------------------------------------------------------
+    // Event
+    //--------------------------------------------------------------------------------
+
     private void OnReceived(object? sender, ChatEntryEventArgs e)
     {
         _ = InvokeAsync(() =>
@@ -64,6 +73,18 @@ public sealed partial class ChatPage
             StateHasChanged();
         });
     }
+
+    private void OnInputKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            Send();
+        }
+    }
+
+    //--------------------------------------------------------------------------------
+    // Action
+    //--------------------------------------------------------------------------------
 
     private void Send()
     {
@@ -75,13 +96,5 @@ public sealed partial class ChatPage
 
         ChatService.Publish(String.IsNullOrWhiteSpace(userName) ? "web" : userName.Trim(), text, TimeProvider.GetUtcNow());
         input = string.Empty;
-    }
-
-    private void OnInputKeyDown(KeyboardEventArgs args)
-    {
-        if (args.Key == "Enter")
-        {
-            Send();
-        }
     }
 }

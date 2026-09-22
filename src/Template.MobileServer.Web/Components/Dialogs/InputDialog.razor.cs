@@ -4,10 +4,13 @@ using Microsoft.AspNetCore.Components;
 
 using MudBlazor;
 
-// テキスト入力ダイアログ(フォルダ作成等)
 public sealed partial class InputDialog
 {
     private string value = string.Empty;
+
+    //--------------------------------------------------------------------------------
+    // Parameter
+    //--------------------------------------------------------------------------------
 
     [Parameter]
     public required string Title { get; set; }
@@ -17,6 +20,10 @@ public sealed partial class InputDialog
 
     [CascadingParameter]
     public required IMudDialogInstance MudDialog { get; set; }
+
+    //--------------------------------------------------------------------------------
+    // Events
+    //--------------------------------------------------------------------------------
 
     private void OnOkClick()
     {

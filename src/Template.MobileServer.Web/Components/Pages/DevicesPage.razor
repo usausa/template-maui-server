@@ -20,18 +20,19 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var device in devices)
-        {
-            <tr>
-                <td>@device.DeviceId</td>
-                <td>@device.Model</td>
-                <td>@device.Platform</td>
-                <td>@FormatBattery(device)</td>
-                <td>@device.Network</td>
-                <td>@FormatTimestamp(device.LastReceivedAt.ToLocalTime().DateTime)</td>
-                <td><MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" Class="disconnect-button" OnClick="@(() => Disconnect(device))">切断</MudButton></td>
-            </tr>
-        }
+        <ListItem Items="devices" Context="device">
+            <ItemTemplate>
+                <tr>
+                    <td>@device.DeviceId</td>
+                    <td>@device.Model</td>
+                    <td>@device.Platform</td>
+                    <td>@FormatBattery(device)</td>
+                    <td>@device.Network</td>
+                    <td>@FormatTimestamp(device.LastReceivedAt.ToLocalTime().DateTime)</td>
+                    <td><MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" Class="disconnect-button" OnClick="@(() => Disconnect(device))">切断</MudButton></td>
+                </tr>
+            </ItemTemplate>
+        </ListItem>
     </tbody>
 </MudSimpleTable>
 
@@ -40,14 +41,15 @@
 <MudStack Spacing="2" Class="notify-form">
     <MudSelect T="string" @bind-Value="target" Label="送信先">
         <MudSelectItem T="string" Value="@AllTargets">全端末</MudSelectItem>
-        @foreach (var device in devices)
-        {
-            <MudSelectItem T="string" Value="@device.ConnectionId">@FormatTarget(device)</MudSelectItem>
-        }
+        <ListItem Items="devices" Context="device">
+            <ItemTemplate>
+                <MudSelectItem T="string" Value="@device.ConnectionId">@FormatTarget(device)</MudSelectItem>
+            </ItemTemplate>
+        </ListItem>
     </MudSelect>
     <MudTextField @bind-Value="title" Label="タイトル" Immediate="true" />
     <MudTextField @bind-Value="body" Label="本文" Immediate="true" Lines="3" />
     <div>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Send" Class="send-button" OnClick="SendAsync" Disabled="@(devices.Count == 0)">送信</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Send" Class="send-button" OnClick="SendAsync" Disabled="NoDevices">送信</MudButton>
     </div>
 </MudStack>

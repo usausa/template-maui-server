@@ -8,15 +8,13 @@
     <DialogActions>
         <div tabindex="-1" @onkeydown="HandleKeyDown">
             <MudFocusTrap DefaultFocus="DefaultFocus.LastChild">
-                @if (Type == MessageBoxType.Information)
-                {
+                <Condition Value="@(Type == MessageBoxType.Information)">
                     <MudButton Color="Color.Default" OnClick="OnOkClick">OK</MudButton>
-                }
-                @if (Type == MessageBoxType.Confirm)
-                {
+                </Condition>
+                <Condition Value="@(Type == MessageBoxType.Confirm)">
                     <MudButton Color="Color.Primary" OnClick="OnOkClick">OK</MudButton>
                     <MudButton Color="Color.Default" OnClick="OnCancelClick">CANCEL</MudButton>
-                }
+                </Condition>
             </MudFocusTrap>
         </div>
     </DialogActions>

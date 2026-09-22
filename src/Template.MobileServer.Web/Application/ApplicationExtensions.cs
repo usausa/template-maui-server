@@ -49,13 +49,12 @@ using Template.MobileServer.Web.Infrastructure.Security;
 
 public static class ApplicationExtensions
 {
+    private const string GrpcEndpointConfigurationKey = "Kestrel:Endpoints:Grpc:Url";
+
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
 
     private const string SchemaPath = "Assets/Data/Schema.sql";
-
-    // アプリケーション用の gRPC ポート (Kestrel:Endpoints:Grpc)。OTEL 用のポート (Kestrel:Endpoints:Otel) は別
-    private const string GrpcEndpointConfigurationKey = "Kestrel:Endpoints:Grpc:Url";
 
     //--------------------------------------------------------------------------------
     // System
@@ -175,7 +174,7 @@ public static class ApplicationExtensions
 
     public static IHostApplicationBuilder ConfigureHttp(this IHostApplicationBuilder builder)
     {
-        // Add services to the container.
+        // Add services to the container
         builder.Services.AddHttpContextAccessor();
 
         // CSP nonce
@@ -250,7 +249,7 @@ public static class ApplicationExtensions
 
     public static WebApplication UseErrorHandler(this WebApplication app)
     {
-        // API: ProblemDetails(本文の無い 401 / 403 / 404 なども、認証スキームによらず例外時と同じ形にする)
+        // API: ProblemDetails
         app.UseWhen(
             static context => context.Request.Path.StartsWithSegments(ApiRoutes.Prefix, StringComparison.OrdinalIgnoreCase),
             static b =>
@@ -349,13 +348,11 @@ public static class ApplicationExtensions
             options.Providers.Add<GzipCompressionProvider>();
         });
 
-        // MAUIクライアントはContent-Encoding: gzipで生ボディを送信する(Compression:Request)
         builder.Services.AddRequestDecompression();
 
         return builder;
     }
 
-    // 圧縮は API だけ(画面は antiforgery トークンを含む HTML なので BREACH の余地を作らない)
     public static WebApplication UseCompression(this WebApplication app)
     {
         var setting = app.Services.GetRequiredService<CompressionSetting>();
@@ -411,7 +408,6 @@ public static class ApplicationExtensions
             .AddRazorComponents()
             .AddInteractiveServerComponents(options =>
             {
-                // 回線上の例外の詳細をブラウザへ流すのは開発環境だけ
                 options.DetailedErrors = builder.Environment.IsDevelopment();
             });
 
@@ -586,7 +582,7 @@ public static class ApplicationExtensions
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<FileStorageOption>>().Value);
         builder.Services.AddSingleton<IStorage, FileStorage>();
 
-        // Authentication (モバイルAPI用JWT発行。JwtSetting は検証側の AddJwtBearer と共用)
+        // Security
         builder.Services.AddOptions<JwtSetting>().BindConfiguration("Jwt").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<JwtSetting>>().Value);
         builder.Services.AddSingleton<JwtTokenProvider>();
@@ -600,10 +596,10 @@ public static class ApplicationExtensions
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<Workers.NotificationWorkerOption>>().Value);
         builder.Services.AddHostedService<Workers.NotificationWorker>();
 
-        // Chat (gRPC/Blazor共用のプロセス内ハブ)
+        // Chat
         builder.Services.AddSingleton<Services.ChatService>();
 
-        // Monitor (端末の常時接続。一覧はBlazor共用、状態配信はワーカー、通知バスの中継は MonitorNotifier)
+        // Monitor
         builder.Services.AddSingleton<Services.DeviceRegistry>();
         builder.Services.AddSingleton<Services.MonitorNotifier>();
         builder.Services.AddOptions<Workers.ServerStatusWorkerOption>().BindConfiguration("ServerStatus").ValidateDataAnnotations().ValidateOnStart();
@@ -716,41 +712,20 @@ public static class ApplicationExtensions
         // Prepare instrument
         app.Services.GetRequiredService<ApplicationInstrument>();
 
-        // Prepare notifier (subscribes the notification bus)
-        app.Services.GetRequiredService<Services.MonitorNotifier>();
-
         // Prepare storage
         Directory.CreateDirectory(app.Services.GetRequiredService<FileStorageOption>().Root);
+
+        // Prepare notifier
+        app.Services.GetRequiredService<Services.MonitorNotifier>();
 
         // Prepare database (schema from the SQL file)
         return app.Services.GetRequiredService<DatabaseService>().InitializeAsync(SchemaPath, CancellationToken.None);
     }
 
     //--------------------------------------------------------------------------------
-    // Configuration
-    //--------------------------------------------------------------------------------
-
-    // Kestrel のエンドポイント設定 (http://*:9090 など) からポートを取り出す
-    private static int GetEndpointPort(IConfiguration configuration, string key)
-    {
-        var url = configuration[key];
-        if (String.IsNullOrEmpty(url) ||
-            !Uri.TryCreate(url.Replace("*", "localhost", StringComparison.Ordinal).Replace("+", "localhost", StringComparison.Ordinal), UriKind.Absolute, out var uri))
-        {
-            throw new InvalidOperationException($"Endpoint is not configured. key=[{key}]");
-        }
-
-        return uri.Port;
-    }
-
-    private static bool IsOtelExporterEnabled(this IConfiguration configuration) =>
-        !String.IsNullOrWhiteSpace(configuration.GetOtelExporterEndpoint());
-
-    //--------------------------------------------------------------------------------
     // Profiler
     //--------------------------------------------------------------------------------
 
-    // SQLトレースをログ/テレメトリそれぞれの設定で有効化する
     private static IProfileListener? CreateProfileListener(IServiceProvider provider, ProfilerSetting setting)
     {
         var listeners = new List<IProfileListener>();
@@ -776,6 +751,25 @@ public static class ApplicationExtensions
             _ => new ChainListener(listeners)
         };
     }
+
+    //--------------------------------------------------------------------------------
+    // Configuration
+    //--------------------------------------------------------------------------------
+
+    private static int GetEndpointPort(IConfiguration configuration, string key)
+    {
+        var url = configuration[key];
+        if (String.IsNullOrEmpty(url) ||
+            !Uri.TryCreate(url.Replace("*", "localhost", StringComparison.Ordinal).Replace("+", "localhost", StringComparison.Ordinal), UriKind.Absolute, out var uri))
+        {
+            throw new InvalidOperationException($"Endpoint is not configured. key=[{key}]");
+        }
+
+        return uri.Port;
+    }
+
+    private static bool IsOtelExporterEnabled(this IConfiguration configuration) =>
+        !String.IsNullOrWhiteSpace(configuration.GetOtelExporterEndpoint());
 
     private static string GetOtelExporterEndpoint(this IConfiguration configuration) =>
         configuration["OTEL_EXPORTER_OTLP_ENDPOINT"] ?? string.Empty;

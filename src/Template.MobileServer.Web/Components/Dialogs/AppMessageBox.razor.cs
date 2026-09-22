@@ -7,6 +7,10 @@ using MudBlazor;
 
 public sealed partial class AppMessageBox
 {
+    //--------------------------------------------------------------------------------
+    // Parameter
+    //--------------------------------------------------------------------------------
+
     [Parameter]
     public required MessageBoxType Type { get; set; }
 
@@ -18,6 +22,10 @@ public sealed partial class AppMessageBox
 
     [CascadingParameter]
     public required IMudDialogInstance MudDialog { get; set; }
+
+    //--------------------------------------------------------------------------------
+    // Events
+    //--------------------------------------------------------------------------------
 
     private void OnOkClick() => MudDialog.Close(true);
 

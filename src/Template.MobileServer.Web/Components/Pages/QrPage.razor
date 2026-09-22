@@ -11,13 +11,14 @@
         <MudText Typo="Typo.subtitle1" Class="mb-2">接続先(サーバーの URL)</MudText>
         <MudSimpleTable Dense="true" Class="setting-table mb-4">
             <tbody>
-                @foreach (var item in connections)
-                {
-                    <tr>
-                        <td class="setting-key">@item.Key</td>
-                        <td class="setting-value">@item.Value</td>
-                    </tr>
-                }
+                <ListItem Items="connections" Context="item">
+                    <ItemTemplate>
+                        <tr>
+                            <td class="setting-key">@item.Key</td>
+                            <td class="setting-value">@item.Value</td>
+                        </tr>
+                    </ItemTemplate>
+                </ListItem>
             </tbody>
         </MudSimpleTable>
 
@@ -35,45 +36,45 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in items)
-                {
-                    <tr>
-                        <td class="setting-key">
-                            @item.Key
-                            @if (item.IsDirty)
-                            {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Class="ml-1">*</MudChip>
-                            }
-                        </td>
-                        <td>
-                            <MudTextField @bind-Value="item.Value"
-                                          @bind-Value:after="Update"
-                                          Placeholder="@item.Placeholder"
-                                          Immediate="true"
-                                          Margin="Margin.Dense"
-                                          InputType="@(item.IsSecret ? InputType.Password : InputType.Text)"
-                                          Clearable="true"
-                                          UserAttributes="@(new Dictionary<string, object> { ["data-key"] = item.Key })" />
-                        </td>
-                    </tr>
-                }
+                <ListItem Items="items" Context="item">
+                    <ItemTemplate>
+                        <tr>
+                            <td class="setting-key">
+                                @item.Key
+                                <Condition Value="item.IsDirty">
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Warning" Class="ml-1">*</MudChip>
+                                </Condition>
+                            </td>
+                            <td>
+                                <MudTextField @bind-Value="item.Value"
+                                              @bind-Value:after="Update"
+                                              Placeholder="@item.Placeholder"
+                                              Immediate="true"
+                                              Margin="Margin.Dense"
+                                              InputType="item.InputType"
+                                              Clearable="true"
+                                              UserAttributes="item.Attributes" />
+                            </td>
+                        </tr>
+                    </ItemTemplate>
+                </ListItem>
             </tbody>
         </MudSimpleTable>
     </MudItem>
     <MudItem xs="12" md="6">
-        @if (!String.IsNullOrEmpty(qrImage))
-        {
-            <MudPaper Outlined="true" Class="pa-4 d-inline-block">
-                <img src="@qrImage" alt="設定QRコード" class="qr-image" />
-            </MudPaper>
-            <MudText Typo="Typo.caption" Class="mt-4 d-block">生成値</MudText>
-            <MudPaper Outlined="true" Class="qr-card pa-2">
-                <pre class="qr-text">@qrText</pre>
-            </MudPaper>
-        }
-        else
-        {
-            <MudText>値を入力すると QR コードが表示されます。</MudText>
-        }
+        <Condition Value="HasQrImage">
+            <ChildContent>
+                <MudPaper Outlined="true" Class="pa-4 d-inline-block">
+                    <img src="@qrImage" alt="設定QRコード" class="qr-image" />
+                </MudPaper>
+                <MudText Typo="Typo.caption" Class="mt-4 d-block">生成値</MudText>
+                <MudPaper Outlined="true" Class="qr-card pa-2">
+                    <pre class="qr-text">@qrText</pre>
+                </MudPaper>
+            </ChildContent>
+            <ElseContent>
+                <MudText>値を入力すると QR コードが表示されます。</MudText>
+            </ElseContent>
+        </Condition>
     </MudItem>
 </MudGrid>

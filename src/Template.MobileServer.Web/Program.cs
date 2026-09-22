@@ -46,7 +46,7 @@ builder.ConfigureTelemetry();
 builder.ConfigureComponents();
 
 //--------------------------------------------------------------------------------
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 //--------------------------------------------------------------------------------
 var app = builder.Build();
 

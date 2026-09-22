@@ -6,18 +6,23 @@ using MudBlazor;
 
 using Template.MobileServer.Web.Services;
 
-// 接続中の端末の一覧(DeviceRegistryのイベントでリアルタイム更新)と端末への通知の送信
 public sealed partial class DevicesPage
 {
     private const string AllTargets = "*";
 
     private IReadOnlyList<DeviceEntry> devices = [];
 
+    private bool NoDevices => devices.Count == 0;
+
     private string target = AllTargets;
 
     private string title = "お知らせ";
 
     private string body = string.Empty;
+
+    //--------------------------------------------------------------------------------
+    // Property
+    //--------------------------------------------------------------------------------
 
     [Inject]
     public required DeviceRegistry Registry { get; set; }
@@ -27,6 +32,10 @@ public sealed partial class DevicesPage
 
     [Inject]
     public required ISnackbar Snackbar { get; set; }
+
+    //--------------------------------------------------------------------------------
+    // Initialize
+    //--------------------------------------------------------------------------------
 
     protected override void OnInitialized()
     {
@@ -44,13 +53,16 @@ public sealed partial class DevicesPage
         base.Dispose(disposing);
     }
 
+    //--------------------------------------------------------------------------------
+    // Event
+    //--------------------------------------------------------------------------------
+
     private void OnChanged(object? sender, EventArgs e)
     {
         _ = InvokeAsync(() =>
         {
             devices = Registry.Entries;
 
-            // 切断した端末が送信先に残らないようにする
             if ((target != AllTargets) && devices.All(x => x.ConnectionId != target))
             {
                 target = AllTargets;
@@ -59,6 +71,10 @@ public sealed partial class DevicesPage
             StateHasChanged();
         });
     }
+
+    //--------------------------------------------------------------------------------
+    // Action
+    //--------------------------------------------------------------------------------
 
     private async Task SendAsync()
     {
@@ -83,7 +99,6 @@ public sealed partial class DevicesPage
         body = string.Empty;
     }
 
-    // サーバー側から切断する(端末側は Closed になり、初回接続からやり直す)
     private void Disconnect(DeviceEntry device)
     {
         if (Registry.Disconnect(device.ConnectionId))
@@ -91,6 +106,10 @@ public sealed partial class DevicesPage
             Snackbar.AddInfo("切断しました");
         }
     }
+
+    //--------------------------------------------------------------------------------
+    // Format
+    //--------------------------------------------------------------------------------
 
     private static string FormatBattery(DeviceEntry device) =>
         device.Battery is { } battery ? $"{battery:P0} {device.BatteryState}" : string.Empty;

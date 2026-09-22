@@ -7,13 +7,14 @@
 
 <MudPaper id="chat-messages" Outlined="true" Class="chat-messages pa-4 mb-4">
     <MudStack Spacing="2">
-        @foreach (var entry in entries)
-        {
-            <div>
-                <MudText Typo="Typo.caption">@entry.User - @FormatTimestamp(entry.Timestamp.ToLocalTime().DateTime)</MudText>
-                <MudText>@entry.Text</MudText>
-            </div>
-        }
+        <ListItem Items="entries" Context="entry">
+            <ItemTemplate>
+                <div>
+                    <MudText Typo="Typo.caption">@entry.User - @FormatTimestamp(entry.Timestamp.ToLocalTime().DateTime)</MudText>
+                    <MudText>@entry.Text</MudText>
+                </div>
+            </ItemTemplate>
+        </ListItem>
     </MudStack>
 </MudPaper>
 

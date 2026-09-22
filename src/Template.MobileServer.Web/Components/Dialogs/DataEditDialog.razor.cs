@@ -16,6 +16,10 @@ public sealed partial class DataEditDialog
 
     private DataForm model = default!;
 
+    //--------------------------------------------------------------------------------
+    // Parameter
+    //--------------------------------------------------------------------------------
+
     [Parameter]
     public required string Title { get; set; }
 
