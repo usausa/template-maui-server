@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
 
 using Template.MobileServer.Web.Components.Dialogs;
+using Template.MobileServer.Web.Components.Shared;
 
 public sealed partial class DataPage
 {

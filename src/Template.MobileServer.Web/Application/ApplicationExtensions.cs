@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.FeatureManagement;
@@ -276,10 +277,13 @@ public static class ApplicationExtensions
 
     public static IHostApplicationBuilder ConfigureGrpc(this IHostApplicationBuilder builder)
     {
-        // gRPC (チャット)
-        builder.Services.AddGrpc();
+        // gRPC
+        builder.Services.AddGrpc(static options =>
+        {
+            options.Interceptors.Add<ServiceContextInterceptor>();
+        });
 
-        // ポートでサービスを出し分ける (gRPC のサービスはアプリケーション用ポートのみ)
+        // Policy
         builder.Services.AddSingleton<MatcherPolicy, PortMatcherPolicy>();
 
         return builder;
@@ -291,11 +295,14 @@ public static class ApplicationExtensions
 
     public static IHostApplicationBuilder ConfigureSignalR(this IHostApplicationBuilder builder)
     {
-        // 端末の常時接続(監視)。KeepAlive / ClientTimeout はクライアントの KeepAliveInterval / ServerTimeout と対にする
+        // SignalR
         builder.Services.AddSignalR(static options =>
         {
             options.KeepAliveInterval = TimeSpan.FromSeconds(15);
             options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+
+            // Filter
+            options.AddFilter<ServiceContextHubFilter>();
         });
 
         return builder;
@@ -413,7 +420,7 @@ public static class ApplicationExtensions
             });
 
         // Error boundary logging
-        builder.Services.AddScoped<Microsoft.AspNetCore.Components.Web.IErrorBoundaryLogger, Components.ErrorBoundaryLogger>();
+        builder.Services.AddScoped<Microsoft.AspNetCore.Components.Web.IErrorBoundaryLogger, ErrorBoundaryLogger>();
 
         // Circuit tracking
         builder.Services.AddSingleton<Circuits.CircuitTracker>();
@@ -589,8 +596,8 @@ public static class ApplicationExtensions
         builder.Services.AddSingleton<JwtTokenProvider>();
 
         // Service
-        builder.Services.AddSingleton<AmbientServiceContextProvider>();
-        builder.Services.AddSingleton<ServiceContextProvider>(static p => p.GetRequiredService<AmbientServiceContextProvider>());
+        builder.Services.AddSingleton<ApplicationServiceContextProvider>();
+        builder.Services.AddSingleton<ServiceContextProvider>(static p => p.GetRequiredService<ApplicationServiceContextProvider>());
         builder.Services.AddScoped<BlazorServiceScope>();
 
         builder.Services.AddCoreServices();

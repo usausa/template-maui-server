@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 
 using Template.MobileServer.Infrastructure.Storage;
-using Template.MobileServer.Web.Components.Dialogs;
+using Template.MobileServer.Web.Components.Shared;
 using Template.MobileServer.Web.Infrastructure.IO;
 
 public sealed partial class FilesPage

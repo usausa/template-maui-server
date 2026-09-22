@@ -17,8 +17,8 @@ public abstract class MudBlazorTestBase : BunitContext
         JSInterop.Mode = JSRuntimeMode.Loose;
 
         Services.AddSingleton(TimeProvider.System);
-        Services.AddSingleton<AmbientServiceContextProvider>();
-        Services.AddSingleton<ServiceContextProvider>(static p => p.GetRequiredService<AmbientServiceContextProvider>());
+        Services.AddSingleton<ApplicationServiceContextProvider>();
+        Services.AddSingleton<ServiceContextProvider>(static p => p.GetRequiredService<ApplicationServiceContextProvider>());
         Services.AddScoped<BlazorServiceScope>();
     }
 }

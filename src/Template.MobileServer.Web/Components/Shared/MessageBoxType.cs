@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Web.Components.Dialogs;
+namespace Template.MobileServer.Web.Components.Shared;
 
 public enum MessageBoxType
 {

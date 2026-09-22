@@ -1,22 +1,24 @@
-namespace Template.MobileServer.Web.Components.Dialogs;
+namespace Template.MobileServer.Web.Components.Shared;
 
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 using MudBlazor;
 
-public sealed partial class InputDialog
+public sealed partial class MessageBox
 {
-    private string value = string.Empty;
-
     //--------------------------------------------------------------------------------
     // Parameter
     //--------------------------------------------------------------------------------
 
     [Parameter]
+    public required MessageBoxType Type { get; set; }
+
+    [Parameter]
     public required string Title { get; set; }
 
     [Parameter]
-    public required string Label { get; set; }
+    public required string Message { get; set; }
 
     [CascadingParameter]
     public required IMudDialogInstance MudDialog { get; set; }
@@ -25,14 +27,15 @@ public sealed partial class InputDialog
     // Events
     //--------------------------------------------------------------------------------
 
-    private void OnOkClick()
+    private void OnOkClick() => MudDialog.Close(true);
+
+    private void OnCancelClick() => MudDialog.Close(false);
+
+    private void HandleKeyDown(KeyboardEventArgs args)
     {
-        var input = value.Trim();
-        if (input.Length > 0)
+        if (args.Key == "Escape")
         {
-            MudDialog.Close(DialogResult.Ok(input));
+            MudDialog.Close();
         }
     }
-
-    private void OnCancelClick() => MudDialog.Cancel();
 }

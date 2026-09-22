@@ -11,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Smart.Data;
 
 using Template.MobileServer.Accessors;
-using Template.MobileServer.Models;
 using Template.MobileServer.Services;
 using Template.MobileServer.Web.Application.Context;
 using Template.MobileServer.Web.Components.Pages;
@@ -67,10 +66,8 @@ public sealed class QrPageTests : MudBlazorTestBase
         // Arrange
         await using var keeper = OpenSharedMemoryDatabase("qr-load");
         var service = await AddSettingServiceAsync(keeper.ConnectionString);
-        using (BeginSystemScope())
-        {
-            await service.UpdateAsync("OllamaModel", "gemma2");
-        }
+        using var scope = BeginSystemScope();
+        await service.UpdateAsync("OllamaModel", "gemma2");
 
         // Act
         var cut = Render<QrPage>();
@@ -79,18 +76,15 @@ public sealed class QrPageTests : MudBlazorTestBase
         await cut.WaitForAssertionAsync(() => Assert.Contains("OllamaModel=gemma2", cut.Find("pre.qr-text").TextContent, StringComparison.Ordinal));
 
         // Act
-        using (BeginSystemScope())
-        {
-            await service.UpdateAsync("OllamaModel", " ");
-        }
+        await service.UpdateAsync("OllamaModel", " ");
 
         // Assert
         Assert.Empty(await service.QueryAllAsync(Xunit.TestContext.Current.CancellationToken));
     }
 
     // 画面を経由しない直接の呼び出しはワーカーと同じく明示的にスコープを開始する
-    private ServiceContextScope BeginSystemScope() =>
-        Services.GetRequiredService<AmbientServiceContextProvider>().Begin(ServiceContext.System(TimeProvider.System));
+    private IDisposable BeginSystemScope() =>
+        Services.GetRequiredService<ApplicationServiceContextProvider>().Begin(static () => new ServiceContext(TimeProvider.System.GetLocalNow(), "test"));
 
     // 共有キャッシュのインメモリ DB。接続を 1 つ開いたままにして生存させる
     private static SqliteConnection OpenSharedMemoryDatabase(string name)
