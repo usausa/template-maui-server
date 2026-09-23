@@ -579,7 +579,7 @@ public static class ApplicationExtensions
         });
         builder.Services.AddSingleton<IDialect>(new DelegateDialect(
             static ex => ex is SqliteException { SqliteErrorCode: 19 } or SqliteException { SqliteExtendedErrorCode: 1555 or 2067 },
-            static x => Regex.Replace(x, "[%_]", "[$0]")));
+            static x => Regex.Replace(x, @"[%_\\]", @"\$0")));
         builder.Services.AddDataAccessors(typeof(DataAccessor).Assembly);
 
         // Cache
