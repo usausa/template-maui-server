@@ -32,6 +32,7 @@ public static class ClientSettingKeys
 public sealed partial class QrPage
 {
     private const string GrpcEndpointConfigurationKey = "Kestrel:Endpoints:Grpc:Url";
+    private const string OtelEndpointConfigurationKey = "Kestrel:Endpoints:Otel:Url";
 
     private readonly List<KeyValuePair<string, string>> connections = [];
 
@@ -69,7 +70,7 @@ public sealed partial class QrPage
     {
         connections.Add(new(ClientSettingKeys.ApiEndPoint, Navigation.BaseUri));
         connections.Add(new(ClientSettingKeys.GrpcEndPoint, MakeGrpcEndPoint(Navigation.BaseUri, Configuration[GrpcEndpointConfigurationKey])));
-        connections.Add(new(ClientSettingKeys.OtelEndPoint, Navigation.BaseUri));
+        connections.Add(new(ClientSettingKeys.OtelEndPoint, MakeGrpcEndPoint(Navigation.BaseUri, Configuration[OtelEndpointConfigurationKey])));
 
         foreach (var key in ClientSettingKeys.Stored)
         {

@@ -48,6 +48,8 @@
 
   <ItemGroup>
     <Protobuf Include="Handlers\Protos\**\*.proto" GrpcServices="Server" />
+    <Protobuf Include="Telemetry\Protos\*.proto" ProtoRoot="Telemetry\Protos" GrpcServices="None" />
+    <Protobuf Update="Telemetry\Protos\*_service.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>

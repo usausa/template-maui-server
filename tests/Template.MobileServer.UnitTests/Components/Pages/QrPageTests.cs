@@ -37,7 +37,7 @@ public sealed class QrPageTests : MudBlazorTestBase
         Assert.Equal(string.Empty, result);
     }
 
-    // 保存: 入力した値が Setting テーブルに保存され、QR の生成値に含まれる。接続先 (API / gRPC / OTEL) はサーバー自身の URL
+    // 保存: 入力した値が Setting テーブルに保存され、QR の生成値に含まれる。接続先 (API / gRPC / OTEL) はサーバー自身のホスト (gRPC / OTEL は Kestrel のポート)
     [Fact]
     public async Task SavedValuesAreStoredAndIncludedInQr()
     {
@@ -46,7 +46,7 @@ public sealed class QrPageTests : MudBlazorTestBase
         var service = await AddSettingServiceAsync(keeper.ConnectionString);
 
         var cut = Render<QrPage>();
-        await cut.WaitForAssertionAsync(() => Assert.Contains("ApiEndPoint=http://localhost/\nOtelEndPoint=http://localhost/\n", cut.Find("pre.qr-text").TextContent, StringComparison.Ordinal));
+        await cut.WaitForAssertionAsync(() => Assert.Contains("ApiEndPoint=http://localhost/\nGrpcEndPoint=http://localhost:9090/\nOtelEndPoint=http://localhost:4317/\n", cut.Find("pre.qr-text").TextContent, StringComparison.Ordinal));
 
         // Act
         await cut.Find("input[data-key='OllamaEndPoint']").InputAsync(new ChangeEventArgs { Value = "http://server:11434/" });
@@ -94,14 +94,20 @@ public sealed class QrPageTests : MudBlazorTestBase
         return connection;
     }
 
-    // スキーマは Web の Assets/Data/Schema.sql (参照プロジェクトから出力先へコピーされる)
+    // スキーマは Web の Assets/Data/Schema.sql (参照プロジェクトから出力先へコピーされる)。Kestrel のポートは appsettings.json と同じ
     private async Task<SettingService> AddSettingServiceAsync(string connectionString)
     {
         Services.AddSingleton<IDbProvider>(new DelegateDbProvider(() => new SqliteConnection(connectionString)));
         Services.AddDataAccessors(typeof(SettingAccessor).Assembly);
         Services.AddSingleton<DatabaseService>();
         Services.AddSingleton<SettingService>();
-        Services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+        Services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Kestrel:Endpoints:Grpc:Url"] = "http://*:9090",
+                ["Kestrel:Endpoints:Otel:Url"] = "http://*:4317"
+            })
+            .Build());
 
         await Services.GetRequiredService<DatabaseService>().InitializeAsync("Assets/Data/Schema.sql", Xunit.TestContext.Current.CancellationToken);
         return Services.GetRequiredService<SettingService>();

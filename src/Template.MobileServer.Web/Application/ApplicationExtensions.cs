@@ -48,13 +48,17 @@ using Template.MobileServer.Web.Hubs;
 using Template.MobileServer.Web.Infrastructure.Logging;
 using Template.MobileServer.Web.Infrastructure.Routing;
 using Template.MobileServer.Web.Infrastructure.Security;
+using Template.MobileServer.Web.Telemetry;
 
 public static class ApplicationExtensions
 {
     private const string GrpcEndpointConfigurationKey = "Kestrel:Endpoints:Grpc:Url";
+    private const string OtelEndpointConfigurationKey = "Kestrel:Endpoints:Otel:Url";
 
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
+
+    private const string OtlpPathPrefix = "/opentelemetry.proto.collector.";
 
     private const string SchemaPath = "Assets/Data/Schema.sql";
 
@@ -278,10 +282,16 @@ public static class ApplicationExtensions
     public static IHostApplicationBuilder ConfigureGrpc(this IHostApplicationBuilder builder)
     {
         // gRPC
-        builder.Services.AddGrpc(static options =>
+        var grpc = builder.Services.AddGrpc(static options =>
         {
             options.Interceptors.Add<ServiceContextInterceptor>();
         });
+
+        // OTLP receiver
+        var receiver = builder.Configuration.GetSection("TelemetryReceiver").Get<TelemetryReceiverOption>() ?? new TelemetryReceiverOption();
+        grpc.AddServiceOptions<OtlpTraceHandler>(options => options.MaxReceiveMessageSize = receiver.MaxReceiveMessageSize);
+        grpc.AddServiceOptions<OtlpMetricsHandler>(options => options.MaxReceiveMessageSize = receiver.MaxReceiveMessageSize);
+        grpc.AddServiceOptions<OtlpLogsHandler>(options => options.MaxReceiveMessageSize = receiver.MaxReceiveMessageSize);
 
         // Policy
         builder.Services.AddSingleton<MatcherPolicy, PortMatcherPolicy>();
@@ -537,7 +547,8 @@ public static class ApplicationExtensions
                                        !path.StartsWithSegments("/swagger", StringComparison.OrdinalIgnoreCase) &&
                                        !path.StartsWithSegments("/redoc", StringComparison.OrdinalIgnoreCase) &&
                                        !path.StartsWithSegments("/_blazor", StringComparison.OrdinalIgnoreCase) &&
-                                       !path.StartsWithSegments("/_framework", StringComparison.OrdinalIgnoreCase);
+                                       !path.StartsWithSegments("/_framework", StringComparison.OrdinalIgnoreCase) &&
+                                       !(path.Value?.StartsWith(OtlpPathPrefix, StringComparison.Ordinal) ?? false);
                             };
                         })
                         .AddHttpClientInstrumentation()
@@ -617,6 +628,10 @@ public static class ApplicationExtensions
         builder.Services.AddOptions<Workers.ServerStatusWorkerOption>().BindConfiguration("ServerStatus").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<Workers.ServerStatusWorkerOption>>().Value);
         builder.Services.AddHostedService<Workers.ServerStatusWorker>();
+
+        // Telemetry
+        builder.Services.AddOptions<TelemetryReceiverOption>().BindConfiguration("TelemetryReceiver").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<TelemetryReceiverOption>>().Value);
 
         // Setting
         builder.Services.AddOptions<CompressionSetting>().BindConfiguration("Compression").ValidateDataAnnotations().ValidateOnStart();
@@ -701,6 +716,12 @@ public static class ApplicationExtensions
         var grpcPort = GetEndpointPort(app.Configuration, GrpcEndpointConfigurationKey);
         app.MapGrpcService<ChatHandler>().RequirePort(grpcPort);
         app.MapGrpcService<ServerInfoHandler>().RequirePort(grpcPort);
+
+        // OTLP (テレメトリの受信口、認証なし。OTEL 用ポートのみ)
+        var otelPort = GetEndpointPort(app.Configuration, OtelEndpointConfigurationKey);
+        app.MapGrpcService<OtlpTraceHandler>().RequirePort(otelPort);
+        app.MapGrpcService<OtlpMetricsHandler>().RequirePort(otelPort);
+        app.MapGrpcService<OtlpLogsHandler>().RequirePort(otelPort);
 
         // SignalR (端末の監視、認証なし)
         app.MapHub<MonitorHub>(HubRoutes.Monitor);
