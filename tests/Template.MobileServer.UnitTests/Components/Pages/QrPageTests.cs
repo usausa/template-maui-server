@@ -18,20 +18,20 @@ using Template.MobileServer.Web.Components.Pages;
 public sealed class QrPageTests : MudBlazorTestBase
 {
     [Fact]
-    public void MakeGrpcEndPointUsesServerHostAndGrpcPort()
+    public void MakeEndPointUsesServerHostAndEndpointPort()
     {
         // Act
-        var result = QrPage.MakeGrpcEndPoint("http://server:8080/", "http://*:9090");
+        var result = QrPage.MakeEndPoint("http://server:8080/", "http://*:9090");
 
         // Assert
         Assert.Equal("http://server:9090/", result);
     }
 
     [Fact]
-    public void MakeGrpcEndPointWithoutConfigurationReturnsEmpty()
+    public void MakeEndPointWithoutConfigurationReturnsEmpty()
     {
         // Act
-        var result = QrPage.MakeGrpcEndPoint("http://server:8080/", null);
+        var result = QrPage.MakeEndPoint("http://server:8080/", null);
 
         // Assert
         Assert.Equal(string.Empty, result);
@@ -46,7 +46,7 @@ public sealed class QrPageTests : MudBlazorTestBase
         var service = await AddSettingServiceAsync(keeper.ConnectionString);
 
         var cut = Render<QrPage>();
-        await cut.WaitForAssertionAsync(() => Assert.Contains("ApiEndPoint=http://localhost/\nGrpcEndPoint=http://localhost:9090/\nOtelEndPoint=http://localhost:4317/\n", cut.Find("pre.qr-text").TextContent, StringComparison.Ordinal));
+        await cut.WaitForAssertionAsync(() => Assert.Contains("ApiEndPoint=http://localhost/\nGrpcEndPoint=http://localhost:9090/\nOtelEndPoint=http://localhost:4318/\n", cut.Find("pre.qr-text").TextContent, StringComparison.Ordinal));
 
         // Act
         await cut.Find("input[data-key='OllamaEndPoint']").InputAsync(new ChangeEventArgs { Value = "http://server:11434/" });
@@ -105,7 +105,7 @@ public sealed class QrPageTests : MudBlazorTestBase
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Kestrel:Endpoints:Grpc:Url"] = "http://*:9090",
-                ["Kestrel:Endpoints:Otel:Url"] = "http://*:4317"
+                ["Kestrel:Endpoints:OtelHttp:Url"] = "http://*:4318"
             })
             .Build());
 

@@ -1,7 +1,5 @@
 namespace Template.MobileServer.Telemetry;
 
-using Grpc.Core;
-
 using Microsoft.Extensions.Logging;
 
 using NSubstitute;
@@ -17,15 +15,15 @@ using OpenTelemetry.Proto.Trace.V1;
 
 using Template.MobileServer.Web.Telemetry;
 
-public sealed class OtlpHandlerTests
+public sealed class OtlpReceiverTests
 {
     // トレース: リソースごとに件数をログに出し、空の応答 (partial_success なし) を返す。Resource / Scope / Status の無い項目も受け付ける
     [Fact]
-    public async Task TraceExportLogsSpanCountPerResource()
+    public void ReceiveTracesLogsSpanCountPerResource()
     {
         // Arrange
-        var logger = CreateLogger<OtlpTraceHandler>();
-        var handler = new OtlpTraceHandler(logger);
+        var logger = CreateLogger<OtlpReceiver>();
+        var receiver = new OtlpReceiver(logger);
         var request = new ExportTraceServiceRequest
         {
             ResourceSpans =
@@ -40,7 +38,7 @@ public sealed class OtlpHandlerTests
         };
 
         // Act
-        var response = await handler.Export(request, Substitute.For<ServerCallContext>());
+        var response = receiver.Receive(request);
 
         // Assert
         Assert.Null(response.PartialSuccess);
@@ -51,11 +49,11 @@ public sealed class OtlpHandlerTests
 
     // メトリクス: 計器の数と点の数 (ヒストグラムの点を含む)
     [Fact]
-    public async Task MetricsExportLogsMetricAndPointCount()
+    public void ReceiveMetricsLogsMetricAndPointCount()
     {
         // Arrange
-        var logger = CreateLogger<OtlpMetricsHandler>();
-        var handler = new OtlpMetricsHandler(logger);
+        var logger = CreateLogger<OtlpReceiver>();
+        var receiver = new OtlpReceiver(logger);
         var request = new ExportMetricsServiceRequest
         {
             ResourceMetrics =
@@ -79,7 +77,7 @@ public sealed class OtlpHandlerTests
         };
 
         // Act
-        var response = await handler.Export(request, Substitute.For<ServerCallContext>());
+        var response = receiver.Receive(request);
 
         // Assert
         Assert.Null(response.PartialSuccess);
@@ -88,11 +86,11 @@ public sealed class OtlpHandlerTests
 
     // ログ: 件数と、各レコードの重大度・本文
     [Fact]
-    public async Task LogsExportLogsRecordCountAndContent()
+    public void ReceiveLogsLogsRecordCountAndContent()
     {
         // Arrange
-        var logger = CreateLogger<OtlpLogsHandler>();
-        var handler = new OtlpLogsHandler(logger);
+        var logger = CreateLogger<OtlpReceiver>();
+        var receiver = new OtlpReceiver(logger);
         var request = new ExportLogsServiceRequest
         {
             ResourceLogs =
@@ -106,7 +104,7 @@ public sealed class OtlpHandlerTests
         };
 
         // Act
-        var response = await handler.Export(request, Substitute.For<ServerCallContext>());
+        var response = receiver.Receive(request);
 
         // Assert
         Assert.Null(response.PartialSuccess);

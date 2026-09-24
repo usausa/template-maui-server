@@ -54,11 +54,13 @@ public static class ApplicationExtensions
 {
     private const string GrpcEndpointConfigurationKey = "Kestrel:Endpoints:Grpc:Url";
     private const string OtelEndpointConfigurationKey = "Kestrel:Endpoints:Otel:Url";
+    private const string OtelHttpEndpointConfigurationKey = "Kestrel:Endpoints:OtelHttp:Url";
 
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
 
     private const string OtlpPathPrefix = "/opentelemetry.proto.collector.";
+    private const string OtlpHttpPathPrefix = "/v1";
 
     private const string SchemaPath = "Assets/Data/Schema.sql";
 
@@ -548,7 +550,8 @@ public static class ApplicationExtensions
                                        !path.StartsWithSegments("/redoc", StringComparison.OrdinalIgnoreCase) &&
                                        !path.StartsWithSegments("/_blazor", StringComparison.OrdinalIgnoreCase) &&
                                        !path.StartsWithSegments("/_framework", StringComparison.OrdinalIgnoreCase) &&
-                                       !(path.Value?.StartsWith(OtlpPathPrefix, StringComparison.Ordinal) ?? false);
+                                       !(path.Value?.StartsWith(OtlpPathPrefix, StringComparison.Ordinal) ?? false) &&
+                                       !path.StartsWithSegments(OtlpHttpPathPrefix, StringComparison.OrdinalIgnoreCase);
                             };
                         })
                         .AddHttpClientInstrumentation()
@@ -630,6 +633,7 @@ public static class ApplicationExtensions
         builder.Services.AddHostedService<Workers.ServerStatusWorker>();
 
         // Telemetry
+        builder.Services.AddSingleton<OtlpReceiver>();
         builder.Services.AddOptions<TelemetryReceiverOption>().BindConfiguration("TelemetryReceiver").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<TelemetryReceiverOption>>().Value);
 
@@ -722,6 +726,9 @@ public static class ApplicationExtensions
         app.MapGrpcService<OtlpTraceHandler>().RequirePort(otelPort);
         app.MapGrpcService<OtlpMetricsHandler>().RequirePort(otelPort);
         app.MapGrpcService<OtlpLogsHandler>().RequirePort(otelPort);
+
+        // OTLP/HTTP (テレメトリの受信口、認証なし。OTLP/HTTP 用ポートのみ)
+        app.MapOtlpHttpEndpoints(GetEndpointPort(app.Configuration, OtelHttpEndpointConfigurationKey));
 
         // SignalR (端末の監視、認証なし)
         app.MapHub<MonitorHub>(HubRoutes.Monitor);

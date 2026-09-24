@@ -20,19 +20,19 @@ public static class ClientSettingKeys
     public const string OllamaEndPoint = "OllamaEndPoint";
     public const string OllamaModel = "OllamaModel";
 
-    public const string ScpHost = "ScpHost";
-    public const string ScpPort = "ScpPort";
-    public const string ScpUser = "ScpUser";
-    public const string ScpPassword = "ScpPassword";
+    public const string SshHost = "SshHost";
+    public const string SshPort = "SshPort";
+    public const string SshUser = "SshUser";
+    public const string SshPassword = "SshPassword";
     // ReSharper restore InconsistentNaming
 
-    public static readonly string[] Stored = [AIServiceEndPoint, AIServiceKey, OllamaEndPoint, OllamaModel, ScpHost, ScpPort, ScpUser, ScpPassword];
+    public static readonly string[] Stored = [AIServiceEndPoint, AIServiceKey, OllamaEndPoint, OllamaModel, SshHost, SshPort, SshUser, SshPassword];
 }
 
 public sealed partial class QrPage
 {
     private const string GrpcEndpointConfigurationKey = "Kestrel:Endpoints:Grpc:Url";
-    private const string OtelEndpointConfigurationKey = "Kestrel:Endpoints:Otel:Url";
+    private const string OtelEndpointConfigurationKey = "Kestrel:Endpoints:OtelHttp:Url";
 
     private readonly List<KeyValuePair<string, string>> connections = [];
 
@@ -69,12 +69,12 @@ public sealed partial class QrPage
     protected override Task OnInitializedAsync()
     {
         connections.Add(new(ClientSettingKeys.ApiEndPoint, Navigation.BaseUri));
-        connections.Add(new(ClientSettingKeys.GrpcEndPoint, MakeGrpcEndPoint(Navigation.BaseUri, Configuration[GrpcEndpointConfigurationKey])));
-        connections.Add(new(ClientSettingKeys.OtelEndPoint, MakeGrpcEndPoint(Navigation.BaseUri, Configuration[OtelEndpointConfigurationKey])));
+        connections.Add(new(ClientSettingKeys.GrpcEndPoint, MakeEndPoint(Navigation.BaseUri, Configuration[GrpcEndpointConfigurationKey])));
+        connections.Add(new(ClientSettingKeys.OtelEndPoint, MakeEndPoint(Navigation.BaseUri, Configuration[OtelEndpointConfigurationKey])));
 
         foreach (var key in ClientSettingKeys.Stored)
         {
-            items.Add(new SettingItem(key, key == ClientSettingKeys.ScpPort ? "22" : string.Empty, key is ClientSettingKeys.AIServiceKey or ClientSettingKeys.ScpPassword));
+            items.Add(new SettingItem(key, key == ClientSettingKeys.SshPort ? "22" : string.Empty, key is ClientSettingKeys.AIServiceKey or ClientSettingKeys.SshPassword));
         }
 
         return ReloadAsync();
@@ -119,10 +119,10 @@ public sealed partial class QrPage
             AppendValue(builder, key, value);
         }
 
-        var scpHost = items.First(static x => x.Key == ClientSettingKeys.ScpHost).Effective;
+        var sshHost = items.First(static x => x.Key == ClientSettingKeys.SshHost).Effective;
         foreach (var item in items)
         {
-            if ((item.Key == ClientSettingKeys.ScpPort) && (scpHost.Length == 0))
+            if ((item.Key == ClientSettingKeys.SshPort) && (sshHost.Length == 0))
             {
                 continue;
             }
@@ -156,15 +156,16 @@ public sealed partial class QrPage
     // Helper
     //--------------------------------------------------------------------------------
 
-    internal static string MakeGrpcEndPoint(string baseUri, string? grpcUrl)
+    // Same host as the server with the port of the Kestrel endpoint
+    internal static string MakeEndPoint(string baseUri, string? url)
     {
-        if (String.IsNullOrEmpty(grpcUrl) ||
-            !Uri.TryCreate(grpcUrl.Replace("*", "localhost", StringComparison.Ordinal).Replace("+", "localhost", StringComparison.Ordinal), UriKind.Absolute, out var grpcUri))
+        if (String.IsNullOrEmpty(url) ||
+            !Uri.TryCreate(url.Replace("*", "localhost", StringComparison.Ordinal).Replace("+", "localhost", StringComparison.Ordinal), UriKind.Absolute, out var uri))
         {
             return string.Empty;
         }
 
-        var builder = new UriBuilder(baseUri) { Port = grpcUri.Port, Path = "/", Query = string.Empty };
+        var builder = new UriBuilder(baseUri) { Port = uri.Port, Path = "/", Query = string.Empty };
         return builder.Uri.ToString();
     }
 
