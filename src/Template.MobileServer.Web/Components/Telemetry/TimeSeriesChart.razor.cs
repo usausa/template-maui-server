@@ -148,7 +148,7 @@ public sealed partial class TimeSeriesChart
         for (var i = 0; i <= count; i++)
         {
             var value = min + (i * step);
-            ticks.Add(new ChartTick(Format(ToY(value, min, max)), TelemetryFormat.FormatNumber(value)));
+            ticks.Add(new ChartTick(Format(ToY(value, min, max)), ViewHelper.FormatNumber(value)));
         }
 
         return ticks;
@@ -163,7 +163,7 @@ public sealed partial class TimeSeriesChart
     {
         var span = To - From;
         var step = TimeSteps.Select(static x => x * NanosecondsPerMinute).FirstOrDefault(x => span / x <= TimeTickLimit, TimeSteps[^1] * NanosecondsPerMinute);
-        var offset = TimeZoneInfo.Local.GetUtcOffset(TelemetryFormat.ToDateTimeOffset(To)).Ticks * NanosecondsPerTick;
+        var offset = TimeZoneInfo.Local.GetUtcOffset(ViewHelper.ToDateTimeOffset(To)).Ticks * NanosecondsPerTick;
         var first = (((From + offset + step - 1) / step) * step) - offset;
 
         var ticks = new List<ChartTick>();
@@ -178,7 +178,7 @@ public sealed partial class TimeSeriesChart
     private string FormatTick(long time, long step)
     {
         var format = !ShowDate ? "HH:mm" : step >= NanosecondsPerDay ? "MM/dd" : "MM/dd HH:mm";
-        return TelemetryFormat.ToDateTimeOffset(time).LocalDateTime.ToString(format, CultureInfo.InvariantCulture);
+        return ViewHelper.ToDateTimeOffset(time).LocalDateTime.ToString(format, CultureInfo.InvariantCulture);
     }
 
     //--------------------------------------------------------------------------------
@@ -239,7 +239,7 @@ public sealed partial class TimeSeriesChart
     // 時刻と値 (ヒストグラムは最大と回数も)。線が複数なら属性の値を先に付ける
     private string MakeTitle(MetricLine line, ChartValue value)
     {
-        var text = $"{TelemetryFormat.FormatTime(value.Time)} {FormatValue(value.Value)}";
+        var text = $"{ViewHelper.FormatTime(value.Time)} {FormatValue(value.Value)}";
         if (Chart.Mode == MetricValueMode.Distribution)
         {
             text += Chart.GetMax(value.Bucket) is { } max ? $"・最大 {FormatValue(max)}・{value.Bucket.Count} 回" : $"・{value.Bucket.Count} 回";
@@ -272,7 +272,7 @@ public sealed partial class TimeSeriesChart
 
     // % は数字に続ける
     private string FormatValue(double value) =>
-        Chart.Unit == "%" ? $"{TelemetryFormat.FormatNumber(value)}%" : $"{TelemetryFormat.FormatNumber(value)} {Chart.Unit}".TrimEnd();
+        Chart.Unit == "%" ? $"{ViewHelper.FormatNumber(value)}%" : $"{ViewHelper.FormatNumber(value)} {Chart.Unit}".TrimEnd();
 
     private static string Format(double value) => value.ToString("0.#", CultureInfo.InvariantCulture);
 

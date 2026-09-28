@@ -34,13 +34,23 @@ public sealed class TelemetryStore : IDisposable
     // テレメトリのファイルがある端末
     public IReadOnlyList<string> EnumerateDevices() => provider.EnumerateDevices();
 
+    // 保存済みの Id は最初の書き込みで読み、新しく足した Id はコミットの後に足す
     public async ValueTask<TelemetrySaveResult> SaveAsync(TelemetryBatch batch, CancellationToken cancellationToken = default)
     {
         var entry = GetEntry(batch.DeviceId);
         await entry.Lock.WaitAsync(cancellationToken);
         try
         {
-            return await telemetryService.SaveAsync(batch, entry.Ids, cancellationToken);
+            if (!entry.Loaded)
+            {
+                var saved = await telemetryService.QueryIdsAsync(batch.DeviceId, cancellationToken);
+                entry.Add(saved.Resources, saved.Series);
+                entry.Loaded = true;
+            }
+
+            var result = await telemetryService.SaveAsync(batch, entry.Resources, entry.Series, cancellationToken);
+            entry.Add(result.AddedResources, result.AddedSeries);
+            return result;
         }
         finally
         {
@@ -55,7 +65,7 @@ public sealed class TelemetryStore : IDisposable
         await entry.Lock.WaitAsync(cancellationToken);
         try
         {
-            entry.Ids.Clear();
+            entry.Clear();
             return provider.Delete(deviceId);
         }
         finally
@@ -74,7 +84,7 @@ public sealed class TelemetryStore : IDisposable
             var result = await telemetryService.DeleteExpiredAsync(deviceId, logBefore, traceBefore, metricBefore, deviceBefore, cancellationToken);
             if (result.FileDeleted)
             {
-                entry.Ids.Clear();
+                entry.Clear();
             }
 
             return result;
@@ -87,13 +97,37 @@ public sealed class TelemetryStore : IDisposable
 
     private Entry GetEntry(string deviceId) => entries.GetOrAdd(deviceId, static _ => new Entry());
 
-    // 端末ごとの書き込みのロックと、保存済みの Resource と系列の Id
+    // 端末ごとの書き込みのロックと、保存済みの Resource (Hash → Id) と系列 (キー → Id)
     private sealed class Entry : IDisposable
     {
         public SemaphoreSlim Lock { get; } = new(1, 1);
 
-        public TelemetryIdCache Ids { get; } = new();
+        public bool Loaded { get; set; }
+
+        public Dictionary<string, long> Resources { get; } = [with(StringComparer.Ordinal)];
+
+        public Dictionary<TelemetrySeriesKey, long> Series { get; } = [];
 
         public void Dispose() => Lock.Dispose();
+
+        public void Add(IEnumerable<TelemetryResourceEntity> resources, IEnumerable<TelemetryMetricSeriesEntity> series)
+        {
+            foreach (var resource in resources)
+            {
+                Resources[resource.Hash] = resource.Id;
+            }
+
+            foreach (var entity in series)
+            {
+                Series[TelemetrySeriesKey.From(entity)] = entity.Id;
+            }
+        }
+
+        public void Clear()
+        {
+            Loaded = false;
+            Resources.Clear();
+            Series.Clear();
+        }
     }
 }

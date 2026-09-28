@@ -20,7 +20,7 @@ public sealed partial class TelemetryAccessor
     // Resource
     //--------------------------------------------------------------------------------
 
-    // 保存済みの Id とハッシュ (最初の書き込みでメモリに読む)
+    // 保存済みの Id とハッシュ
     [Query]
     public partial ValueTask<List<TelemetryResourceEntity>> QueryResourceAllAsync(DbConnection con, CancellationToken cancellationToken);
 

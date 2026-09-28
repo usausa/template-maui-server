@@ -139,11 +139,11 @@ public sealed partial class TelemetryPage
 
     private TelemetryDeviceState State => summary is null ? TelemetryDeviceState.NoData : Registry.GetState(summary);
 
-    private string StateText => TelemetryFormat.FormatState(State);
+    private string StateText => ViewHelper.FormatState(State);
 
-    private Color StateColor => TelemetryFormat.StateColor(State);
+    private Color StateColor => ViewHelper.StateColor(State);
 
-    private Variant StateVariant => TelemetryFormat.StateVariant(State);
+    private Variant StateVariant => ViewHelper.StateVariant(State);
 
     private string DeviceName => summary?.Device.Name ?? string.Empty;
 
@@ -163,9 +163,9 @@ public sealed partial class TelemetryPage
     private string App => summary?.Info?.ServiceVersion ?? "-";
 
     private string LastReceived =>
-        summary?.Info is { } info ? TelemetryFormat.FormatElapsed(TimeProvider.GetUtcNow() - TelemetryFormat.ToDateTimeOffset(info.LastReceivedAt)) : "-";
+        summary?.Info is { } info ? ViewHelper.FormatElapsed(TimeProvider.GetUtcNow() - ViewHelper.ToDateTimeOffset(info.LastReceivedAt)) : "-";
 
-    private string? LastReceivedTime => summary?.Info is { } info ? TelemetryFormat.FormatTime(info.LastReceivedAt) : null;
+    private string? LastReceivedTime => summary?.Info is { } info ? ViewHelper.FormatTime(info.LastReceivedAt) : null;
 
     private TelemetryValue? Battery => summary?.Battery;
 
@@ -197,7 +197,7 @@ public sealed partial class TelemetryPage
 
     private string TraceFacts =>
         traceDetail?.Trace is { } trace
-            ? $"{TelemetryFormat.FormatTime(trace.StartTimeUnixNano)}・{TelemetryFormat.FormatDuration(trace.EndTimeUnixNano - trace.StartTimeUnixNano)}・スパン {trace.SpanCount}・エラー {trace.ErrorCount}"
+            ? $"{ViewHelper.FormatTime(trace.StartTimeUnixNano)}・{ViewHelper.FormatDuration(trace.EndTimeUnixNano - trace.StartTimeUnixNano)}・スパン {trace.SpanCount}・エラー {trace.ErrorCount}"
             : string.Empty;
 
     private TelemetrySpanEntity? SelectedSpan => traceDetail?.Spans.FirstOrDefault(x => x.SpanId == selectedSpanId);
@@ -637,13 +637,13 @@ public sealed partial class TelemetryPage
     private string? FormatDeviceOption(string? deviceId) =>
         Array.Find(devices, x => x.Device.DeviceId == deviceId) is { } device ? $"{device.Device.Name} ({device.Device.DeviceId})" : deviceId;
 
-    private Color OptionColor(TelemetryDeviceSummary device) => TelemetryFormat.StateColor(Registry.GetState(device));
+    private Color OptionColor(TelemetryDeviceSummary device) => ViewHelper.StateColor(Registry.GetState(device));
 
     private static bool IsDisabledDevice(TelemetryDeviceSummary device) => !device.Device.IsEnabled;
 
     private string TraceRowClass(TelemetryTraceEntity trace) => trace.TraceId == TraceId ? "trace-row trace-selected" : "trace-row";
 
-    private static string FormatTraceDuration(TelemetryTraceEntity trace) => TelemetryFormat.FormatDuration(trace.EndTimeUnixNano - trace.StartTimeUnixNano);
+    private static string FormatTraceDuration(TelemetryTraceEntity trace) => ViewHelper.FormatDuration(trace.EndTimeUnixNano - trace.StartTimeUnixNano);
 
     // 本文の 1 行目
     private static string FirstLine(string text)

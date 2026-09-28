@@ -22,11 +22,11 @@ public sealed partial class LogDetail
     [Parameter]
     public TelemetryResourceEntity? Resource { get; set; }
 
-    private string SeverityText => $"{TelemetryFormat.FormatSeverity(Log.SeverityNumber)} ({Log.SeverityNumber}・{Log.SeverityText})";
+    private string SeverityText => $"{ViewHelper.FormatSeverity(Log.SeverityNumber)} ({Log.SeverityNumber}・{Log.SeverityText})";
 
     private string EventText => Log.EventName.Length > 0 ? Log.EventName : "-";
 
-    private string ObservedText => TelemetryFormat.FormatTime(Log.ObservedTimeUnixNano);
+    private string ObservedText => ViewHelper.FormatTime(Log.ObservedTimeUnixNano);
 
     private string TraceText => Log.TraceId.Length > 0 ? Log.TraceId : "-";
 

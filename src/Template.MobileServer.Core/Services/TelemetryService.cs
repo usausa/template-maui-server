@@ -3,7 +3,7 @@ namespace Template.MobileServer.Services;
 using Template.MobileServer.Accessors;
 using Template.MobileServer.Infrastructure.Telemetry;
 
-// 保存で新しく入った分 (送り直しで重複した分は含まない)。Traces は集計し直したトレース
+// 保存で新しく入った分 (送り直しで重複した分は含まない)。Traces は集計し直したトレース、AddedResources / AddedSeries は新しく足した Resource と系列 (Id は保存したもの)
 public sealed class TelemetrySaveResult
 {
     public required string DeviceId { get; init; }
@@ -11,6 +11,10 @@ public sealed class TelemetrySaveResult
     public required TelemetryDeviceInfoEntity DeviceInfo { get; init; }
 
     public long ReceivedAt { get; init; }
+
+    public IList<TelemetryResourceEntity> AddedResources { get; } = [];
+
+    public IList<TelemetryMetricSeriesEntity> AddedSeries { get; } = [];
 
     public IList<TelemetryMetric> Metrics { get; } = [];
 
@@ -24,21 +28,10 @@ public sealed class TelemetrySaveResult
 // 保持期間の削除の結果 (削除した行の数、受信が途絶えてファイルごと削除したか)
 public sealed record TelemetryDeleteResult(int Rows, bool FileDeleted);
 
-// 端末のファイルに保存済みの Resource と系列の Id (呼び出し側が端末ごとに持つ。読み込む前なら保存のときに DB から読む)
-public sealed class TelemetryIdCache
+// 系列の一意キー (名前・スコープ・属性)
+public readonly record struct TelemetrySeriesKey(string Name, string ScopeName, string AttributesJson)
 {
-    public bool IsLoaded { get; set; }
-
-    public Dictionary<string, long> Resources { get; } = [with(StringComparer.Ordinal)];
-
-    public Dictionary<string, long> Series { get; } = [with(StringComparer.Ordinal)];
-
-    public void Clear()
-    {
-        IsLoaded = false;
-        Resources.Clear();
-        Series.Clear();
-    }
+    public static TelemetrySeriesKey From(TelemetryMetricSeriesEntity series) => new(series.Name, series.ScopeName, series.AttributesJson);
 }
 
 // 端末ごとのテレメトリの保存と照会 (状態を持たない。書き込みを端末ごとに 1 つずつにするのは呼び出し側)
@@ -70,8 +63,22 @@ public sealed class TelemetryService
     // Save
     //--------------------------------------------------------------------------------
 
-    // 1 トランザクションで保存し、新しく入った分を返す (同じ端末の書き込みと並べて呼ばない)。ids はコミットの後に足す
-    public async ValueTask<TelemetrySaveResult> SaveAsync(TelemetryBatch batch, TelemetryIdCache ids, CancellationToken cancellationToken = default)
+    // 保存済みの Resource と系列 (Id とキーだけ)。ファイルが無ければ空
+    public async ValueTask<TelemetryIdView> QueryIdsAsync(string deviceId, CancellationToken cancellationToken = default)
+    {
+        await using var con = await provider.OpenExistingAsync(deviceId, cancellationToken);
+        if (con is null)
+        {
+            return new TelemetryIdView([], []);
+        }
+
+        return new TelemetryIdView(
+            await telemetryAccessor.QueryResourceAllAsync(con, cancellationToken),
+            await telemetryAccessor.QueryMetricSeriesAllAsync(con, cancellationToken));
+    }
+
+    // 1 トランザクションで保存し、新しく入った分を返す (同じ端末の書き込みと並べて呼ばない)。resourceIds / seriesIds は保存済みの Id (無いものは足す)
+    public async ValueTask<TelemetrySaveResult> SaveAsync(TelemetryBatch batch, IReadOnlyDictionary<string, long> resourceIds, IReadOnlyDictionary<TelemetrySeriesKey, long> seriesIds, CancellationToken cancellationToken = default)
     {
         var context = contextProvider.Current;
         var receivedAt = context.Now.ToUnixTimeMilliseconds() * NanosecondsPerMillisecond;
@@ -80,23 +87,6 @@ public sealed class TelemetryService
         batch.Resource.FirstSeenAt = receivedAt;
 
         await using var con = await provider.OpenAsync(batch.DeviceId, cancellationToken);
-        if (!ids.IsLoaded)
-        {
-            foreach (var entity in await telemetryAccessor.QueryResourceAllAsync(con, cancellationToken))
-            {
-                ids.Resources[entity.Hash] = entity.Id;
-            }
-
-            foreach (var entity in await telemetryAccessor.QueryMetricSeriesAllAsync(con, cancellationToken))
-            {
-                ids.Series[MakeSeriesKey(entity)] = entity.Id;
-            }
-
-            ids.IsLoaded = true;
-        }
-
-        var resources = ids.Resources;
-        var series = ids.Series;
 
         var result = new TelemetrySaveResult
         {
@@ -104,36 +94,33 @@ public sealed class TelemetryService
             DeviceInfo = batch.DeviceInfo,
             ReceivedAt = receivedAt
         };
-        var addedResources = new List<TelemetryResourceEntity>();
-        var addedSeries = new List<TelemetryMetricSeriesEntity>();
-
         await using var tx = await con.BeginTransactionAsync(cancellationToken);
 
         await telemetryAccessor.UpsertDeviceInfoAsync(tx, batch.DeviceInfo, cancellationToken);
 
         // Resource
-        if (resources.TryGetValue(batch.Resource.Hash, out var resourceId))
+        if (resourceIds.TryGetValue(batch.Resource.Hash, out var resourceId))
         {
             batch.Resource.Id = resourceId;
         }
         else
         {
             batch.Resource.Id = await telemetryAccessor.InsertResourceAsync(tx, batch.Resource, cancellationToken);
-            addedResources.Add(batch.Resource);
+            result.AddedResources.Add(batch.Resource);
         }
 
         // Metric
         foreach (var metric in batch.Metrics)
         {
             var entity = metric.Series;
-            if (series.TryGetValue(MakeSeriesKey(entity), out var seriesId))
+            if (seriesIds.TryGetValue(TelemetrySeriesKey.From(entity), out var seriesId))
             {
                 entity.Id = seriesId;
             }
             else
             {
                 entity.Id = await telemetryAccessor.InsertMetricSeriesAsync(tx, entity.Name, entity.ScopeName, entity.Unit, entity.Kind, entity.Temporality, entity.IsMonotonic, entity.AttributesJson, cancellationToken);
-                addedSeries.Add(entity);
+                result.AddedSeries.Add(entity);
             }
 
             var saved = default(TelemetryMetric);
@@ -186,17 +173,6 @@ public sealed class TelemetryService
         }
 
         await tx.CommitAsync(cancellationToken);
-
-        // The ids are kept after the commit only (a rolled back insert would leave an unknown id)
-        foreach (var resource in addedResources)
-        {
-            resources[resource.Hash] = resource.Id;
-        }
-
-        foreach (var added in addedSeries)
-        {
-            series[MakeSeriesKey(added)] = added.Id;
-        }
 
         return result;
     }
@@ -339,11 +315,4 @@ public sealed class TelemetryService
         provider.Delete(deviceId);
         return new TelemetryDeleteResult(0, true);
     }
-
-    //--------------------------------------------------------------------------------
-    // Helper
-    //--------------------------------------------------------------------------------
-
-    private static string MakeSeriesKey(TelemetryMetricSeriesEntity series) =>
-        $"{series.Name}\n{series.ScopeName}\n{series.AttributesJson}";
 }

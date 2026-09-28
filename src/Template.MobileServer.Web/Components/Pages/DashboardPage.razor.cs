@@ -93,7 +93,7 @@ public sealed partial class DashboardPage
 
     private Color BatteryColor => lowBatteryCount > 0 ? Color.Error : Color.Default;
 
-    private static string LowBatteryText => $"残量 {TelemetryFormat.FormatPercent(TelemetryFormat.BatteryCriticalRatio)} 未満";
+    private static string LowBatteryText => $"残量 {ViewHelper.FormatPercent(ViewHelper.BatteryCriticalRatio)} 未満";
 
     //--------------------------------------------------------------------------------
     // Initialize
@@ -180,7 +180,7 @@ public sealed partial class DashboardPage
     // 直近のエラーの端末のログ (ERROR 以上、エラーの時刻を含む範囲)
     private void OpenLogs(TelemetryErrorEntry error)
     {
-        var elapsed = TimeProvider.GetUtcNow() - TelemetryFormat.ToDateTimeOffset(error.TimeUnixNano);
+        var elapsed = TimeProvider.GetUtcNow() - ViewHelper.ToDateTimeOffset(error.TimeUnixNano);
         Navigation.NavigateTo(TelemetryLinks.Logs(error.DeviceId, TelemetryRange.Covering(elapsed), TelemetryLogLevel.Error));
     }
 
@@ -232,7 +232,7 @@ public sealed partial class DashboardPage
         noDataCount = states.Count(static x => x == TelemetryDeviceState.NoData);
         errorCount = enabled.Sum(static x => x.ErrorCount);
         crashCount = enabled.Sum(static x => x.CrashCount);
-        lowBatteryCount = enabled.Count(static x => x.Battery is { } battery && (TelemetryFormat.BatteryLevel(battery.Value) == TelemetryLevel.Critical));
+        lowBatteryCount = enabled.Count(static x => x.Battery is { } battery && (ViewHelper.BatteryLevel(battery.Value) == TelemetryLevel.Critical));
     }
 
     private static bool IsMatch(TelemetryDeviceSummary device, string text) =>
@@ -244,11 +244,11 @@ public sealed partial class DashboardPage
     // Format
     //--------------------------------------------------------------------------------
 
-    private string StateText(TelemetryDeviceSummary device) => TelemetryFormat.FormatState(Registry.GetState(device));
+    private string StateText(TelemetryDeviceSummary device) => ViewHelper.FormatState(Registry.GetState(device));
 
-    private Color StateColor(TelemetryDeviceSummary device) => TelemetryFormat.StateColor(Registry.GetState(device));
+    private Color StateColor(TelemetryDeviceSummary device) => ViewHelper.StateColor(Registry.GetState(device));
 
-    private Variant StateVariant(TelemetryDeviceSummary device) => TelemetryFormat.StateVariant(Registry.GetState(device));
+    private Variant StateVariant(TelemetryDeviceSummary device) => ViewHelper.StateVariant(Registry.GetState(device));
 
     private static string TelemetryLink(TelemetryDeviceSummary device) => TelemetryLinks.Device(device.Device.DeviceId);
 
@@ -265,10 +265,10 @@ public sealed partial class DashboardPage
         device.Info is { } info ? $"{info.OsName} {info.OsVersion}・アプリ {info.ServiceVersion}" : string.Empty;
 
     private string FormatLastReceived(TelemetryDeviceSummary device) =>
-        device.Info is { } info ? TelemetryFormat.FormatElapsed(TimeProvider.GetUtcNow() - TelemetryFormat.ToDateTimeOffset(info.LastReceivedAt)) : string.Empty;
+        device.Info is { } info ? ViewHelper.FormatElapsed(TimeProvider.GetUtcNow() - ViewHelper.ToDateTimeOffset(info.LastReceivedAt)) : string.Empty;
 
     private static string FormatLastReceivedTime(TelemetryDeviceSummary device) =>
-        device.Info is { } info ? TelemetryFormat.FormatTime(info.LastReceivedAt) : string.Empty;
+        device.Info is { } info ? ViewHelper.FormatTime(info.LastReceivedAt) : string.Empty;
 
     private string FindName(string deviceId) => names.GetValueOrDefault(deviceId, deviceId);
 }

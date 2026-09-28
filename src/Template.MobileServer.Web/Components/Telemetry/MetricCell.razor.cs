@@ -75,15 +75,15 @@ public sealed partial class MetricCell
         showMeter = Display is MetricDisplay.Utilization or MetricDisplay.CustomValue;
         icon = Display switch
         {
-            MetricDisplay.Battery => TelemetryFormat.BatteryIcon(value.Value),
-            MetricDisplay.Signal => TelemetryFormat.SignalIcon(value.Value),
+            MetricDisplay.Battery => ViewHelper.BatteryIcon(value.Value),
+            MetricDisplay.Signal => ViewHelper.SignalIcon(value.Value),
             _ => string.Empty
         };
-        color = TelemetryFormat.LevelColor(level);
-        fillClass = $"meter-fill {TelemetryFormat.LevelClass(level)}";
+        color = ViewHelper.LevelColor(level);
+        fillClass = $"meter-fill {ViewHelper.LevelClass(level)}";
         fillStyle = FormattableString.Invariant($"width: {Math.Clamp(ToRatio(Display, value.Value), 0, 1) * 100:0.#}%");
         text = showIcon ? string.Empty : formatted;
-        title = $"{formatted} ({TelemetryFormat.FormatTime(value.TimeUnixNano)})";
+        title = $"{formatted} ({ViewHelper.FormatTime(value.TimeUnixNano)})";
     }
 
     //--------------------------------------------------------------------------------
@@ -92,10 +92,10 @@ public sealed partial class MetricCell
 
     private static string Format(MetricDisplay display, double value) => display switch
     {
-        MetricDisplay.Battery => TelemetryFormat.FormatPercent(value),
-        MetricDisplay.Utilization => TelemetryFormat.FormatUtilization(value),
-        MetricDisplay.Signal => TelemetryFormat.FormatSignal(value),
-        MetricDisplay.CustomValue => TelemetryFormat.FormatCustomValue(value),
+        MetricDisplay.Battery => ViewHelper.FormatPercent(value),
+        MetricDisplay.Utilization => ViewHelper.FormatUtilization(value),
+        MetricDisplay.Signal => ViewHelper.FormatSignal(value),
+        MetricDisplay.CustomValue => ViewHelper.FormatCustomValue(value),
         _ => ViewHelper.FormatBytes((long)value)
     };
 
@@ -105,9 +105,9 @@ public sealed partial class MetricCell
 
     private static TelemetryLevel ToLevel(MetricDisplay display, double value) => display switch
     {
-        MetricDisplay.Battery => TelemetryFormat.BatteryLevel(value),
-        MetricDisplay.Utilization => TelemetryFormat.UtilizationLevel(value),
-        MetricDisplay.Signal => TelemetryFormat.SignalLevel(value),
+        MetricDisplay.Battery => ViewHelper.BatteryLevel(value),
+        MetricDisplay.Utilization => ViewHelper.UtilizationLevel(value),
+        MetricDisplay.Signal => ViewHelper.SignalLevel(value),
         _ => TelemetryLevel.None
     };
 }

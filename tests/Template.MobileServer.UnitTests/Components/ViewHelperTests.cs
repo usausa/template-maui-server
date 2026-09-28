@@ -1,10 +1,10 @@
-namespace Template.MobileServer.Components.Telemetry;
+namespace Template.MobileServer.Components;
 
 using MudBlazor;
 
-using Template.MobileServer.Web.Components.Telemetry;
+using Template.MobileServer.Web.Components;
 
-public sealed class TelemetryFormatTests
+public sealed class ViewHelperTests
 {
     // 電池: 50% 以上 = Good、20% 以上 = Warning、未満 = Critical
     [Theory]
@@ -16,7 +16,7 @@ public sealed class TelemetryFormatTests
     public void BatteryLevelUsesThresholds(double ratio, TelemetryLevel expected)
     {
         // Act / Assert
-        Assert.Equal(expected, TelemetryFormat.BatteryLevel(ratio));
+        Assert.Equal(expected, ViewHelper.BatteryLevel(ratio));
     }
 
     // 無線 LAN: 段 (アイコン) と色の区切り
@@ -32,8 +32,8 @@ public sealed class TelemetryFormatTests
         var icons = new[] { Icons.Material.Filled.NetworkWifi1Bar, Icons.Material.Filled.NetworkWifi2Bar, Icons.Material.Filled.NetworkWifi3Bar, Icons.Material.Filled.SignalWifi4Bar };
 
         // Act / Assert
-        Assert.Equal(expected, TelemetryFormat.SignalLevel(dbm));
-        Assert.Equal(icons[bars - 1], TelemetryFormat.SignalIcon(dbm));
+        Assert.Equal(expected, ViewHelper.SignalLevel(dbm));
+        Assert.Equal(icons[bars - 1], ViewHelper.SignalIcon(dbm));
     }
 
     // 所要時間: 1 ms 未満は µs、1 秒未満は ms、それ以上は秒
@@ -45,7 +45,7 @@ public sealed class TelemetryFormatTests
     public void FormatDurationUsesUnits(long nanoseconds, string expected)
     {
         // Act / Assert
-        Assert.Equal(expected, TelemetryFormat.FormatDuration(nanoseconds));
+        Assert.Equal(expected, ViewHelper.FormatDuration(nanoseconds));
     }
 
     // 経過時間: いちばん大きい単位で切り捨て
@@ -58,6 +58,6 @@ public sealed class TelemetryFormatTests
     public void FormatElapsedUsesLargestUnit(int seconds, string expected)
     {
         // Act / Assert
-        Assert.Equal(expected, TelemetryFormat.FormatElapsed(TimeSpan.FromSeconds(seconds)));
+        Assert.Equal(expected, ViewHelper.FormatElapsed(TimeSpan.FromSeconds(seconds)));
     }
 }

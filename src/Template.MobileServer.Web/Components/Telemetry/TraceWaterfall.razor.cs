@@ -38,7 +38,7 @@ public sealed partial class TraceWaterfall
         var list = new List<WaterfallTick>();
         for (var time = 0d; time <= Model.Duration; time += step)
         {
-            list.Add(new WaterfallTick(FormattableString.Invariant($"left: {time / Model.Duration * 100:0.###}%"), TelemetryFormat.FormatDuration((long)time)));
+            list.Add(new WaterfallTick(FormattableString.Invariant($"left: {time / Model.Duration * 100:0.###}%"), ViewHelper.FormatDuration((long)time)));
         }
 
         ticks = list;
