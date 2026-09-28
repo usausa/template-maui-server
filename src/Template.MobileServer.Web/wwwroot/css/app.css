@@ -104,7 +104,8 @@ html, body {
     margin-top: 4px;
 }
 
-.dashboard-table {
+.dashboard-table,
+.dashboard-toolbar {
     max-width: 1280px;
 }
 

@@ -1,5 +1,5 @@
 UPDATE
-    Devices
+    Device
 SET
     Name = /*@ name */''
 WHERE

@@ -1,12 +1,12 @@
 INSERT INTO
-    Traces (TraceId, RootName, StartTimeUnixNano, EndTimeUnixNano, SpanCount, ErrorCount)
+    Trace (TraceId, RootName, StartTimeUnixNano, EndTimeUnixNano, SpanCount, ErrorCount)
 SELECT
     TraceId,
     COALESCE(MAX(CASE WHEN ParentSpanId = '' THEN Name END), (
         SELECT
             Name
         FROM
-            Spans
+            Span
         WHERE
             TraceId = /*@ traceId */''
         ORDER BY
@@ -18,7 +18,7 @@ SELECT
     COUNT(*),
     SUM(CASE WHEN StatusCode = 'Error' THEN 1 ELSE 0 END)
 FROM
-    Spans
+    Span
 WHERE
     TraceId = /*@ traceId */''
 GROUP BY

@@ -1,6 +1,6 @@
 SELECT
     *
 FROM
-    Devices
+    Device
 ORDER BY
     DeviceId

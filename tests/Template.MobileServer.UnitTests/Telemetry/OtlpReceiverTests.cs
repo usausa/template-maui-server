@@ -36,7 +36,7 @@ public sealed class OtlpReceiverTests : IDisposable
         // Arrange
         await storage.PrepareDatabaseAsync();
         var logger = CreateLogger<OtlpReceiver>();
-        var receiver = new OtlpReceiver(logger, storage.Service, storage.Registry, storage.Bus);
+        var receiver = new OtlpReceiver(logger, storage.Store, storage.Registry, storage.Bus);
         var request = new ExportTraceServiceRequest
         {
             ResourceSpans =
@@ -56,7 +56,7 @@ public sealed class OtlpReceiverTests : IDisposable
 
         // Assert
         Assert.Equal(1, response.PartialSuccess.RejectedSpans);
-        Assert.Equal(2L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM Spans"));
+        Assert.Equal(2L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM Span"));
         Assert.Contains("Telemetry rejected. service=[], device=[], items=[1]", GetMessages(logger));
     }
 
@@ -66,7 +66,7 @@ public sealed class OtlpReceiverTests : IDisposable
     {
         // Arrange
         await storage.PrepareDatabaseAsync();
-        var receiver = new OtlpReceiver(CreateLogger<OtlpReceiver>(), storage.Service, storage.Registry, storage.Bus);
+        var receiver = new OtlpReceiver(CreateLogger<OtlpReceiver>(), storage.Store, storage.Registry, storage.Bus);
         var request = new ExportMetricsServiceRequest
         {
             ResourceMetrics =
@@ -94,7 +94,7 @@ public sealed class OtlpReceiverTests : IDisposable
 
         // Assert
         Assert.Equal(1, response.PartialSuccess.RejectedDataPoints);
-        Assert.Equal(1024d, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT Value FROM MetricPoints"));
+        Assert.Equal(1024d, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT Value FROM MetricPoint"));
     }
 
     // ログ: 未登録の端末を登録して保存し、バスに通知する。partial_success は無い
@@ -105,7 +105,7 @@ public sealed class OtlpReceiverTests : IDisposable
         await storage.PrepareDatabaseAsync();
         var received = new List<TelemetrySaveResult>();
         storage.Bus.Received += (_, e) => received.Add(e.Result);
-        var receiver = new OtlpReceiver(CreateLogger<OtlpReceiver>(), storage.Service, storage.Registry, storage.Bus);
+        var receiver = new OtlpReceiver(CreateLogger<OtlpReceiver>(), storage.Store, storage.Registry, storage.Bus);
         var request = new ExportLogsServiceRequest
         {
             ResourceLogs =
@@ -124,7 +124,7 @@ public sealed class OtlpReceiverTests : IDisposable
 
         // Assert
         Assert.Null(response.PartialSuccess);
-        Assert.Equal("warning", await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT Body FROM Logs"));
+        Assert.Equal("warning", await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT Body FROM Log"));
         var device = await storage.DeviceService.QueryAsync(DeviceId, TestContext.Current.CancellationToken);
         Assert.NotNull(device);
         Assert.True(device.IsEnabled);
@@ -139,7 +139,7 @@ public sealed class OtlpReceiverTests : IDisposable
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(Now);
         await storage.Registry.AddAsync(new DeviceEntity { DeviceId = DeviceId, Name = "disabled", IsEnabled = false }, TestContext.Current.CancellationToken);
-        var receiver = new OtlpReceiver(CreateLogger<OtlpReceiver>(), storage.Service, storage.Registry, storage.Bus);
+        var receiver = new OtlpReceiver(CreateLogger<OtlpReceiver>(), storage.Store, storage.Registry, storage.Bus);
         var request = new ExportLogsServiceRequest
         {
             ResourceLogs =
@@ -169,7 +169,7 @@ public sealed class OtlpReceiverTests : IDisposable
         await storage.PrepareDatabaseAsync();
         Directory.CreateDirectory(Path.Combine(storage.Root, DeviceId + ".db"));
         var logger = CreateLogger<OtlpReceiver>();
-        var receiver = new OtlpReceiver(logger, storage.Service, storage.Registry, storage.Bus);
+        var receiver = new OtlpReceiver(logger, storage.Store, storage.Registry, storage.Bus);
         var request = new ExportTraceServiceRequest
         {
             ResourceSpans = { new ResourceSpans { Resource = CreateResource(), ScopeSpans = { new ScopeSpans { Spans = { CreateSpan(1) } } } } }

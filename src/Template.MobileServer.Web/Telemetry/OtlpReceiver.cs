@@ -16,7 +16,7 @@ public sealed class OtlpReceiver
 
     private readonly ILogger<OtlpReceiver> log;
 
-    private readonly TelemetryService telemetryService;
+    private readonly TelemetryStore store;
 
     private readonly TelemetryDeviceRegistry registry;
 
@@ -24,12 +24,12 @@ public sealed class OtlpReceiver
 
     public OtlpReceiver(
         ILogger<OtlpReceiver> log,
-        TelemetryService telemetryService,
+        TelemetryStore store,
         TelemetryDeviceRegistry registry,
         TelemetryBus bus)
     {
         this.log = log;
-        this.telemetryService = telemetryService;
+        this.store = store;
         this.registry = registry;
         this.bus = bus;
     }
@@ -175,7 +175,7 @@ public sealed class OtlpReceiver
                 return null;
             }
 
-            var result = await telemetryService.SaveAsync(batch, cancellationToken);
+            var result = await store.SaveAsync(batch, cancellationToken);
             registry.Apply(result);
             bus.PublishReceived(result);
             return result;

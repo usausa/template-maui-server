@@ -9,9 +9,9 @@ public sealed class MetricCellTests : MudBlazorTestBase
 {
     private static readonly long Time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000;
 
-    // 電池: 横棒の幅と色、ホバーで値と時刻
+    // 電池: 残量の段階のアイコンだけを出し (色は良し悪し)、値はホバーで出す
     [Fact]
-    public void BatteryShowsMeter()
+    public void BatteryShowsIconWithValueOnHover()
     {
         // Act
         var cut = Render<MetricCell>(parameters => parameters
@@ -19,9 +19,9 @@ public sealed class MetricCellTests : MudBlazorTestBase
             .Add(static x => x.Display, MetricDisplay.Battery));
 
         // Assert
-        var fill = cut.Find(".meter-fill");
-        Assert.Contains("meter-critical", fill.ClassName, StringComparison.Ordinal);
-        Assert.Equal("width: 15%", fill.GetAttribute("style"));
+        Assert.Contains("mud-error-text", cut.Find("svg").GetAttribute("class"), StringComparison.Ordinal);
+        Assert.Empty(cut.FindAll(".meter-fill"));
+        Assert.Equal(string.Empty, cut.Find(".metric-cell").TextContent.Trim());
         Assert.StartsWith("15% (", cut.Find(".metric-cell").GetAttribute("title"), StringComparison.Ordinal);
     }
 

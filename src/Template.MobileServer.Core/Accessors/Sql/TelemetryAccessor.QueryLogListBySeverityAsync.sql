@@ -1,7 +1,7 @@
 SELECT
     *
 FROM
-    Logs
+    Log
 WHERE
     SeverityNumber >= /*@ severity */17
 ORDER BY

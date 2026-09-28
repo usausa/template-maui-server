@@ -1,6 +1,6 @@
 SELECT
     *
 FROM
-    Resources
+    Resource
 WHERE
     Id IN /*@ ids */(0)

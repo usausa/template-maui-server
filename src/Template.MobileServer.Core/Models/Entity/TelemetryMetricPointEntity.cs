@@ -1,7 +1,7 @@
 namespace Template.MobileServer.Models.Entity;
 
 // メトリクスの点。ゲージと合計は Value、ヒストグラムとサマリーは Count / Sum / Min / Max と Detail (境界と件数、分位の JSON)
-[Name("MetricPoints")]
+[Name("MetricPoint")]
 public sealed class TelemetryMetricPointEntity
 {
     [Key]

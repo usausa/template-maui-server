@@ -25,6 +25,8 @@ public sealed class TelemetryTestStorage : IDisposable
 
     public TelemetryService Service => provider.GetRequiredService<TelemetryService>();
 
+    public TelemetryStore Store => provider.GetRequiredService<TelemetryStore>();
+
     public DeviceService DeviceService => provider.GetRequiredService<DeviceService>();
 
     public TelemetryBus Bus => provider.GetRequiredService<TelemetryBus>();
@@ -55,6 +57,7 @@ public sealed class TelemetryTestStorage : IDisposable
         services.AddSingleton<DatabaseService>();
         services.AddSingleton<DeviceService>();
         services.AddSingleton<TelemetryService>();
+        services.AddSingleton<TelemetryStore>();
         services.AddSingleton<TelemetryBus>();
         services.AddSingleton<TelemetryDeviceRegistry>();
         provider = services.BuildServiceProvider();

@@ -11,7 +11,7 @@ using Template.MobileServer.Web.Application.Circuits;
 using Template.MobileServer.Web.Infrastructure.Notifications;
 using Template.MobileServer.Web.Services;
 
-public sealed partial class Home
+public sealed partial class ServerPage
 {
     private string serverTime = string.Empty;
 

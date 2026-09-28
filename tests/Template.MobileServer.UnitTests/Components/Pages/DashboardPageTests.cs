@@ -107,7 +107,7 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         {
             var batch = CreateBatch();
             await storage.Registry.EnsureRegisteredAsync(batch.DeviceInfo, cancellationToken);
-            storage.Registry.Apply(await storage.Service.SaveAsync(batch, cancellationToken));
+            storage.Registry.Apply(await storage.Store.SaveAsync(batch, cancellationToken));
             await storage.Registry.AddAsync(new DeviceEntity { DeviceId = "device-2", Name = "Reception", GroupName = "1F", IsEnabled = false }, cancellationToken);
         }
 

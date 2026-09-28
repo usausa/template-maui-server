@@ -10,7 +10,7 @@ SELECT
     MAX(Max) AS Max,
     MAX(TimeUnixNano) AS LastUnixNano
 FROM
-    MetricPoints
+    MetricPoint
 WHERE
     TimeUnixNano >= /*@ since */0
 GROUP BY

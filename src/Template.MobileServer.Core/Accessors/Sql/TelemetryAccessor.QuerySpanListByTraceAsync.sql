@@ -1,7 +1,7 @@
 SELECT
     *
 FROM
-    Spans
+    Span
 WHERE
     TraceId = /*@ traceId */''
 ORDER BY

@@ -1,4 +1,4 @@
 DELETE FROM
-    Traces
+    Trace
 WHERE
     StartTimeUnixNano < /*@ before */0

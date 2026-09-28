@@ -44,7 +44,7 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(DateTimeOffset.Now);
         await storage.Registry.EnsureRegisteredAsync(CreateInfo(), TestContext.Current.CancellationToken);
-        var result = await storage.Service.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        var result = await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
 
         // Act
         storage.Registry.Apply(result);
@@ -70,7 +70,7 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         await storage.PrepareDatabaseAsync();
         using (storage.BeginScope(DateTimeOffset.Now))
         {
-            await storage.Service.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+            await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
         }
 
         // Act
@@ -94,7 +94,7 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(DateTimeOffset.Now);
         await storage.Registry.EnsureRegisteredAsync(CreateInfo(), TestContext.Current.CancellationToken);
-        await storage.Service.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
 
         // Act
         var status = await storage.Registry.DeleteAsync(DeviceId, TestContext.Current.CancellationToken);

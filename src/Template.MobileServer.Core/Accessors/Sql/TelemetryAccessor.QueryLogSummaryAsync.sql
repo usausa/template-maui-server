@@ -3,7 +3,7 @@ SELECT
     COUNT(*) AS ErrorCount,
     SUM(CASE WHEN SeverityNumber >= 21 THEN 1 ELSE 0 END) AS CrashCount
 FROM
-    Logs
+    Log
 WHERE
     TimeUnixNano >= /*@ since */0
     AND SeverityNumber >= 17

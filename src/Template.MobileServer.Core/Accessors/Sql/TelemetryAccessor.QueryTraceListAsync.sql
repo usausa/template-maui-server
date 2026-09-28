@@ -1,7 +1,7 @@
 SELECT
     *
 FROM
-    Traces
+    Trace
 WHERE
     StartTimeUnixNano >= /*@ since */0
 /*% if (errorOnly) { */

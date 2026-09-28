@@ -13,7 +13,7 @@ public sealed class TelemetryRetentionWorker : BackgroundService
 
     private readonly TelemetryRetentionWorkerOption options;
 
-    private readonly TelemetryService telemetryService;
+    private readonly TelemetryStore store;
 
     private readonly TelemetryDeviceRegistry registry;
 
@@ -21,13 +21,13 @@ public sealed class TelemetryRetentionWorker : BackgroundService
         ILogger<TelemetryRetentionWorker> log,
         TimeProvider timeProvider,
         TelemetryRetentionWorkerOption options,
-        TelemetryService telemetryService,
+        TelemetryStore store,
         TelemetryDeviceRegistry registry)
     {
         this.log = log;
         this.timeProvider = timeProvider;
         this.options = options;
-        this.telemetryService = telemetryService;
+        this.store = store;
         this.registry = registry;
     }
 
@@ -69,11 +69,11 @@ public sealed class TelemetryRetentionWorker : BackgroundService
         var metricBefore = ToUnixNano(now.AddDays(-options.MetricDays));
         var deviceBefore = ToUnixNano(now.AddDays(-options.DeviceDays));
 
-        foreach (var deviceId in telemetryService.EnumerateDevices())
+        foreach (var deviceId in store.EnumerateDevices())
         {
             try
             {
-                var result = await telemetryService.DeleteExpiredAsync(deviceId, logBefore, traceBefore, metricBefore, deviceBefore, cancellationToken);
+                var result = await store.DeleteExpiredAsync(deviceId, logBefore, traceBefore, metricBefore, deviceBefore, cancellationToken);
                 if (result.FileDeleted)
                 {
                     registry.ClearTelemetry(deviceId);

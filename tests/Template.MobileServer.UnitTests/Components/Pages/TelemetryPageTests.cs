@@ -66,7 +66,7 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         // Act
         using (storage.BeginScope(DateTimeOffset.Now))
         {
-            var result = await storage.Service.SaveAsync(CreateBatch(0.5), Xunit.TestContext.Current.CancellationToken);
+            var result = await storage.Store.SaveAsync(CreateBatch(0.5), Xunit.TestContext.Current.CancellationToken);
             storage.Registry.Apply(result);
             storage.Bus.PublishReceived(result);
         }
@@ -115,7 +115,7 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         {
             var batch = CreateBatch(0.3);
             batch.Logs.Add(CreateLog(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000, TelemetrySeverity.Fatal, "crashed", "{}"));
-            var result = await storage.Service.SaveAsync(batch, Xunit.TestContext.Current.CancellationToken);
+            var result = await storage.Store.SaveAsync(batch, Xunit.TestContext.Current.CancellationToken);
             storage.Bus.PublishReceived(result);
         }
 
@@ -135,7 +135,7 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
             batch.Logs.Add(CreateLog(now - 2_000_000, TelemetrySeverity.Warn, "warning", "{}"));
             batch.Logs.Add(CreateLog(now - 1_000_000, TelemetrySeverity.Error, "failed", "{\"exception.stacktrace\":\"System.Exception\\n   at Main\"}"));
             await storage.Registry.EnsureRegisteredAsync(batch.DeviceInfo, cancellationToken);
-            storage.Registry.Apply(await storage.Service.SaveAsync(batch, cancellationToken));
+            storage.Registry.Apply(await storage.Store.SaveAsync(batch, cancellationToken));
         }
 
         Services.AddSingleton(storage.Registry);

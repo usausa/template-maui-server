@@ -25,8 +25,8 @@ public sealed class TelemetryServiceTests : IDisposable
         using var scope = storage.BeginScope(Now);
 
         // Act
-        var first = await storage.Service.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
-        var second = await storage.Service.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        var first = await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        var second = await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(2, Assert.Single(first.Metrics).Points.Count);
@@ -36,10 +36,10 @@ public sealed class TelemetryServiceTests : IDisposable
         Assert.Empty(second.Metrics);
         Assert.Empty(second.Spans);
         Assert.Empty(second.Logs);
-        Assert.Equal(2L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM MetricPoints"));
-        Assert.Equal(1L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM Logs"));
-        Assert.Equal(1L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM Resources"));
-        Assert.Equal("Internal", await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT Kind FROM Spans"));
+        Assert.Equal(2L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM MetricPoint"));
+        Assert.Equal(1L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM Log"));
+        Assert.Equal(1L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM Resource"));
+        Assert.Equal("Internal", await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT Kind FROM Span"));
         Assert.Equal("Gauge", await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT Kind FROM MetricSeries"));
         Assert.Equal(Now.ToUnixTimeMilliseconds() * 1_000_000, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT LastReceivedAt FROM DeviceInfo"));
     }
@@ -50,12 +50,12 @@ public sealed class TelemetryServiceTests : IDisposable
     {
         // Arrange
         using var scope = storage.BeginScope(Now);
-        var first = await storage.Service.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        var first = await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
         var batch = CreateBatch();
         batch.Metrics[0].Points.Add(new TelemetryMetricPointEntity { TimeUnixNano = 3_000, Value = 300 });
 
         // Act
-        var second = await storage.Service.SaveAsync(batch, TestContext.Current.CancellationToken);
+        var second = await storage.Store.SaveAsync(batch, TestContext.Current.CancellationToken);
 
         // Assert
         var metric = Assert.Single(second.Metrics);
@@ -74,13 +74,13 @@ public sealed class TelemetryServiceTests : IDisposable
         var root = CreateBatch([CreateSpan("0000000000000001", string.Empty, "TelemetryTest", 1_000, 4_000, TelemetryStatusCode.Unset)]);
 
         // Act / Assert: 子だけ
-        var first = await storage.Service.SaveAsync(child, TestContext.Current.CancellationToken);
+        var first = await storage.Store.SaveAsync(child, TestContext.Current.CancellationToken);
         var trace = Assert.Single(first.Traces);
         Assert.Equal("Compute", trace.RootName);
         Assert.Equal(1, trace.ErrorCount);
 
         // Act / Assert: ルートが届く
-        var second = await storage.Service.SaveAsync(root, TestContext.Current.CancellationToken);
+        var second = await storage.Store.SaveAsync(root, TestContext.Current.CancellationToken);
         trace = Assert.Single(second.Traces);
         Assert.Equal("TelemetryTest", trace.RootName);
         Assert.Equal(2, trace.SpanCount);
@@ -95,7 +95,7 @@ public sealed class TelemetryServiceTests : IDisposable
     {
         // Arrange
         using var scope = storage.BeginScope(Now);
-        await storage.Service.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
 
         // Act
         var result = await storage.Service.DeleteExpiredAsync(DeviceId, 1_600, 1_500, 1_500, 0, TestContext.Current.CancellationToken);
@@ -103,10 +103,10 @@ public sealed class TelemetryServiceTests : IDisposable
         // Assert
         Assert.False(result.FileDeleted);
         Assert.Equal(4, result.Rows);
-        Assert.Equal(0L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM Logs"));
-        Assert.Equal(0L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM Spans"));
-        Assert.Equal(0L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM Traces"));
-        Assert.Equal(2_000L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT TimeUnixNano FROM MetricPoints"));
+        Assert.Equal(0L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM Log"));
+        Assert.Equal(0L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM Span"));
+        Assert.Equal(0L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM Trace"));
+        Assert.Equal(2_000L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT TimeUnixNano FROM MetricPoint"));
     }
 
     // 保持期間: 最後の受信が時刻より前の端末は、ファイルごと削除する
@@ -115,7 +115,7 @@ public sealed class TelemetryServiceTests : IDisposable
     {
         // Arrange
         using var scope = storage.BeginScope(Now);
-        var saved = await storage.Service.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        var saved = await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
 
         // Act
         var result = await storage.Service.DeleteExpiredAsync(DeviceId, 0, 0, 0, saved.ReceivedAt + 1, TestContext.Current.CancellationToken);
@@ -131,7 +131,7 @@ public sealed class TelemetryServiceTests : IDisposable
     {
         // Arrange
         using var scope = storage.BeginScope(Now);
-        await storage.Service.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
 
         // Act
         var grouped = await storage.Service.QueryMetricHistoryAsync(DeviceId, 0, 10_000, TestContext.Current.CancellationToken);
@@ -157,7 +157,7 @@ public sealed class TelemetryServiceTests : IDisposable
     {
         // Arrange
         using var scope = storage.BeginScope(Now);
-        await storage.Service.SaveAsync(
+        await storage.Store.SaveAsync(
             CreateBatch(
             [
                 CreateSpan("0000000000000002", "0000000000000001", "Load", 1_200, 1_800, TelemetryStatusCode.Error),
@@ -196,7 +196,7 @@ public sealed class TelemetryServiceTests : IDisposable
         var batch = CreateBatch();
         batch.Logs.Add(CreateLog(2_500, 17, "error one", TraceId));
         batch.Logs.Add(CreateLog(3_500, 21, "crash", string.Empty));
-        await storage.Service.SaveAsync(batch, TestContext.Current.CancellationToken);
+        await storage.Store.SaveAsync(batch, TestContext.Current.CancellationToken);
 
         // Act
         var all = await storage.Service.QueryLogListAsync(DeviceId, new TelemetryLogQuery { Limit = 10 }, TestContext.Current.CancellationToken);

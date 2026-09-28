@@ -24,12 +24,12 @@ public sealed class TelemetryRetentionWorkerTests : IDisposable
         using (storage.BeginScope(DateTimeOffset.Now.AddDays(-40)))
         {
             await storage.Registry.EnsureRegisteredAsync(CreateInfo(), TestContext.Current.CancellationToken);
-            storage.Registry.Apply(await storage.Service.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken));
+            storage.Registry.Apply(await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken));
         }
 
         var path = Path.Combine(storage.Root, DeviceId + ".db");
         Assert.True(File.Exists(path));
-        using var worker = new TelemetryRetentionWorker(NullLogger<TelemetryRetentionWorker>.Instance, TimeProvider.System, new TelemetryRetentionWorkerOption(), storage.Service, storage.Registry);
+        using var worker = new TelemetryRetentionWorker(NullLogger<TelemetryRetentionWorker>.Instance, TimeProvider.System, new TelemetryRetentionWorkerOption(), storage.Store, storage.Registry);
 
         // Act
         await worker.StartAsync(TestContext.Current.CancellationToken);

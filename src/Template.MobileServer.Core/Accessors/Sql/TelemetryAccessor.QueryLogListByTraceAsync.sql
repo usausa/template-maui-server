@@ -1,7 +1,7 @@
 SELECT
     *
 FROM
-    Logs
+    Log
 WHERE
     TraceId = /*@ traceId */''
     AND TraceId <> ''

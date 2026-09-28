@@ -1,7 +1,7 @@
 SELECT
     *
 FROM
-    Logs
+    Log
 WHERE
     TimeUnixNano >= /*@ since */0
     AND SeverityNumber >= /*@ severity */0

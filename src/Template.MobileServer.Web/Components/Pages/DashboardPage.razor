@@ -1,4 +1,4 @@
-@page "/dashboard"
+@page "/"
 
 <PageTitle>Dashboard</PageTitle>
 
@@ -52,7 +52,7 @@
     </MudPaper>
 </div>
 
-<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="dashboard-toolbar mb-2">
     <MudTextField @bind-Value="search"
                   Label="検索"
                   Placeholder="端末 ID・名前・グループ"

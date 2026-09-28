@@ -640,6 +640,7 @@ public static class ApplicationExtensions
         builder.Services.AddOptions<TelemetryStorageOption>().BindConfiguration("TelemetryStorage").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<TelemetryStorageOption>>().Value);
         builder.Services.AddSingleton<ITelemetryDbProvider, SqliteTelemetryDbProvider>();
+        builder.Services.AddSingleton<TelemetryStore>();
         builder.Services.AddSingleton<TelemetryBus>();
         builder.Services.AddSingleton<TelemetryDeviceRegistry>();
         builder.Services.AddOptions<Workers.TelemetryRetentionWorkerOption>().BindConfiguration("TelemetryRetention").ValidateDataAnnotations().ValidateOnStart();

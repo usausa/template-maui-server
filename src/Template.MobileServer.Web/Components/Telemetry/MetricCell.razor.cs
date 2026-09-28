@@ -9,7 +9,7 @@ using Template.MobileServer.Web.Telemetry;
 // 最新値の表し方
 public enum MetricDisplay
 {
-    // 横棒と % (0〜1)
+    // 電池のアイコン (0〜1。値はホバーで出す)
     Battery,
 
     // 横棒と % (0〜1。小数 1 桁)
@@ -71,9 +71,14 @@ public sealed partial class MetricCell
 
         var formatted = Format(Display, value.Value);
         var level = ToLevel(Display, value.Value);
-        showIcon = Display == MetricDisplay.Signal;
-        showMeter = Display is MetricDisplay.Battery or MetricDisplay.Utilization or MetricDisplay.CustomValue;
-        icon = showIcon ? TelemetryFormat.SignalIcon(value.Value) : string.Empty;
+        showIcon = Display is MetricDisplay.Battery or MetricDisplay.Signal;
+        showMeter = Display is MetricDisplay.Utilization or MetricDisplay.CustomValue;
+        icon = Display switch
+        {
+            MetricDisplay.Battery => TelemetryFormat.BatteryIcon(value.Value),
+            MetricDisplay.Signal => TelemetryFormat.SignalIcon(value.Value),
+            _ => string.Empty
+        };
         color = TelemetryFormat.LevelColor(level);
         fillClass = $"meter-fill {TelemetryFormat.LevelClass(level)}";
         fillStyle = FormattableString.Invariant($"width: {Math.Clamp(ToRatio(Display, value.Value), 0, 1) * 100:0.#}%");

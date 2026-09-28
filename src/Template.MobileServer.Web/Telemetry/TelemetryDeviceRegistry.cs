@@ -49,6 +49,8 @@ public sealed class TelemetryDeviceRegistry
 
     private readonly TelemetryService telemetryService;
 
+    private readonly TelemetryStore store;
+
     private readonly TelemetryBus bus;
 
     public TelemetryDeviceRegistry(
@@ -57,6 +59,7 @@ public sealed class TelemetryDeviceRegistry
         ApplicationServiceContextProvider contextProvider,
         DeviceService deviceService,
         TelemetryService telemetryService,
+        TelemetryStore store,
         TelemetryBus bus)
     {
         this.log = log;
@@ -64,6 +67,7 @@ public sealed class TelemetryDeviceRegistry
         this.contextProvider = contextProvider;
         this.deviceService = deviceService;
         this.telemetryService = telemetryService;
+        this.store = store;
         this.bus = bus;
     }
 
@@ -155,7 +159,7 @@ public sealed class TelemetryDeviceRegistry
         var registered = (await deviceService.QueryAllAsync(cancellationToken)).ToDictionary(static x => x.DeviceId, StringComparer.Ordinal);
         var loaded = new List<Entry>();
         var recent = new List<TelemetryErrorEntry>();
-        foreach (var deviceId in telemetryService.EnumerateDevices())
+        foreach (var deviceId in store.EnumerateDevices())
         {
             TelemetryDeviceSummaryView? summary;
             try
@@ -382,7 +386,7 @@ public sealed class TelemetryDeviceRegistry
     // 登録とテレメトリのファイルを削除する (送信が続けば自動で登録し直される)
     public async ValueTask<DataWriteStatus> DeleteAsync(string deviceId, CancellationToken cancellationToken = default)
     {
-        await telemetryService.DeleteDeviceAsync(deviceId, cancellationToken);
+        await store.DeleteDeviceAsync(deviceId, cancellationToken);
         var status = await deviceService.DeleteAsync(deviceId, cancellationToken);
 
         lock (sync)

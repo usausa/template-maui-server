@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS DeviceInfo (
     PRIMARY KEY (DeviceId)
 );
 
-CREATE TABLE IF NOT EXISTS Resources (
+CREATE TABLE IF NOT EXISTS Resource (
     Id                    INTEGER  NOT NULL,
     Hash                  TEXT     NOT NULL,
     ServiceInstanceId     TEXT     NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS MetricSeries (
     UNIQUE (Name, ScopeName, AttributesJson)
 );
 
-CREATE TABLE IF NOT EXISTS MetricPoints (
+CREATE TABLE IF NOT EXISTS MetricPoint (
     SeriesId              INTEGER  NOT NULL,
     TimeUnixNano          INTEGER  NOT NULL,
     StartTimeUnixNano     INTEGER  NOT NULL,
@@ -50,9 +50,9 @@ CREATE TABLE IF NOT EXISTS MetricPoints (
     Detail                TEXT,
     PRIMARY KEY (SeriesId, TimeUnixNano)
 ) WITHOUT ROWID;
-CREATE INDEX IF NOT EXISTS IX_MetricPoints_TimeUnixNano ON MetricPoints (TimeUnixNano);
+CREATE INDEX IF NOT EXISTS IX_MetricPoint_TimeUnixNano ON MetricPoint (TimeUnixNano);
 
-CREATE TABLE IF NOT EXISTS Spans (
+CREATE TABLE IF NOT EXISTS Span (
     TraceId               TEXT     NOT NULL,
     SpanId                TEXT     NOT NULL,
     ParentSpanId          TEXT     NOT NULL,
@@ -69,9 +69,9 @@ CREATE TABLE IF NOT EXISTS Spans (
     LinksJson             TEXT,
     PRIMARY KEY (TraceId, SpanId)
 ) WITHOUT ROWID;
-CREATE INDEX IF NOT EXISTS IX_Spans_StartTimeUnixNano ON Spans (StartTimeUnixNano);
+CREATE INDEX IF NOT EXISTS IX_Span_StartTimeUnixNano ON Span (StartTimeUnixNano);
 
-CREATE TABLE IF NOT EXISTS Traces (
+CREATE TABLE IF NOT EXISTS Trace (
     TraceId               TEXT     NOT NULL,
     RootName              TEXT     NOT NULL,
     StartTimeUnixNano     INTEGER  NOT NULL,
@@ -80,9 +80,9 @@ CREATE TABLE IF NOT EXISTS Traces (
     ErrorCount            INTEGER  NOT NULL,
     PRIMARY KEY (TraceId)
 ) WITHOUT ROWID;
-CREATE INDEX IF NOT EXISTS IX_Traces_StartTimeUnixNano ON Traces (StartTimeUnixNano);
+CREATE INDEX IF NOT EXISTS IX_Trace_StartTimeUnixNano ON Trace (StartTimeUnixNano);
 
-CREATE TABLE IF NOT EXISTS Logs (
+CREATE TABLE IF NOT EXISTS Log (
     Id                    INTEGER  NOT NULL,
     TimeUnixNano          INTEGER  NOT NULL,
     ObservedTimeUnixNano  INTEGER  NOT NULL,
@@ -99,6 +99,6 @@ CREATE TABLE IF NOT EXISTS Logs (
     PRIMARY KEY (Id),
     UNIQUE (TimeUnixNano, Hash)
 );
-CREATE INDEX IF NOT EXISTS IX_Logs_TraceId ON Logs (TraceId) WHERE TraceId <> '';
+CREATE INDEX IF NOT EXISTS IX_Log_TraceId ON Log (TraceId) WHERE TraceId <> '';
 
 PRAGMA user_version = 1;

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS Setting (
     PRIMARY KEY (Key)
 );
 
-CREATE TABLE IF NOT EXISTS Devices (
+CREATE TABLE IF NOT EXISTS Device (
     DeviceId      TEXT     NOT NULL,
     Name          TEXT     NOT NULL,
     GroupName     TEXT,

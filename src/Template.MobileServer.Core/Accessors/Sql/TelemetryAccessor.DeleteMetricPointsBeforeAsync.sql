@@ -1,4 +1,4 @@
 DELETE FROM
-    MetricPoints
+    MetricPoint
 WHERE
     TimeUnixNano < /*@ before */0

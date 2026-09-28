@@ -5,14 +5,14 @@ SELECT
     p.Value
 FROM
     MetricSeries s
-    JOIN MetricPoints p ON p.SeriesId = s.Id
+    JOIN MetricPoint p ON p.SeriesId = s.Id
 WHERE
     s.Name IN /*@ names */('')
     AND p.TimeUnixNano = (
         SELECT
             MAX(TimeUnixNano)
         FROM
-            MetricPoints
+            MetricPoint
         WHERE
             SeriesId = s.Id
     )

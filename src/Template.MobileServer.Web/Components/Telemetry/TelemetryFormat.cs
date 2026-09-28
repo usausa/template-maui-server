@@ -101,6 +101,19 @@ public static class TelemetryFormat
         _ => TelemetryLevel.Critical
     };
 
+    // 電池のアイコン (残量の段階)
+    public static string BatteryIcon(double ratio) => ratio switch
+    {
+        >= 0.95 => Icons.Material.Filled.BatteryFull,
+        >= 0.8 => Icons.Material.Filled.Battery6Bar,
+        >= 0.65 => Icons.Material.Filled.Battery5Bar,
+        >= 0.5 => Icons.Material.Filled.Battery4Bar,
+        >= 0.35 => Icons.Material.Filled.Battery3Bar,
+        >= 0.2 => Icons.Material.Filled.Battery2Bar,
+        >= 0.05 => Icons.Material.Filled.Battery1Bar,
+        _ => Icons.Material.Filled.Battery0Bar
+    };
+
     // 無線 LAN のアイコン (4 段)
     public static string SignalIcon(double dbm) => dbm switch
     {

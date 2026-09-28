@@ -1,4 +1,4 @@
 DELETE FROM
-    Logs
+    Log
 WHERE
     TimeUnixNano < /*@ before */0

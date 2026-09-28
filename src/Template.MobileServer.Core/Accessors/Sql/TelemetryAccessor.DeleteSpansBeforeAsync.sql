@@ -1,11 +1,11 @@
 DELETE FROM
-    Spans
+    Span
 WHERE
     TraceId IN (
         SELECT
             TraceId
         FROM
-            Traces
+            Trace
         WHERE
             StartTimeUnixNano < /*@ before */0
     )
