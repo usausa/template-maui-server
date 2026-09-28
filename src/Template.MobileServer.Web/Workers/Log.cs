@@ -13,4 +13,12 @@ internal static partial class Log
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Worker exception. worker=[{worker}]")]
     public static partial void ErrorWorkerException(this ILogger logger, string worker, Exception ex);
+
+    // Telemetry retention
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Telemetry expired. device=[{device}], rows=[{rows}]")]
+    public static partial void InfoTelemetryExpired(this ILogger logger, string device, int rows);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Telemetry file deleted. device=[{device}]")]
+    public static partial void InfoTelemetryFileDeleted(this ILogger logger, string device);
 }

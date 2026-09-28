@@ -24,6 +24,9 @@ public static class OtlpHelper
     public static string GetDeviceId(this Resource? resource) =>
         FindString(resource, DeviceIdKey) ?? FindString(resource, InstallationIdKey) ?? string.Empty;
 
+    public static string GetString(this Resource? resource, string key) =>
+        FindString(resource, key) ?? string.Empty;
+
     private static string? FindString(Resource? resource, string key)
     {
         var value = resource?.Attributes.FirstOrDefault(x => x.Key == key)?.Value;

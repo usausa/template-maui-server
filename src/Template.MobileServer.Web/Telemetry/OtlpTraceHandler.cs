@@ -13,6 +13,16 @@ public sealed class OtlpTraceHandler : TraceService.TraceServiceBase
         this.receiver = receiver;
     }
 
-    public override Task<ExportTraceServiceResponse> Export(ExportTraceServiceRequest request, ServerCallContext context) =>
-        Task.FromResult(receiver.Receive(request));
+    // 保存できなければ UNAVAILABLE (端末は送り直す)
+    public override async Task<ExportTraceServiceResponse> Export(ExportTraceServiceRequest request, ServerCallContext context)
+    {
+        try
+        {
+            return await receiver.ReceiveAsync(request, context.CancellationToken);
+        }
+        catch (Exception ex) when (OtlpReceiver.IsStorageError(ex))
+        {
+            throw new RpcException(new Status(StatusCode.Unavailable, "Telemetry storage is unavailable."));
+        }
+    }
 }

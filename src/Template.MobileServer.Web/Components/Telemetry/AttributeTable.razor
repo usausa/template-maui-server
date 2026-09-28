@@ -1,0 +1,19 @@
+<Condition Value="HasItems">
+    <ChildContent>
+        <table class="attribute-table">
+            <tbody>
+                <ListItem Items="items" Context="item">
+                    <ItemTemplate>
+                        <tr>
+                            <th>@item.Key</th>
+                            <td>@item.Value</td>
+                        </tr>
+                    </ItemTemplate>
+                </ListItem>
+            </tbody>
+        </table>
+    </ChildContent>
+    <ElseContent>
+        <span class="value-muted">なし</span>
+    </ElseContent>
+</Condition>

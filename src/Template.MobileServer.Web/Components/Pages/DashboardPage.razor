@@ -1,0 +1,149 @@
+@page "/dashboard"
+
+<PageTitle>Dashboard</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Dashboard</MudText>
+
+<div class="dashboard-summary mb-6">
+    <MudPaper Outlined="true" Class="pa-4">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+            <MudIcon Icon="@Icons.Material.Filled.Devices" Size="Size.Small" Color="Color.Primary" />
+            <MudText Typo="Typo.subtitle2">端末</MudText>
+        </MudStack>
+        <MudText Typo="Typo.h5" Class="summary-devices">@receivingCount / @enabledCount</MudText>
+        <div class="state-bar" title="@StateSummary">
+            <span class="state-receiving" style="@ReceivingStyle"></span>
+            <span class="state-stopped" style="@StoppedStyle"></span>
+            <span class="state-nodata" style="@NoDataStyle"></span>
+        </div>
+        <MudText Typo="Typo.caption">@StateSummary</MudText>
+    </MudPaper>
+    <MudPaper Outlined="true" Class="pa-4">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+            <MudIcon Icon="@Icons.Material.Filled.BugReport" Size="Size.Small" Color="ErrorColor" />
+            <MudText Typo="Typo.subtitle2">エラー</MudText>
+        </MudStack>
+        <MudText Typo="Typo.h5" Color="ErrorColor" Class="summary-errors">@errorCount</MudText>
+        <MudText Typo="Typo.caption">直近 24 時間</MudText>
+    </MudPaper>
+    <MudPaper Outlined="true" Class="pa-4">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+            <MudIcon Icon="@Icons.Material.Filled.ReportProblem" Size="Size.Small" Color="CrashColor" />
+            <MudText Typo="Typo.subtitle2">クラッシュ</MudText>
+        </MudStack>
+        <MudText Typo="Typo.h5" Color="CrashColor" Class="summary-crashes">@crashCount</MudText>
+        <MudText Typo="Typo.caption">直近 24 時間</MudText>
+    </MudPaper>
+    <MudPaper Outlined="true" Class="pa-4">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+            <MudIcon Icon="@Icons.Material.Filled.BatteryAlert" Size="Size.Small" Color="BatteryColor" />
+            <MudText Typo="Typo.subtitle2">電池の少ない端末</MudText>
+        </MudStack>
+        <MudText Typo="Typo.h5" Color="BatteryColor" Class="summary-battery">@lowBatteryCount</MudText>
+        <MudText Typo="Typo.caption">@LowBatteryText</MudText>
+    </MudPaper>
+    <MudPaper Outlined="true" Class="pa-4">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+            <MudIcon Icon="@Icons.Material.Filled.Insights" Size="Size.Small" Color="Color.Primary" />
+            <MudText Typo="Typo.subtitle2">受信</MudText>
+        </MudStack>
+        <MudText Typo="Typo.h5" Class="summary-ingest">@ingestRate 件 / 分</MudText>
+        <Sparkline Values="ingestHistory" Class="dashboard-sparkline" />
+    </MudPaper>
+</div>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+    <MudTextField @bind-Value="search"
+                  Label="検索"
+                  Placeholder="端末 ID・名前・グループ"
+                  Clearable="true"
+                  Immediate="true"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  Class="search-field" />
+    <MudSpacer />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Class="add-button" OnClick="AddAsync">追加</MudButton>
+</MudStack>
+
+<MudSimpleTable Dense="true" Hover="true" Class="dashboard-table mb-6">
+    <thead>
+        <tr>
+            <th>状態</th>
+            <th>名前</th>
+            <th>機種</th>
+            <th>電池</th>
+            <th>無線 LAN</th>
+            <th>CPU</th>
+            <th class="text-right">メモリ</th>
+            <th>値 1</th>
+            <th>値 2</th>
+            <th class="text-right">エラー</th>
+            <th class="text-right">クラッシュ</th>
+            <th class="w-120"></th>
+        </tr>
+    </thead>
+    <tbody>
+        <ListItem Items="VisibleDevices" Context="device">
+            <ItemTemplate>
+                <tr class="@RowClass(device)">
+                    <td title="@FormatLastReceivedTime(device)">
+                        <MudChip T="string" Size="Size.Small" Variant="@StateVariant(device)" Color="@StateColor(device)">@StateText(device)</MudChip>
+                        <MudText Typo="Typo.caption" Class="d-block">@FormatLastReceived(device)</MudText>
+                    </td>
+                    <td title="@device.Device.Note">
+                        <MudLink Href="@TelemetryLink(device)" Class="d-block">@device.Device.Name</MudLink>
+                        <MudText Typo="Typo.caption">@FormatCaption(device)</MudText>
+                    </td>
+                    <td>
+                        <div>@FormatModel(device)</div>
+                        <MudText Typo="Typo.caption">@FormatPlatform(device)</MudText>
+                    </td>
+                    <td><MetricCell Value="device.Battery" Display="MetricDisplay.Battery" /></td>
+                    <td><MetricCell Value="device.WiFi" Display="MetricDisplay.Signal" /></td>
+                    <td><MetricCell Value="device.Cpu" Display="MetricDisplay.Utilization" /></td>
+                    <td class="text-right"><MetricCell Value="device.Memory" Display="MetricDisplay.Bytes" /></td>
+                    <td><MetricCell Value="device.CustomValue1" Display="MetricDisplay.CustomValue" /></td>
+                    <td><MetricCell Value="device.CustomValue2" Display="MetricDisplay.CustomValue" /></td>
+                    <td class="text-right"><CountBadge Count="device.ErrorCount" BadgeColor="Color.Warning" /></td>
+                    <td class="text-right"><CountBadge Count="device.CrashCount" BadgeColor="Color.Error" /></td>
+                    <td>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Class="edit-button" OnClick="() => EditAsync(device)" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" Class="delete-button" OnClick="() => DeleteAsync(device)" />
+                    </td>
+                </tr>
+            </ItemTemplate>
+        </ListItem>
+    </tbody>
+</MudSimpleTable>
+
+<MudText Typo="Typo.h6" Class="mb-2">直近のエラー</MudText>
+
+<Condition Value="HasErrors">
+    <ChildContent>
+        <MudSimpleTable Dense="true" Class="dashboard-table">
+            <thead>
+                <tr>
+                    <th class="w-180">時刻</th>
+                    <th>端末</th>
+                    <th>重大度</th>
+                    <th>本文</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ListItem Items="errors" Context="error">
+                    <ItemTemplate>
+                        <tr class="error-row" @onclick="() => OpenLogs(error)">
+                            <td>@FormatTime(error.TimeUnixNano)</td>
+                            <td>@FindName(error.DeviceId)</td>
+                            <td><MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="@SeverityColor(error.SeverityNumber)">@FormatSeverity(error.SeverityNumber)</MudChip></td>
+                            <td class="error-body">@error.Body</td>
+                        </tr>
+                    </ItemTemplate>
+                </ListItem>
+            </tbody>
+        </MudSimpleTable>
+    </ChildContent>
+    <ElseContent>
+        <MudText>エラーはありません。</MudText>
+    </ElseContent>
+</Condition>

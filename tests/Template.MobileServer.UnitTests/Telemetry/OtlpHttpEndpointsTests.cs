@@ -25,10 +25,10 @@ public sealed class OtlpHttpEndpointsTests
         var received = default(ExportLogsServiceRequest);
 
         // Act
-        var result = await OtlpHttpEndpoints.ReceiveAsync(request, Limit, ExportLogsServiceRequest.Parser, x =>
+        var result = await OtlpHttpEndpoints.ReceiveAsync(request, Limit, ExportLogsServiceRequest.Parser, (x, _) =>
         {
             received = x;
-            return new ExportLogsServiceResponse();
+            return ValueTask.FromResult(new ExportLogsServiceResponse());
         });
 
         // Assert
@@ -53,10 +53,10 @@ public sealed class OtlpHttpEndpointsTests
         var received = default(ExportLogsServiceRequest);
 
         // Act
-        var result = await OtlpHttpEndpoints.ReceiveAsync(request, Limit, ExportLogsServiceRequest.Parser, x =>
+        var result = await OtlpHttpEndpoints.ReceiveAsync(request, Limit, ExportLogsServiceRequest.Parser, (x, _) =>
         {
             received = x;
-            return new ExportLogsServiceResponse();
+            return ValueTask.FromResult(new ExportLogsServiceResponse());
         });
 
         // Assert
@@ -75,10 +75,24 @@ public sealed class OtlpHttpEndpointsTests
         var request = CreateRequest(body, contentType);
 
         // Act
-        var result = await OtlpHttpEndpoints.ReceiveAsync(request, limit, ExportLogsServiceRequest.Parser, static _ => new ExportLogsServiceResponse());
+        var result = await OtlpHttpEndpoints.ReceiveAsync(request, limit, ExportLogsServiceRequest.Parser, static (_, _) => ValueTask.FromResult(new ExportLogsServiceResponse()));
 
         // Assert
         Assert.Equal(statusCode, Assert.IsAssignableFrom<IStatusCodeHttpResult>(result).StatusCode);
+    }
+
+    // 保存できなければ 503 (端末は送り直す)
+    [Fact]
+    public async Task ReceiveReturnsServiceUnavailableOnStorageError()
+    {
+        // Arrange
+        var request = CreateRequest(CreateMessage().ToByteArray());
+
+        // Act
+        var result = await OtlpHttpEndpoints.ReceiveAsync<ExportLogsServiceRequest, ExportLogsServiceResponse>(request, Limit, ExportLogsServiceRequest.Parser, static (_, _) => throw new IOException("Disk full."));
+
+        // Assert
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, Assert.IsAssignableFrom<IStatusCodeHttpResult>(result).StatusCode);
     }
 
     private static HttpRequest CreateRequest(byte[] body, string contentType = OtlpHttpEndpoints.ProtobufContentType)

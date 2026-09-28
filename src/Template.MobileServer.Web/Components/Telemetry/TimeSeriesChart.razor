@@ -1,0 +1,44 @@
+<div class="chart">
+    <div class="chart-header">
+        <span class="chart-title">@Chart.Title</span>
+        <span class="chart-unit">@Chart.Unit</span>
+    </div>
+    <Condition Value="hasData">
+        <ChildContent>
+            <svg class="chart-svg" viewBox="@ViewBox" role="img" aria-label="@Chart.Title">
+                <ListItem Items="valueTicks" Context="tick">
+                    <ItemTemplate>
+                        <line class="chart-grid" x1="@PlotLeft" y1="@tick.Position" x2="@PlotRight" y2="@tick.Position" />
+                        <text class="chart-label" x="@ValueLabelX" y="@tick.Position" text-anchor="end" dominant-baseline="middle">@tick.Label</text>
+                    </ItemTemplate>
+                </ListItem>
+                <ListItem Items="timeTicks" Context="tick">
+                    <ItemTemplate>
+                        <line class="chart-grid" x1="@tick.Position" y1="@PlotTop" x2="@tick.Position" y2="@PlotBottom" />
+                        <text class="chart-label" x="@tick.Position" y="@TimeLabelY" text-anchor="middle">@tick.Label</text>
+                    </ItemTemplate>
+                </ListItem>
+                <ListItem Items="paths" Context="path">
+                    <ItemTemplate>
+                        <path class="chart-line" d="@path.Data" stroke="@path.Color" />
+                    </ItemTemplate>
+                </ListItem>
+                <ListItem Items="points" Context="point">
+                    <ItemTemplate>
+                        <circle class="chart-point" cx="@point.X" cy="@point.Y" r="2.5" fill="@point.Fill"><title>@point.Title</title></circle>
+                    </ItemTemplate>
+                </ListItem>
+            </svg>
+        </ChildContent>
+        <ElseContent>
+            <div class="chart-empty">範囲にデータがありません</div>
+        </ElseContent>
+    </Condition>
+    <div class="chart-legend">
+        <ListItem Items="legend" Context="item">
+            <ItemTemplate>
+                <span class="chart-legend-item"><span class="chart-swatch" style="@item.SwatchStyle"></span>@item.Label <strong>@item.Value</strong></span>
+            </ItemTemplate>
+        </ListItem>
+    </div>
+</div>

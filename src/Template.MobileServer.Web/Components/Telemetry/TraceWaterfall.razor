@@ -1,0 +1,41 @@
+<div class="waterfall">
+    <div class="waterfall-row waterfall-head">
+        <div class="waterfall-name">スパン</div>
+        <div class="waterfall-timeline">
+            <ListItem Items="ticks" Context="tick">
+                <ItemTemplate>
+                    <span class="waterfall-tick" style="@tick.Style">@tick.Label</span>
+                </ItemTemplate>
+            </ListItem>
+        </div>
+        <div class="waterfall-duration">所要時間</div>
+    </div>
+    <ListItem Items="Model.VisibleRows" Context="row">
+        <ItemTemplate>
+            <div class="@RowClass(row)" @onclick="() => SelectAsync(row)">
+                <div class="waterfall-name" style="@IndentStyle(row)">
+                    <Condition Value="row.HasChildren">
+                        <ChildContent>
+                            <button type="button" class="waterfall-toggle" @onclick="() => Toggle(row)" @onclick:stopPropagation="true">
+                                <MudIcon Icon="@ToggleIcon(row)" Size="Size.Small" />
+                            </button>
+                        </ChildContent>
+                        <ElseContent>
+                            <span class="waterfall-toggle"></span>
+                        </ElseContent>
+                    </Condition>
+                    <span class="waterfall-span-name" title="@row.Span.Name">@row.Span.Name</span>
+                </div>
+                <div class="waterfall-timeline">
+                    <span class="@BarClass(row)" style="@BarStyle(row)"></span>
+                    <ListItem Items="row.Events" Context="item">
+                        <ItemTemplate>
+                            <span class="@EventClass(item)" style="@EventStyle(item)" title="@item.Name"></span>
+                        </ItemTemplate>
+                    </ListItem>
+                </div>
+                <div class="waterfall-duration">@FormatDuration(row.Duration)</div>
+            </div>
+        </ItemTemplate>
+    </ListItem>
+</div>

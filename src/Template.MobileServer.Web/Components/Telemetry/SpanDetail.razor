@@ -1,0 +1,75 @@
+<div class="span-detail">
+    <MudText Typo="Typo.h6" Class="span-detail-name">@Span.Name</MudText>
+    <table class="attribute-table mb-3">
+        <tbody>
+            <tr>
+                <th>種類</th>
+                <td>@Span.Kind</td>
+            </tr>
+            <tr>
+                <th>状態</th>
+                <td>
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="@StatusColor">@Span.StatusCode</MudChip>
+                    <Condition Value="HasStatusMessage">
+                        <span>@Span.StatusMessage</span>
+                    </Condition>
+                </td>
+            </tr>
+            <tr>
+                <th>開始</th>
+                <td>@StartText</td>
+            </tr>
+            <tr>
+                <th>所要時間</th>
+                <td>@DurationText</td>
+            </tr>
+            <tr>
+                <th>スパン ID</th>
+                <td class="mono">@Span.SpanId</td>
+            </tr>
+            <tr>
+                <th>親</th>
+                <td class="mono">@ParentText</td>
+            </tr>
+            <tr>
+                <th>スコープ</th>
+                <td>@Span.ScopeName</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <MudText Typo="Typo.subtitle2">属性</MudText>
+    <AttributeTable Json="@Span.AttributesJson" />
+
+    <Condition Value="HasEvents">
+        <MudText Typo="Typo.subtitle2" Class="mt-3">イベント</MudText>
+        <ListItem Items="events" Context="item">
+            <ItemTemplate>
+                <div class="span-event">
+                    <div><strong>@item.Name</strong> <span class="value-muted">@item.Offset</span></div>
+                    <AttributeTable Json="@item.AttributesJson" Exclude="@StackTraceKey" />
+                    <Condition Value="item.HasStackTrace">
+                        <pre class="stack-trace">@item.StackTrace</pre>
+                    </Condition>
+                </div>
+            </ItemTemplate>
+        </ListItem>
+    </Condition>
+
+    <Condition Value="HasLinks">
+        <MudText Typo="Typo.subtitle2" Class="mt-3">リンク</MudText>
+        <ListItem Items="links" Context="item">
+            <ItemTemplate>
+                <div class="span-event">
+                    <div class="mono">@item.TraceId / @item.SpanId</div>
+                    <AttributeTable Json="@item.AttributesJson" />
+                </div>
+            </ItemTemplate>
+        </ListItem>
+    </Condition>
+
+    <Condition Value="HasResource">
+        <MudText Typo="Typo.subtitle2" Class="mt-3">Resource</MudText>
+        <AttributeTable Json="@ResourceJson" />
+    </Condition>
+</div>

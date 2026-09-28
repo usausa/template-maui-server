@@ -1,0 +1,44 @@
+<div class="log-detail">
+    <pre class="log-body">@Log.Body</pre>
+    <table class="attribute-table mb-2">
+        <tbody>
+            <tr>
+                <th>重大度</th>
+                <td>@SeverityText</td>
+            </tr>
+            <tr>
+                <th>イベント</th>
+                <td>@EventText</td>
+            </tr>
+            <tr>
+                <th>観測時刻</th>
+                <td>@ObservedText</td>
+            </tr>
+            <tr>
+                <th>スコープ</th>
+                <td>@Log.ScopeName</td>
+            </tr>
+            <tr>
+                <th>トレース ID</th>
+                <td class="mono">@TraceText</td>
+            </tr>
+            <tr>
+                <th>スパン ID</th>
+                <td class="mono">@SpanText</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <MudText Typo="Typo.subtitle2">属性</MudText>
+    <AttributeTable Json="@Log.AttributesJson" Exclude="@StackTraceKey" />
+
+    <Condition Value="HasStackTrace">
+        <MudText Typo="Typo.subtitle2" Class="mt-2">スタックトレース</MudText>
+        <pre class="stack-trace">@stackTrace</pre>
+    </Condition>
+
+    <Condition Value="HasResource">
+        <MudText Typo="Typo.subtitle2" Class="mt-2">Resource</MudText>
+        <AttributeTable Json="@ResourceJson" />
+    </Condition>
+</div>

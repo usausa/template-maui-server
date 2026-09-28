@@ -89,6 +89,401 @@ html, body {
     max-width: 480px;
 }
 
+/* Dashboard */
+.dashboard-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    max-width: 1280px;
+}
+
+.dashboard-sparkline {
+    display: block;
+    width: 100%;
+    height: 32px;
+    margin-top: 4px;
+}
+
+.dashboard-table {
+    max-width: 1280px;
+}
+
+.dashboard-table th,
+.dashboard-table td {
+    white-space: nowrap;
+}
+
+.dashboard-table td.error-body {
+    white-space: normal;
+    word-break: break-all;
+}
+
+.device-disabled {
+    opacity: 0.5;
+}
+
+.state-bar {
+    display: flex;
+    height: 8px;
+    margin: 6px 0 2px;
+    border-radius: 2px;
+    overflow: hidden;
+    background-color: var(--mud-palette-lines-default);
+}
+
+.state-bar span {
+    flex-basis: 0;
+}
+
+.state-receiving {
+    background-color: var(--mud-palette-success);
+}
+
+.state-stopped {
+    background-color: var(--mud-palette-warning);
+}
+
+.state-nodata {
+    background-color: var(--mud-palette-gray-light);
+}
+
+/* Telemetry value */
+.metric-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.meter-track {
+    display: inline-block;
+    width: 48px;
+    height: 8px;
+    border-radius: 2px;
+    overflow: hidden;
+    background-color: var(--mud-palette-lines-default);
+}
+
+.meter-fill {
+    display: block;
+    height: 100%;
+}
+
+.meter-good {
+    background-color: var(--mud-palette-success);
+}
+
+.meter-warning {
+    background-color: var(--mud-palette-warning);
+}
+
+.meter-critical {
+    background-color: var(--mud-palette-error);
+}
+
+.meter-none {
+    background-color: var(--mud-palette-primary);
+}
+
+.value-muted {
+    color: var(--mud-palette-text-disabled);
+}
+
+.count-badge {
+    margin: 0;
+}
+
+/* Telemetry page */
+.telemetry-device-select {
+    max-width: 400px;
+}
+
+.device-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.telemetry-facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 24px;
+}
+
+.fact-label {
+    margin-right: 6px;
+    color: var(--mud-palette-text-secondary);
+    font-size: 0.75rem;
+}
+
+.telemetry-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+    gap: 16px;
+}
+
+/* Telemetry chart */
+.sparkline polyline {
+    fill: none;
+    stroke: var(--mud-palette-primary);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+}
+
+.chart-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.chart-title {
+    font-weight: 500;
+}
+
+.chart-unit {
+    color: var(--mud-palette-text-secondary);
+    font-size: 0.75rem;
+}
+
+.chart-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.chart-grid {
+    stroke: var(--mud-palette-lines-default);
+    stroke-width: 1;
+}
+
+.chart-label {
+    fill: var(--mud-palette-text-secondary);
+    font-size: 11px;
+}
+
+.chart-line {
+    fill: none;
+    stroke-width: 1.5;
+}
+
+.chart-point {
+    stroke: transparent;
+    stroke-width: 8;
+}
+
+.chart-empty {
+    padding: 32px 0;
+    text-align: center;
+    color: var(--mud-palette-text-disabled);
+}
+
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-top: 4px;
+    font-size: 0.75rem;
+}
+
+.chart-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.chart-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+/* Telemetry trace */
+.mud-table.trace-list .mud-table-container {
+    max-height: 320px;
+}
+
+.trace-row,
+.waterfall-row,
+.log-row,
+.error-row {
+    cursor: pointer;
+}
+
+.trace-selected td,
+.waterfall-selected {
+    background-color: var(--mud-palette-action-default-hover);
+}
+
+.trace-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+@media (max-width: 1200px) {
+    .trace-detail {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.waterfall {
+    border: 1px solid var(--mud-palette-lines-default);
+    font-size: 0.8125rem;
+}
+
+.waterfall-row {
+    display: grid;
+    grid-template-columns: minmax(160px, 30%) minmax(0, 1fr) 80px;
+    align-items: center;
+    min-height: 28px;
+    border-bottom: 1px solid var(--mud-palette-lines-default);
+}
+
+.waterfall-row:last-child {
+    border-bottom: none;
+}
+
+.waterfall-head {
+    cursor: default;
+    color: var(--mud-palette-text-secondary);
+    font-size: 0.75rem;
+}
+
+.waterfall-name {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding-right: 8px;
+}
+
+.waterfall-span-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.waterfall-toggle {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.waterfall-timeline {
+    position: relative;
+    height: 28px;
+}
+
+.waterfall-tick {
+    position: absolute;
+    top: 6px;
+    padding-left: 2px;
+    border-left: 1px solid var(--mud-palette-lines-default);
+    white-space: nowrap;
+}
+
+.waterfall-bar {
+    position: absolute;
+    top: 8px;
+    height: 12px;
+    border-radius: 2px;
+    background-color: var(--mud-palette-primary);
+}
+
+.waterfall-bar-error {
+    background-color: var(--mud-palette-error);
+}
+
+.waterfall-event {
+    position: absolute;
+    top: 5px;
+    width: 2px;
+    height: 18px;
+    background-color: var(--mud-palette-text-primary);
+}
+
+.waterfall-event-exception {
+    width: 3px;
+    background-color: var(--mud-palette-error);
+}
+
+.waterfall-duration {
+    padding-right: 8px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Telemetry detail */
+.attribute-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.attribute-table th {
+    width: 35%;
+    padding: 2px 8px 2px 0;
+    color: var(--mud-palette-text-secondary);
+    font-weight: normal;
+    text-align: left;
+    vertical-align: top;
+    word-break: break-all;
+}
+
+.attribute-table td {
+    padding: 2px 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.span-detail-name {
+    word-break: break-all;
+}
+
+.span-event {
+    padding: 6px 0;
+    border-top: 1px solid var(--mud-palette-lines-default);
+}
+
+.stack-trace {
+    max-height: 240px;
+    overflow: auto;
+    margin: 4px 0 0;
+    padding: 8px;
+    background-color: var(--mud-palette-background-gray);
+    font-size: 0.75rem;
+    white-space: pre;
+}
+
+.mono {
+    font-family: Consolas, monospace;
+}
+
+.log-level-select {
+    max-width: 160px;
+}
+
+.log-detail {
+    padding: 8px 0;
+}
+
+.log-body {
+    margin: 0 0 8px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: inherit;
+}
+
 /* Blazor error UI */
 #blazor-error-ui {
     color-scheme: light only;

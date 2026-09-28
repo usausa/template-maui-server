@@ -13,3 +13,13 @@ CREATE TABLE IF NOT EXISTS Setting (
     UpdatedAt  TEXT     NOT NULL,
     PRIMARY KEY (Key)
 );
+
+CREATE TABLE IF NOT EXISTS Devices (
+    DeviceId      TEXT     NOT NULL,
+    Name          TEXT     NOT NULL,
+    GroupName     TEXT,
+    Note          TEXT,
+    IsEnabled     INTEGER  NOT NULL,
+    RegisteredAt  TEXT     NOT NULL,
+    PRIMARY KEY (DeviceId)
+);

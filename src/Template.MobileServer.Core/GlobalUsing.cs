@@ -36,4 +36,7 @@ global using Smart.Text;
 global using Template.MobileServer.Domain;
 global using Template.MobileServer.Models;
 global using Template.MobileServer.Models.Entity;
+global using Template.MobileServer.Models.Enums;
 global using Template.MobileServer.Models.Parameters;
+global using Template.MobileServer.Models.Views;
+global using KeyAttribute = Smart.Data.Accessor.Attributes.KeyAttribute;

@@ -36,6 +36,7 @@ using Smart.Data;
 
 using Template.MobileServer.Accessors;
 using Template.MobileServer.Infrastructure.Storage;
+using Template.MobileServer.Infrastructure.Telemetry;
 using Template.MobileServer.Web.Application.Authentication;
 using Template.MobileServer.Web.Application.Context;
 using Template.MobileServer.Web.Application.ExceptionHandling;
@@ -636,6 +637,14 @@ public static class ApplicationExtensions
         builder.Services.AddSingleton<OtlpReceiver>();
         builder.Services.AddOptions<TelemetryReceiverOption>().BindConfiguration("TelemetryReceiver").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<TelemetryReceiverOption>>().Value);
+        builder.Services.AddOptions<TelemetryStorageOption>().BindConfiguration("TelemetryStorage").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<TelemetryStorageOption>>().Value);
+        builder.Services.AddSingleton<ITelemetryDbProvider, SqliteTelemetryDbProvider>();
+        builder.Services.AddSingleton<TelemetryBus>();
+        builder.Services.AddSingleton<TelemetryDeviceRegistry>();
+        builder.Services.AddOptions<Workers.TelemetryRetentionWorkerOption>().BindConfiguration("TelemetryRetention").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<Workers.TelemetryRetentionWorkerOption>>().Value);
+        builder.Services.AddHostedService<Workers.TelemetryRetentionWorker>();
 
         // Setting
         builder.Services.AddOptions<CompressionSetting>().BindConfiguration("Compression").ValidateDataAnnotations().ValidateOnStart();
@@ -713,6 +722,7 @@ public static class ApplicationExtensions
         app.MapAccountEndpoints();
         app.MapSecretEndpoints();
         app.MapDataEndpoints();
+        app.MapDeviceEndpoints();
         app.MapStorageEndpoints();
         app.MapTestEndpoints();
 
@@ -747,19 +757,23 @@ public static class ApplicationExtensions
     // Startup
     //--------------------------------------------------------------------------------
 
-    public static ValueTask InitializeApplicationAsync(this WebApplication app)
+    public static async ValueTask InitializeApplicationAsync(this WebApplication app)
     {
         // Prepare instrument
         app.Services.GetRequiredService<ApplicationInstrument>();
 
         // Prepare storage
         Directory.CreateDirectory(app.Services.GetRequiredService<FileStorageOption>().Root);
+        Directory.CreateDirectory(app.Services.GetRequiredService<TelemetryStorageOption>().Root);
 
         // Prepare notifier
         app.Services.GetRequiredService<Services.MonitorNotifier>();
 
         // Prepare database (schema from the SQL file)
-        return app.Services.GetRequiredService<DatabaseService>().InitializeAsync(SchemaPath, CancellationToken.None);
+        await app.Services.GetRequiredService<DatabaseService>().InitializeAsync(SchemaPath, CancellationToken.None);
+
+        // Prepare the cache of the devices (the registrations and the telemetry of each device)
+        await app.Services.GetRequiredService<TelemetryDeviceRegistry>().LoadAsync(CancellationToken.None);
     }
 
     //--------------------------------------------------------------------------------

@@ -1,0 +1,268 @@
+@page "/telemetry/{DeviceId?}"
+
+<PageTitle>Telemetry</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Telemetry</MudText>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Class="mb-4">
+    <MudSelect T="string"
+               Value="DeviceId"
+               ValueChanged="SelectDevice"
+               ToStringFunc="FormatDeviceOption"
+               Label="端末"
+               Dense="true"
+               Class="telemetry-device-select">
+        <ListItem Items="devices" Context="device">
+            <ItemTemplate>
+                <MudSelectItem T="string" Value="@device.Device.DeviceId">
+                    <span class="device-option">
+                        <MudIcon Icon="@Icons.Material.Filled.Circle" Size="Size.Small" Color="@OptionColor(device)" />
+                        <span>@FormatDeviceOption(device.Device.DeviceId)</span>
+                        <Condition Value="IsDisabledDevice(device)">
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning">無効</MudChip>
+                        </Condition>
+                    </span>
+                </MudSelectItem>
+            </ItemTemplate>
+        </ListItem>
+    </MudSelect>
+    <MudSpacer />
+    <MudToggleGroup T="string" Value="@range.Key" ValueChanged="SelectRange" Color="Color.Primary" Size="Size.Small" Outlined="true" Delimiters="true" CheckMark="false" Class="range-toggle">
+        <ListItem Items="TelemetryRange.All" Context="item">
+            <ItemTemplate>
+                <MudToggleItem T="string" Value="@item.Key" Text="@item.Label" />
+            </ItemTemplate>
+        </ListItem>
+    </MudToggleGroup>
+</MudStack>
+
+<Condition Value="HasDevice">
+    <ChildContent>
+        <MudPaper Outlined="true" Class="pa-4 mb-4">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="2">
+                <MudChip T="string" Size="Size.Small" Variant="@StateVariant" Color="@StateColor">@StateText</MudChip>
+                <MudText Typo="Typo.h6">@DeviceName</MudText>
+                <MudText Typo="Typo.body2" Class="value-muted">@DeviceCaption</MudText>
+                <Condition Value="IsDisabled">
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning">無効</MudChip>
+                </Condition>
+            </MudStack>
+            <Condition Value="HasNote">
+                <MudText Typo="Typo.body2" Class="mt-1">@Note</MudText>
+            </Condition>
+            <div class="telemetry-facts mt-3">
+                <span><span class="fact-label">機種</span>@Model</span>
+                <span><span class="fact-label">OS</span>@Os</span>
+                <span><span class="fact-label">アプリ</span>@App</span>
+                <span title="@LastReceivedTime"><span class="fact-label">最終受信</span>@LastReceived</span>
+                <span><span class="fact-label">電池</span><MetricCell Value="Battery" Display="MetricDisplay.Battery" /></span>
+                <span><span class="fact-label">無線 LAN</span><MetricCell Value="WiFi" Display="MetricDisplay.Signal" /></span>
+                <span><span class="fact-label">CPU</span><MetricCell Value="Cpu" Display="MetricDisplay.Utilization" /></span>
+                <span><span class="fact-label">メモリ</span><MetricCell Value="Memory" Display="MetricDisplay.Bytes" /></span>
+            </div>
+        </MudPaper>
+
+        <MudTabs ActivePanelIndex="ActiveTab" ActivePanelIndexChanged="SelectTab" Elevation="0">
+            <MudTabPanel Text="メトリクス" Icon="@Icons.Material.Filled.ShowChart">
+                <Condition Value="loading">
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mt-4" />
+                </Condition>
+                <Condition Value="HasCharts">
+                    <ChildContent>
+                        <div class="telemetry-charts mt-4">
+                            <ListItem Items="Charts" Context="chart">
+                                <ItemTemplate>
+                                    <MudPaper Outlined="true" Class="pa-3">
+                                        <TimeSeriesChart Chart="chart" From="from" To="to" ShowDate="range.ShowDate" />
+                                    </MudPaper>
+                                </ItemTemplate>
+                            </ListItem>
+                        </div>
+                    </ChildContent>
+                    <ElseContent>
+                        <MudText Class="mt-4">範囲にメトリクスがありません。</MudText>
+                    </ElseContent>
+                </Condition>
+            </MudTabPanel>
+            <MudTabPanel Text="トレース" Icon="@Icons.Material.Filled.AccountTree">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Class="mt-4 mb-2">
+                    <MudSwitch T="bool" Value="errorOnly" ValueChanged="SetErrorOnlyAsync" Label="エラーだけ" Color="Color.Error" Class="error-only-switch" />
+                    <MudTextField T="string"
+                                  Value="traceSearch"
+                                  ValueChanged="SetTraceSearchAsync"
+                                  Label="ルートスパン"
+                                  Clearable="true"
+                                  Immediate="true"
+                                  DebounceInterval="300"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Class="search-field" />
+                    <MudSpacer />
+                    <MudText Typo="Typo.caption">@TraceCountText</MudText>
+                </MudStack>
+                <Condition Value="loading">
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-2" />
+                </Condition>
+                <Condition Value="HasTraces">
+                    <ChildContent>
+                        <MudSimpleTable Dense="true" Hover="true" FixedHeader="true" Class="trace-list mb-4">
+                            <thead>
+                                <tr>
+                                    <th>開始</th>
+                                    <th>ルートスパン</th>
+                                    <th class="text-right">所要時間</th>
+                                    <th class="text-right">スパン</th>
+                                    <th class="text-right">エラー</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <ListItem Items="traces" Context="trace">
+                                    <ItemTemplate>
+                                        <tr class="@TraceRowClass(trace)" @onclick="() => SelectTrace(trace.TraceId)">
+                                            <td>@FormatTime(trace.StartTimeUnixNano)</td>
+                                            <td>@trace.RootName</td>
+                                            <td class="text-right">@FormatTraceDuration(trace)</td>
+                                            <td class="text-right">@trace.SpanCount</td>
+                                            <td class="text-right"><CountBadge Count="trace.ErrorCount" BadgeColor="Color.Error" /></td>
+                                        </tr>
+                                    </ItemTemplate>
+                                </ListItem>
+                            </tbody>
+                        </MudSimpleTable>
+                    </ChildContent>
+                    <ElseContent>
+                        <MudText Class="mb-4">範囲にトレースがありません。</MudText>
+                    </ElseContent>
+                </Condition>
+
+                <Condition Value="HasTraceId">
+                    <Condition Value="HasTraceDetail">
+                        <ChildContent>
+                            <MudPaper Outlined="true" Class="pa-4">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="2" Class="mb-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.AccountTree" Color="Color.Primary" />
+                                    <MudText Typo="Typo.h6">@TraceTitle</MudText>
+                                    <MudText Typo="Typo.body2" Class="value-muted mono">@TraceId</MudText>
+                                </MudStack>
+                                <MudText Typo="Typo.body2" Class="mb-3">@TraceFacts</MudText>
+                                <div class="trace-detail">
+                                    <TraceWaterfall Model="waterfall!" SelectedSpanId="@selectedSpanId" SpanSelected="SelectSpan" />
+                                    <Condition Value="HasSelectedSpan">
+                                        <MudPaper Outlined="true" Class="pa-3">
+                                            <SpanDetail Span="SelectedSpan!" TraceStart="waterfall!.Start" Resource="SelectedResource" />
+                                        </MudPaper>
+                                    </Condition>
+                                </div>
+                                <Condition Value="HasTraceLogs">
+                                    <MudText Typo="Typo.subtitle2" Class="mt-4 mb-1">ログ</MudText>
+                                    <MudSimpleTable Dense="true" Class="dashboard-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="w-180">時刻</th>
+                                                <th>重大度</th>
+                                                <th>本文</th>
+                                                <th>スパン</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <ListItem Items="TraceLogs" Context="log">
+                                                <ItemTemplate>
+                                                    <tr class="trace-log-row">
+                                                        <td>@FormatTime(log.TimeUnixNano)</td>
+                                                        <td><MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="@SeverityColor(log.SeverityNumber)">@FormatSeverity(log.SeverityNumber)</MudChip></td>
+                                                        <td class="error-body" title="@log.Body">@FirstLine(log.Body)</td>
+                                                        <td>@FindSpanName(log.SpanId)</td>
+                                                    </tr>
+                                                </ItemTemplate>
+                                            </ListItem>
+                                        </tbody>
+                                    </MudSimpleTable>
+                                </Condition>
+                            </MudPaper>
+                        </ChildContent>
+                        <ElseContent>
+                            <MudText>トレースが見つかりません。</MudText>
+                        </ElseContent>
+                    </Condition>
+                </Condition>
+            </MudTabPanel>
+            <MudTabPanel Text="ログ" Icon="@Icons.Material.Filled.Subject">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Class="mt-4 mb-2">
+                    <MudSelect T="string" Value="@level.Key" ValueChanged="SelectLevel" Label="重大度" Dense="true" Class="log-level-select">
+                        <ListItem Items="TelemetryLogLevel.All" Context="item">
+                            <ItemTemplate>
+                                <MudSelectItem T="string" Value="@item.Key">@item.Label</MudSelectItem>
+                            </ItemTemplate>
+                        </ListItem>
+                    </MudSelect>
+                    <MudTextField T="string"
+                                  Value="logSearch"
+                                  ValueChanged="SetLogSearchAsync"
+                                  Label="本文"
+                                  Clearable="true"
+                                  Immediate="true"
+                                  DebounceInterval="300"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Class="search-field" />
+                    <Condition Value="HasTraceFilter">
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClose="ClearTraceFilter" Class="trace-filter mono">@TraceFilterText</MudChip>
+                    </Condition>
+                    <MudSpacer />
+                    <MudText Typo="Typo.caption">@LogCountText</MudText>
+                </MudStack>
+                <Condition Value="loading">
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-2" />
+                </Condition>
+                <Condition Value="HasLogs">
+                    <ChildContent>
+                        <MudSimpleTable Dense="true" Hover="true" Class="dashboard-table log-list">
+                            <thead>
+                                <tr>
+                                    <th class="w-180">時刻</th>
+                                    <th>重大度</th>
+                                    <th>本文</th>
+                                    <th>スコープ</th>
+                                    <th class="w-48"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <ListItem Items="logs" Context="log">
+                                    <ItemTemplate>
+                                        <tr class="log-row" @onclick="() => ToggleLogAsync(log)">
+                                            <td>@FormatTime(log.TimeUnixNano)</td>
+                                            <td><MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="@SeverityColor(log.SeverityNumber)">@FormatSeverity(log.SeverityNumber)</MudChip></td>
+                                            <td class="error-body" title="@log.Body">@FirstLine(log.Body)</td>
+                                            <td title="@log.ScopeName">@ShortScope(log)</td>
+                                            <td @onclick:stopPropagation="true">
+                                                <Condition Value="HasTrace(log)">
+                                                    <MudIconButton Icon="@Icons.Material.Filled.AccountTree" Size="Size.Small" Href="@TraceLink(log)" Class="trace-link" />
+                                                </Condition>
+                                            </td>
+                                        </tr>
+                                        <Condition Value="IsExpanded(log)">
+                                            <tr class="log-detail-row">
+                                                <td colspan="5">
+                                                    <LogDetail Log="log" Resource="FindResource(log)" />
+                                                </td>
+                                            </tr>
+                                        </Condition>
+                                    </ItemTemplate>
+                                </ListItem>
+                            </tbody>
+                        </MudSimpleTable>
+                        <Condition Value="hasMoreLogs">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="mt-2 more-button" OnClick="LoadMoreLogsAsync">さらに読み込む</MudButton>
+                        </Condition>
+                    </ChildContent>
+                    <ElseContent>
+                        <MudText>範囲にログがありません。</MudText>
+                    </ElseContent>
+                </Condition>
+            </MudTabPanel>
+        </MudTabs>
+    </ChildContent>
+    <ElseContent>
+        <MudText>@EmptyMessage</MudText>
+    </ElseContent>
+</Condition>
