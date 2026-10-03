@@ -29,6 +29,8 @@ public sealed class TelemetryTestStorage : IDisposable
 
     public DeviceService DeviceService => provider.GetRequiredService<DeviceService>();
 
+    public PushService PushService => provider.GetRequiredService<PushService>();
+
     public TelemetryBus Bus => provider.GetRequiredService<TelemetryBus>();
 
     public TelemetryDeviceRegistry Registry => provider.GetRequiredService<TelemetryDeviceRegistry>();
@@ -56,6 +58,7 @@ public sealed class TelemetryTestStorage : IDisposable
         services.AddSingleton<ServiceContextProvider>(static p => p.GetRequiredService<ApplicationServiceContextProvider>());
         services.AddSingleton<DatabaseService>();
         services.AddSingleton<DeviceService>();
+        services.AddSingleton<PushService>();
         services.AddSingleton<TelemetryService>();
         services.AddSingleton<TelemetryStore>();
         services.AddSingleton<TelemetryBus>();
@@ -78,6 +81,16 @@ public sealed class TelemetryTestStorage : IDisposable
     // 受信口と同じく、保存の前にサービスコンテキストを開始する
     public IDisposable BeginScope(DateTimeOffset now) =>
         provider.GetRequiredService<ApplicationServiceContextProvider>().Begin(() => new ServiceContext(now, "test"));
+
+    // data.db の保存形式の確認 (1 つの値を読む。SQL は呼び出し側の定数)
+    public async ValueTask<object?> QueryDataValueAsync(Action<DbCommand> prepare)
+    {
+        await using var con = provider.GetRequiredService<IDbProvider>().CreateConnection();
+        await con.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = con.CreateCommand();
+        prepare(command);
+        return await command.ExecuteScalarAsync(TestContext.Current.CancellationToken);
+    }
 
     // 保存形式の確認 (1 つの値を読む。SQL は呼び出し側の定数)
     public async ValueTask<object?> QueryValueAsync(string deviceId, Action<DbCommand> prepare)

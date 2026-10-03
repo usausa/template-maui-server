@@ -14,6 +14,8 @@ public static class ApiRoutes
 
     public const string Device = Prefix + "/device";
 
+    public const string Push = Prefix + "/push";
+
     public const string Storage = Prefix + "/storage";
 
     public const string Test = Prefix + "/test";

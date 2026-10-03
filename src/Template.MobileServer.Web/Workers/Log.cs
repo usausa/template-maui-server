@@ -21,4 +21,9 @@ internal static partial class Log
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Telemetry file deleted. device=[{device}]")]
     public static partial void InfoTelemetryFileDeleted(this ILogger logger, string device);
+
+    // Push retention
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Push expired. rows=[{rows}]")]
+    public static partial void InfoPushExpired(this ILogger logger, int rows);
 }

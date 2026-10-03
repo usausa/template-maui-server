@@ -1,0 +1,28 @@
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@Title</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" Model="model">
+            <MudTextField @bind-Value="model.Title"
+                          For="@(() => model.Title)"
+                          Validation="@Validator.ValidateValue"
+                          Label="件名"
+                          MaxLength="@Length.Title"
+                          Immediate="true" />
+            <MudTextField @bind-Value="model.Body"
+                          For="@(() => model.Body)"
+                          Validation="@Validator.ValidateValue"
+                          Label="本文"
+                          MaxLength="@Length.Body"
+                          Lines="4"
+                          Immediate="true"
+                          Class="mt-4" />
+        </MudForm>
+        <MudText Typo="Typo.caption" Class="d-block mt-4">接続していない端末には、次に接続したときに届きます。</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="OnOkClick">OK</MudButton>
+        <MudButton Color="Color.Default" OnClick="OnCancelClick">CANCEL</MudButton>
+    </DialogActions>
+</MudDialog>

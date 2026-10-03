@@ -647,6 +647,12 @@ public static class ApplicationExtensions
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<Workers.TelemetryRetentionWorkerOption>>().Value);
         builder.Services.AddHostedService<Workers.TelemetryRetentionWorker>();
 
+        // Push
+        builder.Services.AddSingleton<Services.PushNotifier>();
+        builder.Services.AddOptions<Workers.PushRetentionWorkerOption>().BindConfiguration("PushRetention").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<Workers.PushRetentionWorkerOption>>().Value);
+        builder.Services.AddHostedService<Workers.PushRetentionWorker>();
+
         // Setting
         builder.Services.AddOptions<CompressionSetting>().BindConfiguration("Compression").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<CompressionSetting>>().Value);
@@ -724,6 +730,7 @@ public static class ApplicationExtensions
         app.MapSecretEndpoints();
         app.MapDataEndpoints();
         app.MapDeviceEndpoints();
+        app.MapPushEndpoints();
         app.MapStorageEndpoints();
         app.MapTestEndpoints();
 
@@ -741,8 +748,9 @@ public static class ApplicationExtensions
         // OTLP/HTTP (テレメトリの受信口、認証なし。OTLP/HTTP 用ポートのみ)
         app.MapOtlpHttpEndpoints(GetEndpointPort(app.Configuration, OtelHttpEndpointConfigurationKey));
 
-        // SignalR (端末の監視、認証なし)
+        // SignalR (端末の監視と通知、認証なし)
         app.MapHub<MonitorHub>(HubRoutes.Monitor);
+        app.MapHub<PushHub>(HubRoutes.Push);
 
         // Health
         app.MapHealthChecks(HealthEndpointPath);

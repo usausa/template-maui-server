@@ -62,6 +62,7 @@
                   AdornmentIcon="@Icons.Material.Filled.Search"
                   Class="search-field" />
     <MudSpacer />
+    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Send" Class="send-all-button" Disabled="@(!CanSendAll)" OnClick="SendAllAsync">全端末へ通知</MudButton>
     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Class="add-button" OnClick="AddAsync">追加</MudButton>
 </MudStack>
 
@@ -79,6 +80,7 @@
             <th>値 2</th>
             <th class="text-right">エラー</th>
             <th class="text-right">クラッシュ</th>
+            <th class="text-right">未達</th>
             <th class="w-120"></th>
         </tr>
     </thead>
@@ -106,7 +108,9 @@
                     <td><MetricCell Value="device.CustomValue2" Display="MetricDisplay.CustomValue" /></td>
                     <td class="text-right"><CountBadge Count="device.ErrorCount" BadgeColor="Color.Warning" /></td>
                     <td class="text-right"><CountBadge Count="device.CrashCount" BadgeColor="Color.Error" /></td>
+                    <td class="text-right pending-cell"><CountBadge Count="PendingCount(device)" BadgeColor="Color.Info" /></td>
                     <td>
+                        <MudIconButton Icon="@Icons.Material.Filled.Send" Size="Size.Small" Color="Color.Primary" Class="send-button" Disabled="@(!device.Device.IsEnabled)" OnClick="() => SendAsync(device)" />
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Class="edit-button" OnClick="() => EditAsync(device)" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" Class="delete-button" OnClick="() => DeleteAsync(device)" />
                     </td>

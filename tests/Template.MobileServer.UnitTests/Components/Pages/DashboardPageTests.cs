@@ -4,7 +4,11 @@ using Bunit;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+
+using NSubstitute;
 
 using Template.MobileServer.Domain;
 using Template.MobileServer.Models.Entity;
@@ -12,6 +16,8 @@ using Template.MobileServer.Models.Enums;
 using Template.MobileServer.Models.Parameters;
 using Template.MobileServer.Telemetry;
 using Template.MobileServer.Web.Components.Pages;
+using Template.MobileServer.Web.Hubs;
+using Template.MobileServer.Web.Services;
 
 public sealed class DashboardPageTests : MudBlazorTestBase
 {
@@ -98,6 +104,36 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         Assert.EndsWith("telemetry/device-1?tab=logs&range=15m&level=error", Services.GetRequiredService<NavigationManager>().Uri, StringComparison.Ordinal);
     }
 
+    // 通知: 端末ごとの未達の件数を出し、応答の知らせで読み直す。無効の端末には送れない
+    [Fact]
+    public async Task PendingCountFollowsAcknowledge()
+    {
+        // Arrange
+        using var storage = new TelemetryTestStorage();
+        await PrepareAsync(storage);
+        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
+        var notifier = Services.GetRequiredService<PushNotifier>();
+        List<PushMessageEntity> all;
+        using (storage.BeginScope(DateTimeOffset.Now))
+        {
+            all = await notifier.SendAsync(null, "件名", "本文", cancellationToken);
+            await notifier.SendAsync("device-1", "件名", "本文", cancellationToken);
+        }
+
+        var cut = Render<DashboardPage>();
+        Assert.Equal("2", cut.Find("tr.device-row .pending-cell").TextContent.Trim());
+        Assert.True(cut.Find("tr.device-disabled .send-button").HasAttribute("disabled"));
+
+        // Act
+        using (storage.BeginScope(DateTimeOffset.Now))
+        {
+            await notifier.AcknowledgeAsync("device-1", Assert.Single(all).Id, cancellationToken);
+        }
+
+        // Assert
+        await cut.WaitForAssertionAsync(() => Assert.Equal("1", cut.Find("tr.device-row .pending-cell").TextContent.Trim()), TimeSpan.FromSeconds(5));
+    }
+
     // 受信中の端末 (電池 15%、固有値 1 = 42、エラーとクラッシュ 1 件ずつ) と、グループ付きの無効の端末 (テレメトリなし)
     private async Task PrepareAsync(TelemetryTestStorage storage)
     {
@@ -113,6 +149,8 @@ public sealed class DashboardPageTests : MudBlazorTestBase
 
         Services.AddSingleton(storage.Registry);
         Services.AddSingleton(storage.Bus);
+        Services.AddSingleton(storage.PushService);
+        Services.AddSingleton(new PushNotifier(NullLogger<PushNotifier>.Instance, Substitute.For<IHubContext<PushHub, IPushClient>>(), storage.PushService));
     }
 
     private static TelemetryBatch CreateBatch()

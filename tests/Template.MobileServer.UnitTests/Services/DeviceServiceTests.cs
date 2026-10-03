@@ -53,4 +53,22 @@ public sealed class DeviceServiceTests : IDisposable
         Assert.Equal(DataWriteStatus.Success, await storage.DeviceService.DeleteAsync("device-1", TestContext.Current.CancellationToken));
         Assert.Equal(DataWriteStatus.NotFound, await storage.DeviceService.DeleteAsync("device-1", TestContext.Current.CancellationToken));
     }
+
+    // 削除: 端末宛ての通知も削除する
+    [Fact]
+    public async Task DeleteRemovesPushMessages()
+    {
+        // Arrange
+        await storage.PrepareDatabaseAsync();
+        using var scope = storage.BeginScope(Now);
+        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "Pixel 9a", IsEnabled = true }, TestContext.Current.CancellationToken);
+        await storage.PushService.InsertAsync("device-1", "件名", "本文", TestContext.Current.CancellationToken);
+
+        // Act
+        var status = await storage.DeviceService.DeleteAsync("device-1", TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(DataWriteStatus.Success, status);
+        Assert.Equal(0L, await storage.QueryDataValueAsync(static x => x.CommandText = "SELECT COUNT(*) FROM PushMessage"));
+    }
 }

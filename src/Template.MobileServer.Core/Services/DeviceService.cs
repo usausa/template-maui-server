@@ -7,13 +7,17 @@ public sealed class DeviceService
 {
     private readonly DeviceAccessor deviceAccessor;
 
+    private readonly PushAccessor pushAccessor;
+
     private readonly ServiceContextProvider contextProvider;
 
     public DeviceService(
         DeviceAccessor deviceAccessor,
+        PushAccessor pushAccessor,
         ServiceContextProvider contextProvider)
     {
         this.deviceAccessor = deviceAccessor;
+        this.pushAccessor = pushAccessor;
         this.contextProvider = contextProvider;
     }
 
@@ -41,6 +45,10 @@ public sealed class DeviceService
     public ValueTask<DeviceEntity?> UpdateNameAsync(string deviceId, string name, CancellationToken cancellationToken = default) =>
         deviceAccessor.UpdateNameAsync(deviceId, name, cancellationToken);
 
-    public async ValueTask<DataWriteStatus> DeleteAsync(string deviceId, CancellationToken cancellationToken = default) =>
-        await deviceAccessor.DeleteAsync(deviceId, cancellationToken) > 0 ? DataWriteStatus.Success : DataWriteStatus.NotFound;
+    // 登録と、その端末宛ての通知を削除する
+    public async ValueTask<DataWriteStatus> DeleteAsync(string deviceId, CancellationToken cancellationToken = default)
+    {
+        await pushAccessor.DeleteByDeviceAsync(deviceId, cancellationToken);
+        return await deviceAccessor.DeleteAsync(deviceId, cancellationToken) > 0 ? DataWriteStatus.Success : DataWriteStatus.NotFound;
+    }
 }

@@ -7,9 +7,11 @@ using MudBlazor;
 using Template.MobileServer.Web.Components.Dialogs;
 using Template.MobileServer.Web.Components.Shared;
 using Template.MobileServer.Web.Components.Telemetry;
+using Template.MobileServer.Web.Services;
 using Template.MobileServer.Web.Telemetry;
 
-// テレメトリのサマリと端末の一覧・管理。キャッシュ (TelemetryDeviceRegistry) だけを読み、バスの通知と一定の間隔で読み直す
+// テレメトリのサマリと端末の一覧・管理・通知の送信。端末とテレメトリはキャッシュ (TelemetryDeviceRegistry)、未達の通知の件数は data.db から読み、
+// バスと通知の送信の知らせと一定の間隔で読み直す
 public sealed partial class DashboardPage
 {
     // 通知が無くても読み直す間隔 (途絶への変化と経過時間を進める)
@@ -22,6 +24,8 @@ public sealed partial class DashboardPage
     private TelemetryDeviceSummary[] devices = [];
 
     private Dictionary<string, string> names = [];
+
+    private Dictionary<string, int> pending = [];
 
     private TelemetryErrorEntry[] errors = [];
 
@@ -59,6 +63,12 @@ public sealed partial class DashboardPage
     public required TelemetryBus Bus { get; set; }
 
     [Inject]
+    public required PushService PushService { get; set; }
+
+    [Inject]
+    public required PushNotifier Notifier { get; set; }
+
+    [Inject]
     public required IDialogService DialogService { get; set; }
 
     [Inject]
@@ -77,6 +87,8 @@ public sealed partial class DashboardPage
     }
 
     private bool HasErrors => errors.Length > 0;
+
+    private bool CanSendAll => enabledCount > 0;
 
     private string StateSummary => $"受信中 {receivingCount}・途絶 {stoppedCount}・受信なし {noDataCount}";
 
@@ -104,8 +116,11 @@ public sealed partial class DashboardPage
         Load();
         Bus.Received += OnReceived;
         Bus.DeviceChanged += OnDeviceChanged;
+        Notifier.Changed += OnPushChanged;
         refreshTimer = new RefreshTimer(TimeProvider, RefreshInterval, RefreshAsync);
     }
+
+    protected override Task OnInitializedAsync() => LoadPendingAsync();
 
     protected override void Dispose(bool disposing)
     {
@@ -113,6 +128,7 @@ public sealed partial class DashboardPage
         {
             Bus.Received -= OnReceived;
             Bus.DeviceChanged -= OnDeviceChanged;
+            Notifier.Changed -= OnPushChanged;
             refreshTimer.Dispose();
         }
 
@@ -127,10 +143,13 @@ public sealed partial class DashboardPage
 
     private void OnDeviceChanged(object? sender, TelemetryDeviceChangedEventArgs e) => refreshTimer.Request();
 
+    private void OnPushChanged(object? sender, EventArgs e) => refreshTimer.Request();
+
     private Task RefreshAsync() =>
-        InvokeAsync(() =>
+        InvokeAsync(async () =>
         {
             Load();
+            await LoadPendingAsync();
             StateHasChanged();
         });
 
@@ -205,6 +224,48 @@ public sealed partial class DashboardPage
         Load();
     }
 
+    // 端末へ通知を送る (接続していなければ次の接続で届く)
+    private async Task SendAsync(TelemetryDeviceSummary summary)
+    {
+        if (await DialogService.ShowPushSendDialog($"{summary.Device.Name} へ通知") is not { } content)
+        {
+            return;
+        }
+
+        var messages = await Notifier.SendAsync(summary.Device.DeviceId, content.Title, content.Body);
+        if (messages.Count > 0)
+        {
+            Snackbar.AddSuccess("送信しました。");
+        }
+        else
+        {
+            Snackbar.AddError("送信先の端末がありません。");
+        }
+
+        await LoadPendingAsync();
+    }
+
+    // 登録済みで有効な全端末へ通知を送る
+    private async Task SendAllAsync()
+    {
+        if (await DialogService.ShowPushSendDialog("全端末へ通知") is not { } content)
+        {
+            return;
+        }
+
+        var messages = await Notifier.SendAsync(null, content.Title, content.Body);
+        if (messages.Count > 0)
+        {
+            Snackbar.AddSuccess($"{messages.Count} 台へ送信しました。");
+        }
+        else
+        {
+            Snackbar.AddError("送信先の端末がありません。");
+        }
+
+        await LoadPendingAsync();
+    }
+
     //--------------------------------------------------------------------------------
     // Load
     //--------------------------------------------------------------------------------
@@ -233,6 +294,13 @@ public sealed partial class DashboardPage
         errorCount = enabled.Sum(static x => x.ErrorCount);
         crashCount = enabled.Sum(static x => x.CrashCount);
         lowBatteryCount = enabled.Count(static x => x.Battery is { } battery && (ViewHelper.BatteryLevel(battery.Value) == TelemetryLevel.Critical));
+    }
+
+    // 端末ごとの未達の通知の件数
+    private async Task LoadPendingAsync()
+    {
+        var summary = await PushService.QueryPendingSummaryAsync();
+        pending = summary.ToDictionary(static x => x.DeviceId, static x => x.Count, StringComparer.Ordinal);
     }
 
     private static bool IsMatch(TelemetryDeviceSummary device, string text) =>
@@ -271,4 +339,6 @@ public sealed partial class DashboardPage
         device.Info is { } info ? ViewHelper.FormatTime(info.LastReceivedAt) : string.Empty;
 
     private string FindName(string deviceId) => names.GetValueOrDefault(deviceId, deviceId);
+
+    private int PendingCount(TelemetryDeviceSummary device) => pending.GetValueOrDefault(device.Device.DeviceId);
 }
