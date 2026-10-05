@@ -32,7 +32,9 @@ public static class AccountEndpoints
     {
         var group = app.MapApiGroup(ApiRoutes.Account);
 
-        group.MapPost("/login", HandleLogin);
+        group.MapPost("/login", HandleLogin)
+            .WithName("AccountLogin")
+            .ProducesValidationProblem();
     }
 
     //--------------------------------------------------------------------------------

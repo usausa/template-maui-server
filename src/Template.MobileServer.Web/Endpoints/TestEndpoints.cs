@@ -16,8 +16,15 @@ public static class TestEndpoints
     {
         var group = app.MapApiGroup(ApiRoutes.Test);
 
-        group.MapGet("/error/{code:int}", HandleError);
-        group.MapGet("/delay/{timeout:int}", HandleDelayAsync);
+        group.MapGet("/error/{code:int}", HandleError)
+            .WithName("TestError")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+        group.MapGet("/delay/{timeout:int}", HandleDelayAsync)
+            .WithName("TestDelay")
+            .Produces(StatusCodes.Status200OK)
+            .ProducesValidationProblem();
     }
 
     //--------------------------------------------------------------------------------

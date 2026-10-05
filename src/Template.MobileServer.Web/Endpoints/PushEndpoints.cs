@@ -39,7 +39,11 @@ public static class PushEndpoints
     {
         var group = app.MapApiGroup(ApiRoutes.Push);
 
-        group.MapPost("/", HandleSendAsync);
+        group.MapPost("/", HandleSendAsync)
+            .WithName("PushSend")
+            .Produces<PushSendResponse>()
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     //--------------------------------------------------------------------------------

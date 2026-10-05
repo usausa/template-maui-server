@@ -25,7 +25,8 @@ public static class ServerEndpoints
     {
         var group = app.MapApiGroup(ApiRoutes.Server);
 
-        group.MapGet("/time", HandleTime);
+        group.MapGet("/time", HandleTime)
+            .WithName("ServerTime");
     }
 
     //--------------------------------------------------------------------------------

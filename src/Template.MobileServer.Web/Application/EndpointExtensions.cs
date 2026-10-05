@@ -7,6 +7,7 @@ public static class EndpointExtensions
 {
     public static RouteGroupBuilder MapApiGroup(this IEndpointRouteBuilder endpoints, string prefix) =>
         endpoints.MapGroup(prefix)
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
             .AddEndpointFilter<RequestMetricsEndpointFilter>()
             .AddEndpointFilter<ServiceContextEndpointFilter>();
 }

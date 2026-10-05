@@ -46,11 +46,20 @@ public static class StorageEndpoints
                 {
                     return TypedResults.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid path.");
                 }
-            });
+            })
+            .ProducesProblem(StatusCodes.Status400BadRequest);
 
-        group.MapGet("/{**path}", HandleGetAsync);
-        group.MapPost("/{**path}", HandleUploadAsync);
-        group.MapDelete("/{**path}", HandleDeleteAsync);
+        group.MapGet("/{**path}", HandleGetAsync)
+            .WithName("StorageGet")
+            .Produces<StorageListResponse>()
+            .ProducesProblem(StatusCodes.Status404NotFound);
+        group.MapPost("/{**path}", HandleUploadAsync)
+            .WithName("StorageUpload")
+            .Produces(StatusCodes.Status200OK);
+        group.MapDelete("/{**path}", HandleDeleteAsync)
+            .WithName("StorageDelete")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     //--------------------------------------------------------------------------------

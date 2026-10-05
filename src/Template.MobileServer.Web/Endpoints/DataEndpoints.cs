@@ -22,7 +22,7 @@ public sealed class DataListResponse
     public int Total { get; set; }
 }
 
-public sealed class DataResponse
+public sealed class DataGetResponse
 {
     public long Id { get; set; }
 
@@ -68,7 +68,7 @@ public static partial class DataMapper
     public static partial DataListEntry ToListEntry(this DataEntity entity);
 
     [Mapper]
-    public static partial DataResponse ToResponse(this DataEntity entity);
+    public static partial DataGetResponse ToGetResponse(this DataEntity entity);
 }
 
 //--------------------------------------------------------------------------------
@@ -85,11 +85,29 @@ public static class DataEndpoints
     {
         var group = app.MapApiGroup(ApiRoutes.Data);
 
-        group.MapGet("/list", HandleListAsync);
-        group.MapGet("/{id:long}", HandleGetAsync);
-        group.MapPost("/", HandleCreateAsync);
-        group.MapPut("/{id:long}", HandleUpdateAsync);
-        group.MapDelete("/{id:long}", HandleDeleteAsync);
+        group.MapGet("/list", HandleListAsync)
+            .WithName("DataList")
+            .Produces<DataListResponse>()
+            .ProducesValidationProblem();
+        group.MapGet("/{id:long}", HandleGetAsync)
+            .WithName("DataGet")
+            .Produces<DataGetResponse>()
+            .ProducesProblem(StatusCodes.Status404NotFound);
+        group.MapPost("/", HandleCreateAsync)
+            .WithName("DataCreate")
+            .Produces<DataCreateResponse>(StatusCodes.Status201Created)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status409Conflict);
+        group.MapPut("/{id:long}", HandleUpdateAsync)
+            .WithName("DataUpdate")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+        group.MapDelete("/{id:long}", HandleDeleteAsync)
+            .WithName("DataDelete")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     //--------------------------------------------------------------------------------
@@ -130,7 +148,7 @@ public static class DataEndpoints
     {
         var entity = await dataService.QueryAsync(id);
         return entity is not null
-            ? TypedResults.Ok(entity.ToResponse())
+            ? TypedResults.Ok(entity.ToGetResponse())
             : TypedResults.NotFound();
     }
 

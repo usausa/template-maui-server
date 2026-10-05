@@ -53,7 +53,11 @@ public static class DeviceEndpoints
     {
         var group = app.MapApiGroup(ApiRoutes.Device);
 
-        group.MapPut("/{deviceId}", HandleRegisterAsync);
+        group.MapPut("/{deviceId}", HandleRegisterAsync)
+            .WithName("DeviceRegister")
+            .Produces<DeviceRegisterResponse>()
+            .Produces<DeviceRegisterResponse>(StatusCodes.Status201Created)
+            .ProducesValidationProblem();
     }
 
     //--------------------------------------------------------------------------------
