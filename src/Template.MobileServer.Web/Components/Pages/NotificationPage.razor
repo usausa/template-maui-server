@@ -1,0 +1,54 @@
+@page "/notification"
+
+<PageTitle>Notification</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Notification</MudText>
+
+<MudText Class="mb-2">接続中の端末: @devices.Count</MudText>
+
+<MudSimpleTable Dense="true" Hover="true" Class="devices-table mb-6">
+    <thead>
+        <tr>
+            <th>端末 ID</th>
+            <th>機種</th>
+            <th>OS</th>
+            <th>電池</th>
+            <th>ネットワーク</th>
+            <th>最終受信</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <ListItem Items="devices" Context="device">
+            <ItemTemplate>
+                <tr>
+                    <td>@device.DeviceId</td>
+                    <td>@device.Model</td>
+                    <td>@device.Platform</td>
+                    <td>@FormatBattery(device)</td>
+                    <td>@device.Network</td>
+                    <td>@FormatTimestamp(device.LastReceivedAt.ToLocalTime().DateTime)</td>
+                    <td><MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" Class="disconnect-button" OnClick="@(() => Disconnect(device))">切断</MudButton></td>
+                </tr>
+            </ItemTemplate>
+        </ListItem>
+    </tbody>
+</MudSimpleTable>
+
+<MudText Typo="Typo.h6" Class="mb-2">通知の送信</MudText>
+
+<MudStack Spacing="2" Class="notify-form">
+    <MudSelect T="string" @bind-Value="target" Label="送信先">
+        <MudSelectItem T="string" Value="@AllTargets">全端末</MudSelectItem>
+        <ListItem Items="devices" Context="device">
+            <ItemTemplate>
+                <MudSelectItem T="string" Value="@device.ConnectionId">@FormatTarget(device)</MudSelectItem>
+            </ItemTemplate>
+        </ListItem>
+    </MudSelect>
+    <MudTextField @bind-Value="title" Label="タイトル" Immediate="true" />
+    <MudTextField @bind-Value="body" Label="本文" Immediate="true" Lines="3" />
+    <div>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Send" Class="send-button" OnClick="SendAsync" Disabled="NoDevices">送信</MudButton>
+    </div>
+</MudStack>
