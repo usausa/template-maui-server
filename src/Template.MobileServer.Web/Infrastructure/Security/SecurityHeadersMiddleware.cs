@@ -4,9 +4,9 @@ public sealed class SecurityHeadersMiddleware
 {
     private const string NoncePlaceholder = "{nonce}";
 
-    private readonly RequestDelegate next;
+    private RequestDelegate Next { get; }
 
-    private readonly SecurityHeadersOption option;
+    private SecurityHeadersOption Option { get; }
 
     private readonly bool useNonce;
 
@@ -14,8 +14,8 @@ public sealed class SecurityHeadersMiddleware
 
     public SecurityHeadersMiddleware(RequestDelegate next, SecurityHeadersOption option)
     {
-        this.next = next;
-        this.option = option;
+        Next = next;
+        Option = option;
         useNonce = option.ContentSecurityPolicy?.Contains(NoncePlaceholder, StringComparison.Ordinal) ?? false;
         onStarting = OnStarting;
     }
@@ -23,7 +23,7 @@ public sealed class SecurityHeadersMiddleware
     public Task Invoke(HttpContext context)
     {
         context.Response.OnStarting(onStarting, context);
-        return next(context);
+        return Next(context);
     }
 
     private Task OnStarting(object state)
@@ -34,12 +34,12 @@ public sealed class SecurityHeadersMiddleware
         headers.XFrameOptions = "DENY";
         headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
 
-        if (option.ContentSecurityPolicy is not null)
+        if (Option.ContentSecurityPolicy is not null)
         {
             var policy = useNonce
-                ? option.ContentSecurityPolicy.Replace(NoncePlaceholder, context.RequestServices.GetRequiredService<CspNonce>().Value, StringComparison.Ordinal)
-                : option.ContentSecurityPolicy;
-            if (option.ReportOnly)
+                ? Option.ContentSecurityPolicy.Replace(NoncePlaceholder, context.RequestServices.GetRequiredService<CspNonce>().Value, StringComparison.Ordinal)
+                : Option.ContentSecurityPolicy;
+            if (Option.ReportOnly)
             {
                 headers.ContentSecurityPolicyReportOnly = policy;
             }

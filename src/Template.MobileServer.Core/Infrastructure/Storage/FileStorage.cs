@@ -19,6 +19,21 @@ public sealed class FileStorage : IStorage
             throw new StorageException("Invalid path.");
         }
 
+        var current = root;
+        foreach (var segment in fullPath[root.Length..].Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries))
+        {
+            current = Path.Combine(current, segment);
+            if (!File.Exists(current) && !Directory.Exists(current))
+            {
+                break;
+            }
+
+            if ((File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
+            {
+                throw new StorageException("Invalid path.");
+            }
+        }
+
         return fullPath;
     }
 

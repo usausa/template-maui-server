@@ -645,7 +645,6 @@ public sealed partial class TelemetryPage
 
     private static string FormatTraceDuration(TelemetryTraceEntity trace) => ViewHelper.FormatDuration(trace.EndTimeUnixNano - trace.StartTimeUnixNano);
 
-    // 本文の 1 行目
     private static string FirstLine(string text)
     {
         var index = text.IndexOfAny(['\r', '\n']);

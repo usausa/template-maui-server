@@ -20,13 +20,13 @@ public sealed class DeviceServiceTests : IDisposable
         using var scope = storage.BeginScope(Now);
 
         // Act
-        var first = await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "Pixel 9a", IsEnabled = true }, TestContext.Current.CancellationToken);
-        var second = await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "other", IsEnabled = true }, TestContext.Current.CancellationToken);
+        var first = await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "Pixel 9a", IsEnabled = true });
+        var second = await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "other", IsEnabled = true });
 
         // Assert
         Assert.Equal(DataWriteStatus.Success, first);
         Assert.Equal(DataWriteStatus.Duplicate, second);
-        var device = await storage.DeviceService.QueryAsync("device-1", TestContext.Current.CancellationToken);
+        var device = await storage.DeviceService.QueryAsync("device-1");
         Assert.NotNull(device);
         Assert.Equal("Pixel 9a", device.Name);
         Assert.Equal(Now.UtcDateTime, device.RegisteredAt);
@@ -39,19 +39,19 @@ public sealed class DeviceServiceTests : IDisposable
         // Arrange
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(Now);
-        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "Pixel 9a", IsEnabled = true }, TestContext.Current.CancellationToken);
+        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "Pixel 9a", IsEnabled = true });
 
         // Act / Assert: 更新
-        var updated = await storage.DeviceService.UpdateAsync(new DeviceEntity { DeviceId = "device-1", Name = "受付", GroupName = "1F", Note = "memo", IsEnabled = false }, TestContext.Current.CancellationToken);
+        var updated = await storage.DeviceService.UpdateAsync(new DeviceEntity { DeviceId = "device-1", Name = "受付", GroupName = "1F", Note = "memo", IsEnabled = false });
         Assert.NotNull(updated);
         Assert.Equal("受付", updated.Name);
         Assert.Equal("1F", updated.GroupName);
         Assert.False(updated.IsEnabled);
-        Assert.Null(await storage.DeviceService.UpdateAsync(new DeviceEntity { DeviceId = "unknown", Name = "x" }, TestContext.Current.CancellationToken));
+        Assert.Null(await storage.DeviceService.UpdateAsync(new DeviceEntity { DeviceId = "unknown", Name = "x" }));
 
         // Act / Assert: 削除
-        Assert.Equal(DataWriteStatus.Success, await storage.DeviceService.DeleteAsync("device-1", TestContext.Current.CancellationToken));
-        Assert.Equal(DataWriteStatus.NotFound, await storage.DeviceService.DeleteAsync("device-1", TestContext.Current.CancellationToken));
+        Assert.Equal(DataWriteStatus.Success, await storage.DeviceService.DeleteAsync("device-1"));
+        Assert.Equal(DataWriteStatus.NotFound, await storage.DeviceService.DeleteAsync("device-1"));
     }
 
     // 削除: 端末宛ての通知も削除する
@@ -61,11 +61,11 @@ public sealed class DeviceServiceTests : IDisposable
         // Arrange
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(Now);
-        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "Pixel 9a", IsEnabled = true }, TestContext.Current.CancellationToken);
-        await storage.PushService.InsertAsync("device-1", "件名", "本文", TestContext.Current.CancellationToken);
+        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "Pixel 9a", IsEnabled = true });
+        await storage.PushService.InsertAsync("device-1", "件名", "本文");
 
         // Act
-        var status = await storage.DeviceService.DeleteAsync("device-1", TestContext.Current.CancellationToken);
+        var status = await storage.DeviceService.DeleteAsync("device-1");
 
         // Assert
         Assert.Equal(DataWriteStatus.Success, status);

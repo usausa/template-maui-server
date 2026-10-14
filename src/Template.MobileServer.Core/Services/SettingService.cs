@@ -5,28 +5,28 @@ using Template.MobileServer.Models.Entity;
 
 public sealed class SettingService
 {
-    private readonly SettingAccessor settingAccessor;
+    private SettingAccessor SettingAccessor { get; }
 
-    private readonly ServiceContextProvider contextProvider;
+    private ServiceContextProvider ContextProvider { get; }
 
     public SettingService(
         SettingAccessor settingAccessor,
         ServiceContextProvider contextProvider)
     {
-        this.settingAccessor = settingAccessor;
-        this.contextProvider = contextProvider;
+        SettingAccessor = settingAccessor;
+        ContextProvider = contextProvider;
     }
 
     public ValueTask<List<SettingEntity>> QueryAllAsync(CancellationToken cancellationToken = default) =>
-        settingAccessor.QueryAllAsync(cancellationToken);
+        SettingAccessor.QueryAllAsync(cancellationToken);
 
     public ValueTask<int> UpdateAsync(string key, string? value)
     {
-        var context = contextProvider.Current;
+        var context = ContextProvider.Current;
 
         var trimmed = value?.Trim();
         return String.IsNullOrEmpty(trimmed)
-            ? settingAccessor.DeleteAsync(key)
-            : settingAccessor.UpsertAsync(key, trimmed, context.Now.DateTime);
+            ? SettingAccessor.DeleteAsync(key)
+            : SettingAccessor.UpsertAsync(key, trimmed, context.Now.UtcDateTime);
     }
 }

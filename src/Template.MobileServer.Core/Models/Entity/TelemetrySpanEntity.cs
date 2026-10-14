@@ -14,13 +14,13 @@ public sealed class TelemetrySpanEntity
 
     public string Name { get; set; } = default!;
 
-    public TelemetrySpanKind Kind { get; set; }
+    public string Kind { get; set; } = TelemetrySpanKind.Unspecified;
 
     public long StartTimeUnixNano { get; set; }
 
     public long EndTimeUnixNano { get; set; }
 
-    public TelemetryStatusCode StatusCode { get; set; }
+    public string StatusCode { get; set; } = TelemetryStatusCode.Unset;
 
     public string StatusMessage { get; set; } = default!;
 

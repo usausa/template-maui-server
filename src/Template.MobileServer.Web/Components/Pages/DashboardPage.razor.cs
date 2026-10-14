@@ -93,11 +93,13 @@ public sealed partial class DashboardPage
     private string StateSummary => $"受信中 {receivingCount}・途絶 {stoppedCount}・受信なし {noDataCount}";
 
     // 状態の帯 (有効な端末の内訳)
-    private string ReceivingStyle => $"flex-grow: {receivingCount}";
+    private string ReceivingWidth => ToStateRatio(receivingCount);
 
-    private string StoppedStyle => $"flex-grow: {stoppedCount}";
+    private string StoppedWidth => ToStateRatio(stoppedCount);
 
-    private string NoDataStyle => $"flex-grow: {noDataCount}";
+    private string NoDataX => ToStateRatio(receivingCount + stoppedCount);
+
+    private string NoDataWidth => ToStateRatio(noDataCount);
 
     private Color ErrorColor => errorCount > 0 ? Color.Warning : Color.Default;
 
@@ -270,7 +272,7 @@ public sealed partial class DashboardPage
     // Load
     //--------------------------------------------------------------------------------
 
-    // 無効の端末はサマリに数えない
+    // 無効の端末はサマリと直近のエラーに含めない
     private void Load()
     {
         devices = Registry.Devices
@@ -278,14 +280,15 @@ public sealed partial class DashboardPage
             .ThenBy(static x => x.Device.DeviceId, StringComparer.Ordinal)
             .ToArray();
         names = devices.ToDictionary(static x => x.Device.DeviceId, static x => x.Device.Name, StringComparer.Ordinal);
-        errors = Registry.RecentErrors.Take(ErrorLimit).ToArray();
+        var enabled = devices.Where(static x => x.Device.IsEnabled).ToArray();
+        var enabledIds = enabled.Select(static x => x.Device.DeviceId).ToHashSet(StringComparer.Ordinal);
+        errors = Registry.RecentErrors.Where(x => enabledIds.Contains(x.DeviceId)).Take(ErrorLimit).ToArray();
 
         // The last minute is in progress
         var history = Registry.IngestHistory;
         ingestHistory = history.Select(static x => (double)x).ToArray();
         ingestRate = history.Count > 1 ? history[^2] : 0;
 
-        var enabled = devices.Where(static x => x.Device.IsEnabled).ToArray();
         var states = enabled.Select(Registry.GetState).ToArray();
         enabledCount = enabled.Length;
         receivingCount = states.Count(static x => x == TelemetryDeviceState.Receiving);
@@ -296,7 +299,6 @@ public sealed partial class DashboardPage
         lowBatteryCount = enabled.Count(static x => x.Battery is { } battery && (ViewHelper.BatteryLevel(battery.Value) == TelemetryLevel.Critical));
     }
 
-    // 端末ごとの未達の通知の件数
     private async Task LoadPendingAsync()
     {
         var summary = await PushService.QueryPendingSummaryAsync();
@@ -328,7 +330,6 @@ public sealed partial class DashboardPage
 
     private static string FormatModel(TelemetryDeviceSummary device) => device.Info?.Model ?? string.Empty;
 
-    // OS とアプリの版
     private static string FormatPlatform(TelemetryDeviceSummary device) =>
         device.Info is { } info ? $"{info.OsName} {info.OsVersion}・アプリ {info.ServiceVersion}" : string.Empty;
 
@@ -341,4 +342,10 @@ public sealed partial class DashboardPage
     private string FindName(string deviceId) => names.GetValueOrDefault(deviceId, deviceId);
 
     private int PendingCount(TelemetryDeviceSummary device) => pending.GetValueOrDefault(device.Device.DeviceId);
+
+    private string ToStateRatio(int count)
+    {
+        var total = receivingCount + stoppedCount + noDataCount;
+        return total == 0 ? "0" : FormattableString.Invariant($"{count * 100d / total:0.###}%");
+    }
 }

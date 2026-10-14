@@ -6,10 +6,10 @@ public interface ITelemetryDbProvider
     IReadOnlyList<string> EnumerateDevices();
 
     // ファイルが無ければ作る
-    ValueTask<DbConnection> OpenAsync(string deviceId, CancellationToken cancellationToken);
+    ValueTask<DbConnection> OpenAsync(string deviceId, CancellationToken cancellationToken = default);
 
     // ファイルが無ければ null (照会ではファイルを作らない)
-    ValueTask<DbConnection?> OpenExistingAsync(string deviceId, CancellationToken cancellationToken);
+    ValueTask<DbConnection?> OpenExistingAsync(string deviceId, CancellationToken cancellationToken = default);
 
     // ファイルが無ければ false
     bool Delete(string deviceId);

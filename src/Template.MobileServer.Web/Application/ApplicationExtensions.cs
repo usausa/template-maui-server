@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -189,15 +190,24 @@ public static class ApplicationExtensions
         // CSP nonce
         builder.Services.AddScoped<CspNonce>();
 
-        // XForward
-        builder.Services.Configure<ForwardedHeadersOptions>(static options =>
+        // XForward (ASP.NET Core 8.0.17 / 9.0.6 以降、既知のネットワークとプロキシ以外からの X-Forwarded-* は無視される。既定はループバックだけ)
+        builder.Services.AddOptions<ForwardedHeadersOptions>().Configure<ForwardedHeadersSetting>(static (options, setting) =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.ForwardLimit = setting.ForwardLimit;
+            foreach (var network in setting.KnownNetworks)
+            {
+                options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(network));
+            }
 
-            // Do not restrict to local network/proxy
-            options.KnownIPNetworks.Clear();
-            options.KnownProxies.Clear();
+            foreach (var proxy in setting.KnownProxies)
+            {
+                options.KnownProxies.Add(IPAddress.Parse(proxy));
+            }
         });
+
+        // Kestrel
+        builder.Services.Configure<KestrelServerOptions>(static options => options.AddServerHeader = false);
 
         return builder;
     }
@@ -270,12 +280,15 @@ public static class ApplicationExtensions
                 b.UseStatusCodePages();
             });
 
-        // Page: error page
+        // Page: error page and not found page
         app.UseWhen(
             static context => !context.Request.Path.StartsWithSegments(ApiRoutes.Prefix, StringComparison.OrdinalIgnoreCase),
             static b =>
             {
                 b.UseExceptionHandler("/error", createScopeForErrors: true);
+                b.UseWhen(
+                    static context => HttpMethods.IsGet(context.Request.Method),
+                    static g => g.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
             });
 
         return app;
@@ -453,6 +466,10 @@ public static class ApplicationExtensions
             options.SnackbarConfiguration.SnackbarVariant = MudBlazor.Variant.Filled;
         });
 
+        // MudBlazor localization
+        builder.Services.AddTransient<MudLocalizer, JapaneseMudLocalizer>();
+        builder.Services.AddLocalizationInterceptor(static p => new DefaultLocalizationInterceptor(p.GetRequiredService<ILoggerFactory>(), p.GetRequiredService<MudLocalizer>()) { IgnoreDefaultEnglish = true });
+
         return builder;
     }
 
@@ -578,6 +595,20 @@ public static class ApplicationExtensions
 
     public static IHostApplicationBuilder ConfigureComponents(this IHostApplicationBuilder builder)
     {
+        // Setting
+        builder.Services.AddOptions<CompressionSetting>().BindConfiguration("Compression").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<CompressionSetting>>().Value);
+        builder.Services.AddOptions<CspSetting>().BindConfiguration("Csp").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<CspSetting>>().Value);
+        builder.Services.AddOptions<ForwardedHeadersSetting>().BindConfiguration("ForwardedHeaders").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<ForwardedHeadersSetting>>().Value);
+        builder.Services.AddOptions<LogSetting>().BindConfiguration("Log").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<LogSetting>>().Value);
+        builder.Services.AddOptions<ProfilerSetting>().BindConfiguration("Profiler").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<ProfilerSetting>>().Value);
+        builder.Services.AddOptions<TelemetrySetting>().BindConfiguration("Telemetry").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<TelemetrySetting>>().Value);
+
         // System
         builder.Services.AddSingleton(TimeProvider.System);
 
@@ -621,52 +652,40 @@ public static class ApplicationExtensions
         builder.Services.AddCoreServices();
 
         // Notification
-        builder.Services.AddSingleton<Infrastructure.Notifications.NotificationBus>();
         builder.Services.AddOptions<Workers.NotificationWorkerOption>().BindConfiguration("Notification").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<Workers.NotificationWorkerOption>>().Value);
+        builder.Services.AddSingleton<Infrastructure.Notifications.NotificationBus>();
         builder.Services.AddHostedService<Workers.NotificationWorker>();
 
         // Chat
         builder.Services.AddSingleton<Services.ChatService>();
 
         // Monitor
-        builder.Services.AddSingleton<Services.DeviceRegistry>();
-        builder.Services.AddSingleton<Services.MonitorNotifier>();
         builder.Services.AddOptions<Workers.ServerStatusWorkerOption>().BindConfiguration("ServerStatus").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<Workers.ServerStatusWorkerOption>>().Value);
+        builder.Services.AddSingleton<Services.DeviceRegistry>();
+        builder.Services.AddSingleton<Services.MonitorNotifier>();
         builder.Services.AddHostedService<Workers.ServerStatusWorker>();
 
         // Telemetry
-        builder.Services.AddSingleton<OtlpReceiver>();
         builder.Services.AddOptions<TelemetryReceiverOption>().BindConfiguration("TelemetryReceiver").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<TelemetryReceiverOption>>().Value);
         builder.Services.AddOptions<TelemetryStorageOption>().BindConfiguration("TelemetryStorage").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<TelemetryStorageOption>>().Value);
+        builder.Services.AddOptions<Workers.TelemetryRetentionWorkerOption>().BindConfiguration("TelemetryRetention").ValidateDataAnnotations().ValidateOnStart();
+        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<Workers.TelemetryRetentionWorkerOption>>().Value);
         builder.Services.AddSingleton<ITelemetryDbProvider, SqliteTelemetryDbProvider>();
+        builder.Services.AddSingleton<OtlpReceiver>();
         builder.Services.AddSingleton<TelemetryStore>();
         builder.Services.AddSingleton<TelemetryBus>();
         builder.Services.AddSingleton<TelemetryDeviceRegistry>();
-        builder.Services.AddOptions<Workers.TelemetryRetentionWorkerOption>().BindConfiguration("TelemetryRetention").ValidateDataAnnotations().ValidateOnStart();
-        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<Workers.TelemetryRetentionWorkerOption>>().Value);
         builder.Services.AddHostedService<Workers.TelemetryRetentionWorker>();
 
         // Push
-        builder.Services.AddSingleton<Services.PushNotifier>();
         builder.Services.AddOptions<Workers.PushRetentionWorkerOption>().BindConfiguration("PushRetention").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<Workers.PushRetentionWorkerOption>>().Value);
+        builder.Services.AddSingleton<Services.PushNotifier>();
         builder.Services.AddHostedService<Workers.PushRetentionWorker>();
-
-        // Setting
-        builder.Services.AddOptions<CompressionSetting>().BindConfiguration("Compression").ValidateDataAnnotations().ValidateOnStart();
-        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<CompressionSetting>>().Value);
-        builder.Services.AddOptions<CspSetting>().BindConfiguration("Csp").ValidateDataAnnotations().ValidateOnStart();
-        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<CspSetting>>().Value);
-        builder.Services.AddOptions<LogSetting>().BindConfiguration("Log").ValidateDataAnnotations().ValidateOnStart();
-        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<LogSetting>>().Value);
-        builder.Services.AddOptions<ProfilerSetting>().BindConfiguration("Profiler").ValidateDataAnnotations().ValidateOnStart();
-        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<ProfilerSetting>>().Value);
-        builder.Services.AddOptions<TelemetrySetting>().BindConfiguration("Telemetry").ValidateDataAnnotations().ValidateOnStart();
-        builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<TelemetrySetting>>().Value);
 
         return builder;
     }
@@ -756,11 +775,13 @@ public static class ApplicationExtensions
         app.MapHub<PushHub>(HubRoutes.Push);
 
         // Health
-        app.MapHealthChecks(HealthEndpointPath);
+        app.MapHealthChecks(HealthEndpointPath)
+            .DisableHttpMetrics();
         app.MapHealthChecks(AlivenessEndpointPath, new HealthCheckOptions
         {
             Predicate = static r => r.Tags.Contains("live")
-        });
+        })
+            .DisableHttpMetrics();
 
         return app;
     }
@@ -782,7 +803,7 @@ public static class ApplicationExtensions
         app.Services.GetRequiredService<Services.MonitorNotifier>();
 
         // Prepare database (schema from the SQL file)
-        await app.Services.GetRequiredService<DatabaseService>().InitializeAsync(SchemaPath, CancellationToken.None);
+        await app.Services.GetRequiredService<DatabaseService>().InitializeAsync(SchemaPath);
 
         // Prepare the cache of the devices (the registrations and the telemetry of each device)
         await app.Services.GetRequiredService<TelemetryDeviceRegistry>().LoadAsync(CancellationToken.None);

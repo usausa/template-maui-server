@@ -9,6 +9,9 @@
 <MudGrid>
     <MudItem xs="12" md="6">
         <MudText Typo="Typo.subtitle1" Class="mb-2">接続先(サーバーの URL)</MudText>
+        <Condition Value="loopback">
+            <MudAlert Severity="Severity.Warning" Dense="true" Class="loopback-alert mb-2">localhost で開いているため、接続先が端末から届きません(adb reverse を使う場合を除く)。端末から届くホスト名か IP アドレスで開いてください。</MudAlert>
+        </Condition>
         <MudSimpleTable Dense="true" Class="setting-table mb-4">
             <tbody>
                 <ListItem Items="connections" Context="item">
@@ -31,8 +34,8 @@
         <MudSimpleTable Dense="true" Hover="true" Class="setting-table">
             <thead>
                 <tr>
-                    <th class="setting-key">Key</th>
-                    <th>Value</th>
+                    <th class="setting-key">キー</th>
+                    <th>値</th>
                 </tr>
             </thead>
             <tbody>

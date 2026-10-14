@@ -42,6 +42,8 @@ public sealed partial class QrPage
 
     private string qrImage = string.Empty;
 
+    private bool loopback;
+
     private bool HasQrImage => !String.IsNullOrEmpty(qrImage);
 
     private bool IsDirty => items.Any(static x => x.IsDirty);
@@ -68,6 +70,7 @@ public sealed partial class QrPage
 
     protected override Task OnInitializedAsync()
     {
+        loopback = new Uri(Navigation.BaseUri).IsLoopback;
         connections.Add(new(ClientSettingKeys.ApiEndPoint, Navigation.BaseUri));
         connections.Add(new(ClientSettingKeys.GrpcEndPoint, MakeEndPoint(Navigation.BaseUri, Configuration[GrpcEndpointConfigurationKey])));
         connections.Add(new(ClientSettingKeys.OtelEndPoint, MakeEndPoint(Navigation.BaseUri, Configuration[OtelEndpointConfigurationKey])));
@@ -156,7 +159,7 @@ public sealed partial class QrPage
     // Helper
     //--------------------------------------------------------------------------------
 
-    // Same host as the server with the port of the Kestrel endpoint
+    // Same host as the server with the scheme and port of the Kestrel endpoint
     internal static string MakeEndPoint(string baseUri, string? url)
     {
         if (String.IsNullOrEmpty(url) ||
@@ -165,7 +168,7 @@ public sealed partial class QrPage
             return string.Empty;
         }
 
-        var builder = new UriBuilder(baseUri) { Port = uri.Port, Path = "/", Query = string.Empty };
+        var builder = new UriBuilder(baseUri) { Scheme = uri.Scheme, Port = uri.Port, Path = "/", Query = string.Empty };
         return builder.Uri.ToString();
     }
 

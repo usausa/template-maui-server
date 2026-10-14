@@ -38,7 +38,7 @@ public sealed partial class TraceWaterfall
         var list = new List<WaterfallTick>();
         for (var time = 0d; time <= Model.Duration; time += step)
         {
-            list.Add(new WaterfallTick(FormattableString.Invariant($"left: {time / Model.Duration * 100:0.###}%"), ViewHelper.FormatDuration((long)time)));
+            list.Add(new WaterfallTick(ToPercent(time / Model.Duration), ViewHelper.FormatDuration((long)time)));
         }
 
         ticks = list;
@@ -59,19 +59,24 @@ public sealed partial class TraceWaterfall
     private string RowClass(WaterfallRow row) =>
         row.Span.SpanId == SelectedSpanId ? "waterfall-row waterfall-selected" : "waterfall-row";
 
-    private static string IndentStyle(WaterfallRow row) => $"padding-left: {row.Depth * IndentWidth}px";
+    private static int Indent(WaterfallRow row) => row.Depth * IndentWidth;
 
     private string ToggleIcon(WaterfallRow row) =>
         Model.IsCollapsed(row.Span.SpanId) ? Icons.Material.Filled.ChevronRight : Icons.Material.Filled.ExpandMore;
 
     private static string BarClass(WaterfallRow row) => row.IsError ? "waterfall-bar waterfall-bar-error" : "waterfall-bar";
 
-    private static string BarStyle(WaterfallRow row) =>
-        FormattableString.Invariant($"left: {row.Offset * 100:0.###}%; width: max(2px, {row.Width * 100:0.###}%)");
+    private static string BarX(WaterfallRow row) => ToPercent(row.Offset);
+
+    private static string BarWidth(WaterfallRow row) => ToPercent(row.Width);
 
     private static string EventClass(WaterfallEvent item) => item.IsException ? "waterfall-event waterfall-event-exception" : "waterfall-event";
 
-    private static string EventStyle(WaterfallEvent item) => FormattableString.Invariant($"left: {item.Position * 100:0.###}%");
+    private static string EventX(WaterfallEvent item) => ToPercent(item.Position);
+
+    private static int EventWidth(WaterfallEvent item) => item.IsException ? 3 : 2;
+
+    private static string ToPercent(double ratio) => FormattableString.Invariant($"{ratio * 100:0.###}%");
 
     private static double NiceStep(double raw)
     {
@@ -86,5 +91,5 @@ public sealed partial class TraceWaterfall
         return nice * magnitude;
     }
 
-    private sealed record WaterfallTick(string Style, string Label);
+    private sealed record WaterfallTick(string X, string Label);
 }

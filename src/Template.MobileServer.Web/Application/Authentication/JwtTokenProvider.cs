@@ -8,30 +8,30 @@ public sealed class JwtTokenProvider
 {
     private static readonly JsonWebTokenHandler Handler = new();
 
-    private readonly JwtSetting setting;
+    private TimeProvider TimeProvider { get; }
 
-    private readonly TimeProvider timeProvider;
+    private JwtSetting Setting { get; }
 
     private readonly SigningCredentials credentials;
 
-    public JwtTokenProvider(JwtSetting setting, TimeProvider timeProvider)
+    public JwtTokenProvider(TimeProvider timeProvider, JwtSetting setting)
     {
-        this.setting = setting;
-        this.timeProvider = timeProvider;
+        TimeProvider = timeProvider;
+        Setting = setting;
         credentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(setting.SecretKey)), SecurityAlgorithms.HmacSha256);
     }
 
     public string CreateToken(string id)
     {
-        var now = timeProvider.GetUtcNow();
+        var now = TimeProvider.GetUtcNow();
 
         var descriptor = new SecurityTokenDescriptor
         {
-            Issuer = setting.Issuer,
-            Audience = setting.Audience,
+            Issuer = Setting.Issuer,
+            Audience = Setting.Audience,
             IssuedAt = now.UtcDateTime,
             NotBefore = now.UtcDateTime,
-            Expires = now.AddMinutes(setting.ExpireMinutes).UtcDateTime,
+            Expires = now.AddMinutes(Setting.ExpireMinutes).UtcDateTime,
             Claims = new Dictionary<string, object>
             {
                 [JwtRegisteredClaimNames.Sub] = id,

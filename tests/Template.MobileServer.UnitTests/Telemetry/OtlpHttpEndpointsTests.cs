@@ -25,7 +25,7 @@ public sealed class OtlpHttpEndpointsTests
         var received = default(ExportLogsServiceRequest);
 
         // Act
-        var result = await OtlpHttpEndpoints.ReceiveAsync(request, Limit, ExportLogsServiceRequest.Parser, (x, _) =>
+        var result = await OtlpHttpEndpoints.ReceiveAsync(request, Limit, ExportLogsServiceRequest.Parser, x =>
         {
             received = x;
             return ValueTask.FromResult(new ExportLogsServiceResponse());
@@ -35,6 +35,22 @@ public sealed class OtlpHttpEndpointsTests
         var content = Assert.IsType<FileContentHttpResult>(result);
         Assert.Equal(OtlpHttpEndpoints.ProtobufContentType, content.ContentType);
         Assert.Equal(2, received?.ResourceLogs[0].ScopeLogs[0].LogRecords.Count);
+    }
+
+    // メディアタイプで比べる (パラメーター付き・大文字も受ける)
+    [Theory]
+    [InlineData("application/x-protobuf; charset=binary")]
+    [InlineData("Application/X-Protobuf")]
+    public async Task ReceiveAcceptsProtobufMediaType(string contentType)
+    {
+        // Arrange
+        var request = CreateRequest(CreateMessage().ToByteArray(), contentType);
+
+        // Act
+        var result = await OtlpHttpEndpoints.ReceiveAsync(request, Limit, ExportLogsServiceRequest.Parser, static _ => ValueTask.FromResult(new ExportLogsServiceResponse()));
+
+        // Assert
+        Assert.IsType<FileContentHttpResult>(result);
     }
 
     // gzip の本文は展開する
@@ -53,7 +69,7 @@ public sealed class OtlpHttpEndpointsTests
         var received = default(ExportLogsServiceRequest);
 
         // Act
-        var result = await OtlpHttpEndpoints.ReceiveAsync(request, Limit, ExportLogsServiceRequest.Parser, (x, _) =>
+        var result = await OtlpHttpEndpoints.ReceiveAsync(request, Limit, ExportLogsServiceRequest.Parser, x =>
         {
             received = x;
             return ValueTask.FromResult(new ExportLogsServiceResponse());
@@ -75,7 +91,7 @@ public sealed class OtlpHttpEndpointsTests
         var request = CreateRequest(body, contentType);
 
         // Act
-        var result = await OtlpHttpEndpoints.ReceiveAsync(request, limit, ExportLogsServiceRequest.Parser, static (_, _) => ValueTask.FromResult(new ExportLogsServiceResponse()));
+        var result = await OtlpHttpEndpoints.ReceiveAsync(request, limit, ExportLogsServiceRequest.Parser, static _ => ValueTask.FromResult(new ExportLogsServiceResponse()));
 
         // Assert
         Assert.Equal(statusCode, Assert.IsAssignableFrom<IStatusCodeHttpResult>(result).StatusCode);
@@ -89,7 +105,7 @@ public sealed class OtlpHttpEndpointsTests
         var request = CreateRequest(CreateMessage().ToByteArray());
 
         // Act
-        var result = await OtlpHttpEndpoints.ReceiveAsync<ExportLogsServiceRequest, ExportLogsServiceResponse>(request, Limit, ExportLogsServiceRequest.Parser, static (_, _) => throw new IOException("Disk full."));
+        var result = await OtlpHttpEndpoints.ReceiveAsync<ExportLogsServiceRequest, ExportLogsServiceResponse>(request, Limit, ExportLogsServiceRequest.Parser, static _ => throw new IOException("Disk full."));
 
         // Assert
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, Assert.IsAssignableFrom<IStatusCodeHttpResult>(result).StatusCode);

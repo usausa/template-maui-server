@@ -2,16 +2,16 @@ namespace Template.MobileServer.Web.Application.Context;
 
 public sealed class ServiceContextEndpointFilter : IEndpointFilter
 {
-    private readonly ApplicationServiceContextProvider provider;
+    private ApplicationServiceContextProvider Provider { get; }
 
     public ServiceContextEndpointFilter(ApplicationServiceContextProvider provider)
     {
-        this.provider = provider;
+        Provider = provider;
     }
 
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
-        using var scope = provider.Begin(() => HttpServiceContext.GetOrCreate(context.HttpContext));
+        using var scope = Provider.Begin(() => HttpServiceContext.GetOrCreate(context.HttpContext));
         return await next(context);
     }
 }

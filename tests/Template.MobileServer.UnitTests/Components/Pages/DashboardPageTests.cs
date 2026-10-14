@@ -12,7 +12,6 @@ using NSubstitute;
 
 using Template.MobileServer.Domain;
 using Template.MobileServer.Models.Entity;
-using Template.MobileServer.Models.Enums;
 using Template.MobileServer.Models.Parameters;
 using Template.MobileServer.Telemetry;
 using Template.MobileServer.Web.Components.Pages;
@@ -21,7 +20,7 @@ using Template.MobileServer.Web.Services;
 
 public sealed class DashboardPageTests : MudBlazorTestBase
 {
-    // 表示: サマリは無効の端末を数えない (エラーは ERROR 以上なのでクラッシュを含む)。無効の端末の行は薄く、固有値は 0〜100 の横棒、直近のエラーは本文の 1 行目
+    // 表示: サマリは無効の端末を数えない (エラーは ERROR 以上なのでクラッシュを含む)。状態の帯は内訳の割合、無効の端末の行は薄く、固有値は 0〜100 の横棒、直近のエラーは本文の 1 行目
     [Fact]
     public async Task RenderShowsSummaryAndDevices()
     {
@@ -34,6 +33,8 @@ public sealed class DashboardPageTests : MudBlazorTestBase
 
         // Assert
         Assert.Equal("1 / 1", cut.Find(".summary-devices").TextContent.Trim());
+        Assert.Equal("100%", cut.Find(".state-receiving").GetAttribute("width"));
+        Assert.Equal("0%", cut.Find(".state-stopped").GetAttribute("width"));
         Assert.Equal("2", cut.Find(".summary-errors").TextContent.Trim());
         Assert.Equal("1", cut.Find(".summary-crashes").TextContent.Trim());
         Assert.Equal("1", cut.Find(".summary-battery").TextContent.Trim());
@@ -41,11 +42,34 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         Assert.Contains("Reception", cut.Find("tr.device-disabled").TextContent, StringComparison.Ordinal);
         Assert.Contains("受信中", cut.Markup, StringComparison.Ordinal);
         Assert.Contains("15%", cut.Markup, StringComparison.Ordinal);
-        Assert.Contains("width: 42%", cut.Markup, StringComparison.Ordinal);
+        Assert.Contains("width=\"42%\"", cut.Markup, StringComparison.Ordinal);
         var errors = cut.FindAll("tr.error-row");
         Assert.Equal(2, errors.Count);
         Assert.Contains("crashed", errors[0].TextContent, StringComparison.Ordinal);
         Assert.DoesNotContain("at Main", cut.Markup, StringComparison.Ordinal);
+    }
+
+    // 直近のエラー: サマリと同じく、無効の端末のエラーは出さない
+    [Fact]
+    public async Task RecentErrorsExcludeDisabledDevices()
+    {
+        // Arrange
+        using var storage = new TelemetryTestStorage();
+        await PrepareAsync(storage);
+        using (storage.BeginScope(DateTimeOffset.Now))
+        {
+            var device = await storage.DeviceService.QueryAsync("device-1");
+            Assert.NotNull(device);
+            device.IsEnabled = false;
+            await storage.Registry.UpdateAsync(device);
+        }
+
+        // Act
+        var cut = Render<DashboardPage>();
+
+        // Assert
+        Assert.Empty(cut.FindAll("tr.error-row"));
+        Assert.Contains("直近 24 時間のエラーはありません。", cut.Markup, StringComparison.Ordinal);
     }
 
     // 検索: 端末 ID・名前・グループの部分一致で行を絞る
@@ -77,7 +101,7 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         // Act
         using (storage.BeginScope(DateTimeOffset.Now))
         {
-            await storage.Registry.AddAsync(new DeviceEntity { DeviceId = "device-3", Name = "Added", IsEnabled = true }, Xunit.TestContext.Current.CancellationToken);
+            await storage.Registry.AddAsync(new DeviceEntity { DeviceId = "device-3", Name = "Added", IsEnabled = true });
         }
 
         // Assert
@@ -111,13 +135,12 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         // Arrange
         using var storage = new TelemetryTestStorage();
         await PrepareAsync(storage);
-        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
         var notifier = Services.GetRequiredService<PushNotifier>();
         List<PushMessageEntity> all;
         using (storage.BeginScope(DateTimeOffset.Now))
         {
-            all = await notifier.SendAsync(null, "件名", "本文", cancellationToken);
-            await notifier.SendAsync("device-1", "件名", "本文", cancellationToken);
+            all = await notifier.SendAsync(null, "件名", "本文");
+            await notifier.SendAsync("device-1", "件名", "本文");
         }
 
         var cut = Render<DashboardPage>();
@@ -127,7 +150,7 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         // Act
         using (storage.BeginScope(DateTimeOffset.Now))
         {
-            await notifier.AcknowledgeAsync("device-1", Assert.Single(all).Id, cancellationToken);
+            await notifier.AcknowledgeAsync("device-1", Assert.Single(all).Id);
         }
 
         // Assert
@@ -137,14 +160,13 @@ public sealed class DashboardPageTests : MudBlazorTestBase
     // 受信中の端末 (電池 15%、固有値 1 = 42、エラーとクラッシュ 1 件ずつ) と、グループ付きの無効の端末 (テレメトリなし)
     private async Task PrepareAsync(TelemetryTestStorage storage)
     {
-        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
         await storage.PrepareDatabaseAsync();
         using (storage.BeginScope(DateTimeOffset.Now))
         {
             var batch = CreateBatch();
-            await storage.Registry.EnsureRegisteredAsync(batch.DeviceInfo, cancellationToken);
-            storage.Registry.Apply(await storage.Store.SaveAsync(batch, cancellationToken));
-            await storage.Registry.AddAsync(new DeviceEntity { DeviceId = "device-2", Name = "Reception", GroupName = "1F", IsEnabled = false }, cancellationToken);
+            await storage.Registry.EnsureRegisteredAsync(batch.DeviceInfo);
+            storage.Registry.Apply(await storage.Store.SaveAsync(batch));
+            await storage.Registry.AddAsync(new DeviceEntity { DeviceId = "device-2", Name = "Reception", GroupName = "1F", IsEnabled = false });
         }
 
         Services.AddSingleton(storage.Registry);

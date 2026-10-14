@@ -9,16 +9,16 @@ public sealed class TelemetryStore : IDisposable
 {
     private readonly ConcurrentDictionary<string, Entry> entries = new(StringComparer.Ordinal);
 
-    private readonly ITelemetryDbProvider provider;
+    private ITelemetryDbProvider Provider { get; }
 
-    private readonly TelemetryService telemetryService;
+    private TelemetryService TelemetryService { get; }
 
     public TelemetryStore(
         ITelemetryDbProvider provider,
         TelemetryService telemetryService)
     {
-        this.provider = provider;
-        this.telemetryService = telemetryService;
+        Provider = provider;
+        TelemetryService = telemetryService;
     }
 
     public void Dispose()
@@ -32,23 +32,23 @@ public sealed class TelemetryStore : IDisposable
     }
 
     // テレメトリのファイルがある端末
-    public IReadOnlyList<string> EnumerateDevices() => provider.EnumerateDevices();
+    public IReadOnlyList<string> EnumerateDevices() => Provider.EnumerateDevices();
 
     // 保存済みの Id は最初の書き込みで読み、新しく足した Id はコミットの後に足す
-    public async ValueTask<TelemetrySaveResult> SaveAsync(TelemetryBatch batch, CancellationToken cancellationToken = default)
+    public async ValueTask<TelemetrySaveResult> SaveAsync(TelemetryBatch batch)
     {
         var entry = GetEntry(batch.DeviceId);
-        await entry.Lock.WaitAsync(cancellationToken);
+        await entry.Lock.WaitAsync();
         try
         {
             if (!entry.Loaded)
             {
-                var saved = await telemetryService.QueryIdsAsync(batch.DeviceId, cancellationToken);
+                var saved = await TelemetryService.QueryIdsAsync(batch.DeviceId);
                 entry.Add(saved.Resources, saved.Series);
                 entry.Loaded = true;
             }
 
-            var result = await telemetryService.SaveAsync(batch, entry.Resources, entry.Series, cancellationToken);
+            var result = await TelemetryService.SaveAsync(batch, entry.Resources, entry.Series);
             entry.Add(result.AddedResources, result.AddedSeries);
             return result;
         }
@@ -59,14 +59,14 @@ public sealed class TelemetryStore : IDisposable
     }
 
     // 端末のファイルを削除する (ファイルが無ければ false)
-    public async ValueTask<bool> DeleteDeviceAsync(string deviceId, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> DeleteDeviceAsync(string deviceId)
     {
         var entry = GetEntry(deviceId);
-        await entry.Lock.WaitAsync(cancellationToken);
+        await entry.Lock.WaitAsync();
         try
         {
             entry.Clear();
-            return provider.Delete(deviceId);
+            return Provider.Delete(deviceId);
         }
         finally
         {
@@ -75,13 +75,13 @@ public sealed class TelemetryStore : IDisposable
     }
 
     // 保持期間の削除。ファイルごと削除したら保存済みの Id も捨てる
-    public async ValueTask<TelemetryDeleteResult> DeleteExpiredAsync(string deviceId, long logBefore, long traceBefore, long metricBefore, long deviceBefore, CancellationToken cancellationToken = default)
+    public async ValueTask<TelemetryDeleteResult> DeleteExpiredAsync(string deviceId, long logBefore, long traceBefore, long metricBefore, long deviceBefore)
     {
         var entry = GetEntry(deviceId);
-        await entry.Lock.WaitAsync(cancellationToken);
+        await entry.Lock.WaitAsync();
         try
         {
-            var result = await telemetryService.DeleteExpiredAsync(deviceId, logBefore, traceBefore, metricBefore, deviceBefore, cancellationToken);
+            var result = await TelemetryService.DeleteExpiredAsync(deviceId, logBefore, traceBefore, metricBefore, deviceBefore);
             if (result.FileDeleted)
             {
                 entry.Clear();

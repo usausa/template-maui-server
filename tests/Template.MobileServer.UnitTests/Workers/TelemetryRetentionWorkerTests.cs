@@ -23,8 +23,8 @@ public sealed class TelemetryRetentionWorkerTests : IDisposable
         await storage.PrepareDatabaseAsync();
         using (storage.BeginScope(DateTimeOffset.Now.AddDays(-40)))
         {
-            await storage.Registry.EnsureRegisteredAsync(CreateInfo(), TestContext.Current.CancellationToken);
-            storage.Registry.Apply(await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken));
+            await storage.Registry.EnsureRegisteredAsync(CreateInfo());
+            storage.Registry.Apply(await storage.Store.SaveAsync(CreateBatch()));
         }
 
         var path = Path.Combine(storage.Root, DeviceId + ".db");
@@ -44,7 +44,7 @@ public sealed class TelemetryRetentionWorkerTests : IDisposable
         Assert.False(File.Exists(path));
         var summary = Assert.Single(storage.Registry.Devices);
         Assert.Null(summary.Info);
-        Assert.NotNull(await storage.DeviceService.QueryAsync(DeviceId, TestContext.Current.CancellationToken));
+        Assert.NotNull(await storage.DeviceService.QueryAsync(DeviceId));
     }
 
     private static TelemetryDeviceInfoEntity CreateInfo() =>

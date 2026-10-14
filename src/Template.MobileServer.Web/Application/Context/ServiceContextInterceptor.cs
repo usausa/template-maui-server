@@ -5,11 +5,11 @@ using Grpc.Core.Interceptors;
 
 public sealed class ServiceContextInterceptor : Interceptor
 {
-    private readonly ApplicationServiceContextProvider provider;
+    private ApplicationServiceContextProvider Provider { get; }
 
     public ServiceContextInterceptor(ApplicationServiceContextProvider provider)
     {
-        this.provider = provider;
+        Provider = provider;
     }
 
     public override async Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request, ServerCallContext context, UnaryServerMethod<TRequest, TResponse> continuation)
@@ -37,5 +37,5 @@ public sealed class ServiceContextInterceptor : Interceptor
     }
 
     private IDisposable Begin(ServerCallContext context) =>
-        provider.Begin(() => HttpServiceContext.Create(context.GetHttpContext()));
+        Provider.Begin(() => HttpServiceContext.Create(context.GetHttpContext()));
 }

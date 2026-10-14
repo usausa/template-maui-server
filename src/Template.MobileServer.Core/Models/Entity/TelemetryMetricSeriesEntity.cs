@@ -13,9 +13,9 @@ public sealed class TelemetryMetricSeriesEntity
 
     public string Unit { get; set; } = default!;
 
-    public TelemetryMetricKind Kind { get; set; }
+    public string Kind { get; set; } = TelemetryMetricKind.Unspecified;
 
-    public TelemetryTemporality Temporality { get; set; }
+    public string Temporality { get; set; } = TelemetryTemporality.Unspecified;
 
     public bool IsMonotonic { get; set; }
 

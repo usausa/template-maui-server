@@ -7,6 +7,7 @@
     <Project Path="src/Template.MobileServer.Web/Template.MobileServer.Web.csproj" />
   </Folder>
   <Folder Name="/Test/">
+    <Project Path="tests/Template.MobileServer.IntegrationTests/Template.MobileServer.IntegrationTests.csproj" />
     <Project Path="tests/Template.MobileServer.UnitTests/Template.MobileServer.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">

@@ -4,45 +4,45 @@ using Microsoft.AspNetCore.Components.Server.Circuits;
 
 public sealed class AppCircuitHandler : CircuitHandler
 {
-    private readonly ILogger<AppCircuitHandler> log;
+    private ILogger<AppCircuitHandler> Log { get; }
 
-    private readonly TimeProvider timeProvider;
+    private TimeProvider TimeProvider { get; }
 
-    private readonly CircuitTracker tracker;
+    private CircuitTracker Tracker { get; }
 
     public AppCircuitHandler(
         ILogger<AppCircuitHandler> log,
         TimeProvider timeProvider,
         CircuitTracker tracker)
     {
-        this.log = log;
-        this.timeProvider = timeProvider;
-        this.tracker = tracker;
+        Log = log;
+        TimeProvider = timeProvider;
+        Tracker = tracker;
     }
 
     public override Task OnCircuitOpenedAsync(Circuit circuit, CancellationToken cancellationToken)
     {
-        tracker.Add(new CircuitInfo(circuit.Id, timeProvider.GetLocalNow(), true));
-        log.InfoCircuitOpened(circuit.Id, tracker.Count);
+        Tracker.Add(new CircuitInfo(circuit.Id, TimeProvider.GetLocalNow(), true));
+        Log.InfoCircuitOpened(circuit.Id, Tracker.Count);
         return Task.CompletedTask;
     }
 
     public override Task OnConnectionUpAsync(Circuit circuit, CancellationToken cancellationToken)
     {
-        tracker.SetConnected(circuit.Id, true);
+        Tracker.SetConnected(circuit.Id, true);
         return Task.CompletedTask;
     }
 
     public override Task OnConnectionDownAsync(Circuit circuit, CancellationToken cancellationToken)
     {
-        tracker.SetConnected(circuit.Id, false);
+        Tracker.SetConnected(circuit.Id, false);
         return Task.CompletedTask;
     }
 
     public override Task OnCircuitClosedAsync(Circuit circuit, CancellationToken cancellationToken)
     {
-        tracker.Remove(circuit.Id);
-        log.InfoCircuitClosed(circuit.Id, tracker.Count);
+        Tracker.Remove(circuit.Id);
+        Log.InfoCircuitClosed(circuit.Id, Tracker.Count);
         return Task.CompletedTask;
     }
 }

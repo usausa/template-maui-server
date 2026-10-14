@@ -5,6 +5,10 @@ using System.Diagnostics.Metrics;
 
 public sealed class ApplicationInstrument : IDisposable
 {
+    private TimeProvider TimeProvider { get; }
+
+    private readonly DateTimeOffset startTime;
+
     private readonly Meter meter;
 
     public ActivitySource ActivitySource { get; }
@@ -13,8 +17,14 @@ public sealed class ApplicationInstrument : IDisposable
 
     private readonly Counter<long> requestExecution;
 
-    public ApplicationInstrument(IMeterFactory meterFactory)
+    public ApplicationInstrument(TimeProvider timeProvider, IMeterFactory meterFactory)
     {
+        TimeProvider = timeProvider;
+        using (var process = Process.GetCurrentProcess())
+        {
+            startTime = process.StartTime;
+        }
+
         ActivitySource = new ActivitySource(Source.Name, Source.Version);
         meter = meterFactory.Create(Source.Name, Source.Version);
 
@@ -29,8 +39,8 @@ public sealed class ApplicationInstrument : IDisposable
         meter.Dispose();
     }
 
-    private static long ObserveApplicationUptime() =>
-        (long)(DateTime.Now - Process.GetCurrentProcess().StartTime).TotalSeconds;
+    private long ObserveApplicationUptime() =>
+        (long)(TimeProvider.GetUtcNow() - startTime).TotalSeconds;
 
     public void IncrementRequestExecution(string method, string route) =>
         requestExecution.Add(1, new("http.request.method", method), new("http.route", route));

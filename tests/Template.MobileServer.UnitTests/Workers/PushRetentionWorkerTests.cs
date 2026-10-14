@@ -24,14 +24,14 @@ public sealed class PushRetentionWorkerTests : IDisposable
         var now = DateTimeOffset.Now;
         using (storage.BeginScope(now.AddDays(-8)))
         {
-            await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = DeviceId, Name = "Pixel 9a", IsEnabled = true }, cancellationToken);
-            await storage.PushService.InsertAsync(DeviceId, "expired", string.Empty, cancellationToken);
+            await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = DeviceId, Name = "Pixel 9a", IsEnabled = true });
+            await storage.PushService.InsertAsync(DeviceId, "expired", string.Empty);
         }
 
         PushMessageEntity current;
         using (storage.BeginScope(now))
         {
-            current = Assert.Single(await storage.PushService.InsertAsync(DeviceId, "current", string.Empty, cancellationToken));
+            current = Assert.Single(await storage.PushService.InsertAsync(DeviceId, "current", string.Empty));
         }
 
         using var worker = new PushRetentionWorker(NullLogger<PushRetentionWorker>.Instance, TimeProvider.System, new PushRetentionWorkerOption(), storage.PushService);

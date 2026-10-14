@@ -2,8 +2,8 @@ namespace Template.MobileServer.Web.Workers;
 
 internal static partial class Log
 {
-    [LoggerMessage(Level = LogLevel.Information, Message = "Worker disabled. worker=[{worker}]")]
-    public static partial void InfoWorkerDisabled(this ILogger logger, string worker);
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Worker disabled. worker=[{worker}]")]
+    public static partial void WarnWorkerDisabled(this ILogger logger, string worker);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Worker start. worker=[{worker}]")]
     public static partial void InfoWorkerStart(this ILogger logger, string worker);

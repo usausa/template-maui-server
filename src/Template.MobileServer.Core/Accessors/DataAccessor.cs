@@ -1,6 +1,7 @@
 namespace Template.MobileServer.Accessors;
 
 [DataAccessor]
+[ExecuteConfig(typeof(DataProfile))]
 public sealed partial class DataAccessor
 {
     [ExecuteScalar]

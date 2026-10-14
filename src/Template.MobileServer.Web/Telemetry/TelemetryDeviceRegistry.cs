@@ -39,19 +39,19 @@ public sealed class TelemetryDeviceRegistry
 
     private long historyMinute;
 
-    private readonly ILogger<TelemetryDeviceRegistry> log;
+    private ILogger<TelemetryDeviceRegistry> Log { get; }
 
-    private readonly TimeProvider timeProvider;
+    private TimeProvider TimeProvider { get; }
 
-    private readonly ApplicationServiceContextProvider contextProvider;
+    private ApplicationServiceContextProvider ContextProvider { get; }
 
-    private readonly DeviceService deviceService;
+    private DeviceService DeviceService { get; }
 
-    private readonly TelemetryService telemetryService;
+    private TelemetryService TelemetryService { get; }
 
-    private readonly TelemetryStore store;
+    private TelemetryStore Store { get; }
 
-    private readonly TelemetryBus bus;
+    private TelemetryBus Bus { get; }
 
     public TelemetryDeviceRegistry(
         ILogger<TelemetryDeviceRegistry> log,
@@ -62,13 +62,13 @@ public sealed class TelemetryDeviceRegistry
         TelemetryStore store,
         TelemetryBus bus)
     {
-        this.log = log;
-        this.timeProvider = timeProvider;
-        this.contextProvider = contextProvider;
-        this.deviceService = deviceService;
-        this.telemetryService = telemetryService;
-        this.store = store;
-        this.bus = bus;
+        Log = log;
+        TimeProvider = timeProvider;
+        ContextProvider = contextProvider;
+        DeviceService = deviceService;
+        TelemetryService = telemetryService;
+        Store = store;
+        Bus = bus;
     }
 
     //--------------------------------------------------------------------------------
@@ -88,14 +88,15 @@ public sealed class TelemetryDeviceRegistry
         }
     }
 
-    // 新しい順
+    // 新しい順 (エラーとクラッシュの件数と同じ直近 24 時間)
     public IReadOnlyList<TelemetryErrorEntry> RecentErrors
     {
         get
         {
+            var since = (CurrentHour() - CountHours + 1) * NanosecondsPerHour;
             lock (sync)
             {
-                return errors.ToArray();
+                return errors.Where(x => x.TimeUnixNano >= since).ToArray();
             }
         }
     }
@@ -134,7 +135,7 @@ public sealed class TelemetryDeviceRegistry
 
     public bool IsReceiving(TelemetryDeviceSummary device) =>
         (device.Info is not null) &&
-        (timeProvider.GetUtcNow() - DateTimeOffset.FromUnixTimeMilliseconds(device.Info.LastReceivedAt / NanosecondsPerMillisecond) < ReceivingThreshold);
+        (TimeProvider.GetUtcNow() - DateTimeOffset.FromUnixTimeMilliseconds(device.Info.LastReceivedAt / NanosecondsPerMillisecond) < ReceivingThreshold);
 
     public TelemetryDeviceState GetState(TelemetryDeviceSummary device)
     {
@@ -153,22 +154,22 @@ public sealed class TelemetryDeviceRegistry
     // 起動時に登録と全端末のファイルから作る。登録の無いファイルは登録する
     public async Task LoadAsync(CancellationToken cancellationToken)
     {
-        using var scope = contextProvider.Begin(() => new ServiceContext(timeProvider.GetLocalNow(), SystemUserId));
+        using var scope = ContextProvider.Begin(() => new ServiceContext(TimeProvider.GetLocalNow(), SystemUserId));
 
         var since = (CurrentHour() - CountHours + 1) * NanosecondsPerHour;
-        var registered = (await deviceService.QueryAllAsync(cancellationToken)).ToDictionary(static x => x.DeviceId, StringComparer.Ordinal);
+        var registered = (await DeviceService.QueryAllAsync(cancellationToken)).ToDictionary(static x => x.DeviceId, StringComparer.Ordinal);
         var loaded = new List<Entry>();
         var recent = new List<TelemetryErrorEntry>();
-        foreach (var deviceId in store.EnumerateDevices())
+        foreach (var deviceId in Store.EnumerateDevices())
         {
             TelemetryDeviceSummaryView? summary;
             try
             {
-                summary = await telemetryService.QuerySummaryAsync(deviceId, LatestNames, since, ErrorLimit, cancellationToken);
+                summary = await TelemetryService.QuerySummaryAsync(deviceId, LatestNames, since, ErrorLimit, cancellationToken);
             }
             catch (Exception ex) when (OtlpReceiver.IsStorageError(ex))
             {
-                log.ErrorTelemetryLoadFailed(deviceId, ex);
+                Log.ErrorTelemetryLoadFailed(deviceId, ex);
                 continue;
             }
 
@@ -180,8 +181,8 @@ public sealed class TelemetryDeviceRegistry
             if (!registered.Remove(deviceId, out var device))
             {
                 device = CreateDevice(summary.DeviceInfo);
-                await deviceService.InsertAsync(device, cancellationToken);
-                log.InfoDeviceRegistered(device.DeviceId, device.Name);
+                await DeviceService.InsertAsync(device);
+                Log.InfoDeviceRegistered(device.DeviceId, device.Name);
             }
 
             var entry = new Entry(device) { Info = summary.DeviceInfo };
@@ -226,7 +227,7 @@ public sealed class TelemetryDeviceRegistry
     //--------------------------------------------------------------------------------
 
     // 受信した端末の登録を確かめる (未登録なら登録する)。無効の端末は false
-    public async ValueTask<bool> EnsureRegisteredAsync(TelemetryDeviceInfoEntity info, CancellationToken cancellationToken)
+    public async ValueTask<bool> EnsureRegisteredAsync(TelemetryDeviceInfoEntity info)
     {
         lock (sync)
         {
@@ -237,14 +238,14 @@ public sealed class TelemetryDeviceRegistry
         }
 
         var device = CreateDevice(info);
-        if (await deviceService.InsertAsync(device, cancellationToken) == DataWriteStatus.Success)
+        if (await DeviceService.InsertAsync(device) == DataWriteStatus.Success)
         {
-            log.InfoDeviceRegistered(device.DeviceId, device.Name);
+            Log.InfoDeviceRegistered(device.DeviceId, device.Name);
         }
         else
         {
             // Registered at the same time by another request
-            device = await deviceService.QueryAsync(info.DeviceId, cancellationToken) ?? device;
+            device = await DeviceService.QueryAsync(info.DeviceId) ?? device;
         }
 
         bool enabled;
@@ -259,7 +260,7 @@ public sealed class TelemetryDeviceRegistry
             enabled = entry.Device.IsEnabled;
         }
 
-        bus.PublishDeviceChanged(device.DeviceId);
+        Bus.PublishDeviceChanged(device.DeviceId);
         return enabled;
     }
 
@@ -312,9 +313,9 @@ public sealed class TelemetryDeviceRegistry
     //--------------------------------------------------------------------------------
 
     // 登録済みなら Duplicate
-    public async ValueTask<DataWriteStatus> AddAsync(DeviceEntity device, CancellationToken cancellationToken = default)
+    public async ValueTask<DataWriteStatus> AddAsync(DeviceEntity device)
     {
-        var status = await deviceService.InsertAsync(device, cancellationToken);
+        var status = await DeviceService.InsertAsync(device);
         if (status == DataWriteStatus.Success)
         {
             lock (sync)
@@ -322,24 +323,24 @@ public sealed class TelemetryDeviceRegistry
                 entries[device.DeviceId] = new Entry(device);
             }
 
-            bus.PublishDeviceChanged(device.DeviceId);
+            Bus.PublishDeviceChanged(device.DeviceId);
         }
 
         return status;
     }
 
     // 端末からの登録。未登録なら登録し、登録済みなら名前だけを更新する (グループ・メモ・有効はそのまま)。登録したときは Created が true
-    public async ValueTask<(DeviceEntity Device, bool Created)> RegisterAsync(string deviceId, string name, CancellationToken cancellationToken = default)
+    public async ValueTask<(DeviceEntity Device, bool Created)> RegisterAsync(string deviceId, string name)
     {
         var device = new DeviceEntity { DeviceId = deviceId, Name = name, IsEnabled = true };
-        var created = await deviceService.InsertAsync(device, cancellationToken) == DataWriteStatus.Success;
+        var created = await DeviceService.InsertAsync(device) == DataWriteStatus.Success;
         if (created)
         {
-            log.InfoDeviceRegistered(device.DeviceId, device.Name);
+            Log.InfoDeviceRegistered(device.DeviceId, device.Name);
         }
         else
         {
-            device = await deviceService.UpdateNameAsync(deviceId, name, cancellationToken) ?? device;
+            device = await DeviceService.UpdateNameAsync(deviceId, name) ?? device;
         }
 
         lock (sync)
@@ -354,14 +355,14 @@ public sealed class TelemetryDeviceRegistry
             }
         }
 
-        bus.PublishDeviceChanged(device.DeviceId);
+        Bus.PublishDeviceChanged(device.DeviceId);
         return (device, created);
     }
 
     // 名前・グループ・メモ・有効を更新する
-    public async ValueTask<DataWriteStatus> UpdateAsync(DeviceEntity device, CancellationToken cancellationToken = default)
+    public async ValueTask<DataWriteStatus> UpdateAsync(DeviceEntity device)
     {
-        var updated = await deviceService.UpdateAsync(device, cancellationToken);
+        var updated = await DeviceService.UpdateAsync(device);
         if (updated is null)
         {
             return DataWriteStatus.NotFound;
@@ -379,15 +380,15 @@ public sealed class TelemetryDeviceRegistry
             }
         }
 
-        bus.PublishDeviceChanged(updated.DeviceId);
+        Bus.PublishDeviceChanged(updated.DeviceId);
         return DataWriteStatus.Success;
     }
 
     // 登録とテレメトリのファイルを削除する (送信が続けば自動で登録し直される)
-    public async ValueTask<DataWriteStatus> DeleteAsync(string deviceId, CancellationToken cancellationToken = default)
+    public async ValueTask<DataWriteStatus> DeleteAsync(string deviceId)
     {
-        await store.DeleteDeviceAsync(deviceId, cancellationToken);
-        var status = await deviceService.DeleteAsync(deviceId, cancellationToken);
+        await Store.DeleteDeviceAsync(deviceId);
+        var status = await DeviceService.DeleteAsync(deviceId);
 
         lock (sync)
         {
@@ -395,7 +396,7 @@ public sealed class TelemetryDeviceRegistry
             errors.RemoveAll(x => x.DeviceId == deviceId);
         }
 
-        bus.PublishDeviceChanged(deviceId);
+        Bus.PublishDeviceChanged(deviceId);
         return status;
     }
 
@@ -413,16 +414,16 @@ public sealed class TelemetryDeviceRegistry
             errors.RemoveAll(x => x.DeviceId == deviceId);
         }
 
-        bus.PublishDeviceChanged(deviceId);
+        Bus.PublishDeviceChanged(deviceId);
     }
 
     //--------------------------------------------------------------------------------
     // Helper
     //--------------------------------------------------------------------------------
 
-    private long CurrentHour() => timeProvider.GetUtcNow().ToUnixTimeSeconds() / 3600;
+    private long CurrentHour() => TimeProvider.GetUtcNow().ToUnixTimeSeconds() / 3600;
 
-    private long CurrentMinute() => timeProvider.GetUtcNow().ToUnixTimeSeconds() / 60;
+    private long CurrentMinute() => TimeProvider.GetUtcNow().ToUnixTimeSeconds() / 60;
 
     // 名前の既定は機種 (無ければ端末 ID)
     private static DeviceEntity CreateDevice(TelemetryDeviceInfoEntity info) =>

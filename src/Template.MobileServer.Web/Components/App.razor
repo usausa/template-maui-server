@@ -28,17 +28,3 @@
 </body>
 
 </html>
-
-@code {
-    [CascadingParameter]
-    public HttpContext HttpContext { get; set; } = default!;
-
-    [Inject]
-    public required CspNonce Nonce { get; set; }
-
-    private static readonly IComponentRenderMode InteractiveServerWithoutPrerender = new InteractiveServerRenderMode(prerender: false);
-
-    // Static SSR for pages with [ExcludeFromInteractiveRouting]
-    private IComponentRenderMode? PageRenderMode =>
-        HttpContext.AcceptsInteractiveRouting() ? InteractiveServerWithoutPrerender : null;
-}

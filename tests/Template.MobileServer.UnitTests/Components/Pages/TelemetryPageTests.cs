@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Template.MobileServer.Domain;
 
 using Template.MobileServer.Models.Entity;
-using Template.MobileServer.Models.Enums;
 using Template.MobileServer.Models.Parameters;
 using Template.MobileServer.Telemetry;
 using Template.MobileServer.Web.Components.Pages;
@@ -66,7 +65,7 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         // Act
         using (storage.BeginScope(DateTimeOffset.Now))
         {
-            var result = await storage.Store.SaveAsync(CreateBatch(0.5), Xunit.TestContext.Current.CancellationToken);
+            var result = await storage.Store.SaveAsync(CreateBatch(0.5));
             storage.Registry.Apply(result);
             storage.Bus.PublishReceived(result);
         }
@@ -115,7 +114,7 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         {
             var batch = CreateBatch(0.3);
             batch.Logs.Add(CreateLog(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000, TelemetrySeverity.Fatal, "crashed", "{}"));
-            var result = await storage.Store.SaveAsync(batch, Xunit.TestContext.Current.CancellationToken);
+            var result = await storage.Store.SaveAsync(batch);
             storage.Bus.PublishReceived(result);
         }
 
@@ -126,7 +125,6 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
     // CPU 20% とメモリの点、親子のスパン、警告とエラーのログを保存した端末
     private async Task PrepareAsync(TelemetryTestStorage storage)
     {
-        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000;
         await storage.PrepareDatabaseAsync();
         using (storage.BeginScope(DateTimeOffset.Now))
@@ -134,8 +132,8 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
             var batch = CreateBatch(0.2);
             batch.Logs.Add(CreateLog(now - 2_000_000, TelemetrySeverity.Warn, "warning", "{}"));
             batch.Logs.Add(CreateLog(now - 1_000_000, TelemetrySeverity.Error, "failed", "{\"exception.stacktrace\":\"System.Exception\\n   at Main\"}"));
-            await storage.Registry.EnsureRegisteredAsync(batch.DeviceInfo, cancellationToken);
-            storage.Registry.Apply(await storage.Store.SaveAsync(batch, cancellationToken));
+            await storage.Registry.EnsureRegisteredAsync(batch.DeviceInfo);
+            storage.Registry.Apply(await storage.Store.SaveAsync(batch));
         }
 
         Services.AddSingleton(storage.Registry);
@@ -203,7 +201,7 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
             AttributesJson = "{}"
         };
 
-    private static TelemetryMetric CreateMetric(string name, TelemetryMetricKind kind, string unit, long time, double value)
+    private static TelemetryMetric CreateMetric(string name, string kind, string unit, long time, double value)
     {
         var metric = new TelemetryMetric
         {

@@ -20,9 +20,9 @@ public sealed class RequestMetricsEndpointFilterTests
     {
         // Arrange
         await using var provider = new ServiceCollection().AddMetrics().BuildServiceProvider();
-        using var instrument = new ApplicationInstrument(provider.GetRequiredService<IMeterFactory>());
+        using var instrument = new ApplicationInstrument(TimeProvider.System, provider.GetRequiredService<IMeterFactory>());
         using var listener = CreateListener("api.request.execution", out var measurements);
-        var filter = new RequestMetricsEndpointFilter(instrument, TimeProvider.System, new TelemetrySetting { LongExecutionThreshold = 3000 }, NullLogger<RequestMetricsEndpointFilter>.Instance);
+        var filter = new RequestMetricsEndpointFilter(NullLogger<RequestMetricsEndpointFilter>.Instance, TimeProvider.System, new TelemetrySetting { LongExecutionThreshold = 3000 }, instrument);
 
         // Act
         var result = await filter.InvokeAsync(CreateContext("GET", "/api/data"), static _ => ValueTask.FromResult<object?>("ok"));
@@ -39,11 +39,11 @@ public sealed class RequestMetricsEndpointFilterTests
     {
         // Arrange
         await using var provider = new ServiceCollection().AddMetrics().BuildServiceProvider();
-        using var instrument = new ApplicationInstrument(provider.GetRequiredService<IMeterFactory>());
+        using var instrument = new ApplicationInstrument(TimeProvider.System, provider.GetRequiredService<IMeterFactory>());
         using var listener = CreateListener("api.request.long.execution", out var measurements);
         var timeProvider = Substitute.ForPartsOf<TimeProvider>();
         timeProvider.GetTimestamp().Returns(0L, TimeProvider.System.TimestampFrequency * 5);
-        var filter = new RequestMetricsEndpointFilter(instrument, timeProvider, new TelemetrySetting { LongExecutionThreshold = 3000 }, NullLogger<RequestMetricsEndpointFilter>.Instance);
+        var filter = new RequestMetricsEndpointFilter(NullLogger<RequestMetricsEndpointFilter>.Instance, timeProvider, new TelemetrySetting { LongExecutionThreshold = 3000 }, instrument);
 
         // Act
         await filter.InvokeAsync(CreateContext("POST", "/api/data"), static _ => ValueTask.FromResult<object?>(null));

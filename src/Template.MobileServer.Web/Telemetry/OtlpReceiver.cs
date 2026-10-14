@@ -14,13 +14,13 @@ public sealed class OtlpReceiver
 
     private const string InvalidItemMessage = "Some items are invalid.";
 
-    private readonly ILogger<OtlpReceiver> log;
+    private ILogger<OtlpReceiver> Log { get; }
 
-    private readonly TelemetryStore store;
+    private TelemetryStore Store { get; }
 
-    private readonly TelemetryDeviceRegistry registry;
+    private TelemetryDeviceRegistry Registry { get; }
 
-    private readonly TelemetryBus bus;
+    private TelemetryBus Bus { get; }
 
     public OtlpReceiver(
         ILogger<OtlpReceiver> log,
@@ -28,10 +28,10 @@ public sealed class OtlpReceiver
         TelemetryDeviceRegistry registry,
         TelemetryBus bus)
     {
-        this.log = log;
-        this.store = store;
-        this.registry = registry;
-        this.bus = bus;
+        Log = log;
+        Store = store;
+        Registry = registry;
+        Bus = bus;
     }
 
     // Retryable failures of the storage
@@ -41,7 +41,7 @@ public sealed class OtlpReceiver
     // Trace
     //--------------------------------------------------------------------------------
 
-    public async ValueTask<ExportTraceServiceResponse> ReceiveAsync(ExportTraceServiceRequest request, CancellationToken cancellationToken)
+    public async ValueTask<ExportTraceServiceResponse> ReceiveAsync(ExportTraceServiceRequest request)
     {
         var rejected = new Rejected();
         foreach (var resourceSpans in request.ResourceSpans)
@@ -55,16 +55,16 @@ public sealed class OtlpReceiver
             var batch = OtlpMapper.CreateBatch(deviceId, resourceSpans.Resource);
             var invalid = OtlpMapper.AddSpans(batch, resourceSpans.ScopeSpans);
 
-            var result = await SaveAsync(batch, cancellationToken);
+            var result = await SaveAsync(batch);
             if (result is null)
             {
-                log.DebugTelemetryDisabled(batch.DeviceInfo.ServiceName, deviceId, count);
+                Log.DebugTelemetryDisabled(batch.DeviceInfo.ServiceName, deviceId, count);
                 rejected.Add(count, DisabledDeviceMessage);
                 continue;
             }
 
             rejected.AddInvalid(invalid);
-            log.DebugTracesReceived(batch.DeviceInfo.ServiceName, deviceId, count, result.Spans.Count);
+            Log.DebugTracesReceived(batch.DeviceInfo.ServiceName, deviceId, count, result.Spans.Count);
         }
 
         return new ExportTraceServiceResponse
@@ -77,7 +77,7 @@ public sealed class OtlpReceiver
     // Metrics
     //--------------------------------------------------------------------------------
 
-    public async ValueTask<ExportMetricsServiceResponse> ReceiveAsync(ExportMetricsServiceRequest request, CancellationToken cancellationToken)
+    public async ValueTask<ExportMetricsServiceResponse> ReceiveAsync(ExportMetricsServiceRequest request)
     {
         var rejected = new Rejected();
         foreach (var resourceMetrics in request.ResourceMetrics)
@@ -91,18 +91,18 @@ public sealed class OtlpReceiver
             var batch = OtlpMapper.CreateBatch(deviceId, resourceMetrics.Resource);
             var invalid = OtlpMapper.AddMetrics(batch, resourceMetrics.ScopeMetrics);
 
-            var result = await SaveAsync(batch, cancellationToken);
+            var result = await SaveAsync(batch);
             if (result is null)
             {
-                log.DebugTelemetryDisabled(batch.DeviceInfo.ServiceName, deviceId, count);
+                Log.DebugTelemetryDisabled(batch.DeviceInfo.ServiceName, deviceId, count);
                 rejected.Add(count, DisabledDeviceMessage);
                 continue;
             }
 
             rejected.AddInvalid(invalid);
-            if (log.IsEnabled(LogLevel.Debug))
+            if (Log.IsEnabled(LogLevel.Debug))
             {
-                log.DebugMetricsReceived(batch.DeviceInfo.ServiceName, deviceId, count, result.Metrics.Sum(static x => x.Points.Count));
+                Log.DebugMetricsReceived(batch.DeviceInfo.ServiceName, deviceId, count, result.Metrics.Sum(static x => x.Points.Count));
             }
         }
 
@@ -116,7 +116,7 @@ public sealed class OtlpReceiver
     // Logs
     //--------------------------------------------------------------------------------
 
-    public async ValueTask<ExportLogsServiceResponse> ReceiveAsync(ExportLogsServiceRequest request, CancellationToken cancellationToken)
+    public async ValueTask<ExportLogsServiceResponse> ReceiveAsync(ExportLogsServiceRequest request)
     {
         var rejected = new Rejected();
         foreach (var resourceLogs in request.ResourceLogs)
@@ -130,16 +130,16 @@ public sealed class OtlpReceiver
             var batch = OtlpMapper.CreateBatch(deviceId, resourceLogs.Resource);
             var invalid = OtlpMapper.AddLogs(batch, resourceLogs.ScopeLogs);
 
-            var result = await SaveAsync(batch, cancellationToken);
+            var result = await SaveAsync(batch);
             if (result is null)
             {
-                log.DebugTelemetryDisabled(batch.DeviceInfo.ServiceName, deviceId, count);
+                Log.DebugTelemetryDisabled(batch.DeviceInfo.ServiceName, deviceId, count);
                 rejected.Add(count, DisabledDeviceMessage);
                 continue;
             }
 
             rejected.AddInvalid(invalid);
-            log.DebugLogsReceived(batch.DeviceInfo.ServiceName, deviceId, count, result.Logs.Count);
+            Log.DebugLogsReceived(batch.DeviceInfo.ServiceName, deviceId, count, result.Logs.Count);
         }
 
         return new ExportLogsServiceResponse
@@ -160,29 +160,29 @@ public sealed class OtlpReceiver
             return true;
         }
 
-        log.WarnTelemetryRejected(resource.GetServiceName(), deviceId, count);
+        Log.WarnTelemetryRejected(resource.GetServiceName(), deviceId, count);
         rejected.Add(count, InvalidDeviceMessage);
         return false;
     }
 
     // 登録を確かめて保存し、キャッシュを更新して通知する。無効の端末は null
-    private async ValueTask<TelemetrySaveResult?> SaveAsync(TelemetryBatch batch, CancellationToken cancellationToken)
+    private async ValueTask<TelemetrySaveResult?> SaveAsync(TelemetryBatch batch)
     {
         try
         {
-            if (!await registry.EnsureRegisteredAsync(batch.DeviceInfo, cancellationToken))
+            if (!await Registry.EnsureRegisteredAsync(batch.DeviceInfo))
             {
                 return null;
             }
 
-            var result = await store.SaveAsync(batch, cancellationToken);
-            registry.Apply(result);
-            bus.PublishReceived(result);
+            var result = await Store.SaveAsync(batch);
+            Registry.Apply(result);
+            Bus.PublishReceived(result);
             return result;
         }
         catch (Exception ex) when (IsStorageError(ex))
         {
-            log.ErrorTelemetrySaveFailed(batch.DeviceId, ex);
+            Log.ErrorTelemetrySaveFailed(batch.DeviceId, ex);
             throw;
         }
     }

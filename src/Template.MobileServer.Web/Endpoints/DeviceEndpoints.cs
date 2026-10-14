@@ -68,10 +68,9 @@ public static class DeviceEndpoints
     private static async ValueTask<IResult> HandleRegisterAsync(
         TelemetryDeviceRegistry registry,
         [RegularExpression(DeviceIdFormat.Pattern)] string deviceId,
-        DeviceRegisterRequest request,
-        CancellationToken cancellationToken)
+        DeviceRegisterRequest request)
     {
-        var (device, created) = await registry.RegisterAsync(deviceId, request.Name.Trim(), cancellationToken);
+        var (device, created) = await registry.RegisterAsync(deviceId, request.Name.Trim());
         var response = device.ToRegisterResponse();
         return created
             ? TypedResults.Created($"{ApiRoutes.Device}/{deviceId}", response)

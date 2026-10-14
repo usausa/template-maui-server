@@ -27,9 +27,13 @@ public sealed class TelemetryTestStorage : IDisposable
 
     public TelemetryStore Store => provider.GetRequiredService<TelemetryStore>();
 
+    public DataService DataService => provider.GetRequiredService<DataService>();
+
     public DeviceService DeviceService => provider.GetRequiredService<DeviceService>();
 
     public PushService PushService => provider.GetRequiredService<PushService>();
+
+    public SettingService SettingService => provider.GetRequiredService<SettingService>();
 
     public TelemetryBus Bus => provider.GetRequiredService<TelemetryBus>();
 
@@ -57,8 +61,10 @@ public sealed class TelemetryTestStorage : IDisposable
         services.AddSingleton<ApplicationServiceContextProvider>();
         services.AddSingleton<ServiceContextProvider>(static p => p.GetRequiredService<ApplicationServiceContextProvider>());
         services.AddSingleton<DatabaseService>();
+        services.AddSingleton<DataService>();
         services.AddSingleton<DeviceService>();
         services.AddSingleton<PushService>();
+        services.AddSingleton<SettingService>();
         services.AddSingleton<TelemetryService>();
         services.AddSingleton<TelemetryStore>();
         services.AddSingleton<TelemetryBus>();
@@ -76,7 +82,7 @@ public sealed class TelemetryTestStorage : IDisposable
 
     // data.db のスキーマ (Web の Assets/Data/Schema.sql。参照プロジェクトから出力先へコピーされる)
     public ValueTask PrepareDatabaseAsync() =>
-        provider.GetRequiredService<DatabaseService>().InitializeAsync("Assets/Data/Schema.sql", TestContext.Current.CancellationToken);
+        provider.GetRequiredService<DatabaseService>().InitializeAsync("Assets/Data/Schema.sql");
 
     // 受信口と同じく、保存の前にサービスコンテキストを開始する
     public IDisposable BeginScope(DateTimeOffset now) =>

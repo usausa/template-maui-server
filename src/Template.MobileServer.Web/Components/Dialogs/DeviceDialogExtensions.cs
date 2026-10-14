@@ -4,7 +4,6 @@ using MudBlazor;
 
 public static class DeviceDialogExtensions
 {
-    // 追加は entity = null (端末 ID を入力する)
     public static async ValueTask<DeviceEntity?> ShowDeviceEditDialog(this IDialogService dialog, string title, DeviceEntity? entity)
     {
         var reference = await dialog.ShowAsync<DeviceEditDialog>(

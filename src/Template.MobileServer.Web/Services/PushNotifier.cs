@@ -8,11 +8,11 @@ using Template.MobileServer.Web.Hubs;
 // 未達が変わったら Changed で知らせる (受け手は別のスレッドで呼ばれる)
 public sealed class PushNotifier
 {
-    private readonly ILogger<PushNotifier> log;
+    private ILogger<PushNotifier> Log { get; }
 
-    private readonly IHubContext<PushHub, IPushClient> hub;
+    private IHubContext<PushHub, IPushClient> Hub { get; }
 
-    private readonly PushService pushService;
+    private PushService PushService { get; }
 
     public event EventHandler? Changed;
 
@@ -21,21 +21,21 @@ public sealed class PushNotifier
         IHubContext<PushHub, IPushClient> hub,
         PushService pushService)
     {
-        this.log = log;
-        this.hub = hub;
-        this.pushService = pushService;
+        Log = log;
+        Hub = hub;
+        PushService = pushService;
     }
 
     // 宛先の端末 ID (null は全端末)。作った行を返す (宛先の端末が無ければ空)
-    public async ValueTask<List<PushMessageEntity>> SendAsync(string? deviceId, string title, string body, CancellationToken cancellationToken = default)
+    public async ValueTask<List<PushMessageEntity>> SendAsync(string? deviceId, string title, string body)
     {
-        var messages = await pushService.InsertAsync(deviceId, title, body, cancellationToken);
+        var messages = await PushService.InsertAsync(deviceId, title, body);
         foreach (var message in messages)
         {
-            await hub.Clients.Group(message.DeviceId).Receive(message.ToPushMessage());
+            await Hub.Clients.Group(message.DeviceId).Receive(message.ToPushMessage());
         }
 
-        log.InfoPushSent(deviceId ?? "*", messages.Count);
+        Log.InfoPushSent(deviceId ?? "*", messages.Count);
 
         if (messages.Count > 0)
         {
@@ -46,9 +46,9 @@ public sealed class PushNotifier
     }
 
     // 端末の受け取りの応答。届いた日時を記録したら true
-    public async ValueTask<bool> AcknowledgeAsync(string deviceId, long id, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> AcknowledgeAsync(string deviceId, long id)
     {
-        var delivered = await pushService.UpdateDeliveredAsync(deviceId, id, cancellationToken);
+        var delivered = await PushService.UpdateDeliveredAsync(deviceId, id);
         if (delivered)
         {
             Changed?.Invoke(this, EventArgs.Empty);

@@ -18,7 +18,6 @@ public enum MetricDisplay
     // 電波のアイコン (値はホバーで出す)
     Signal,
 
-    // バイト数
     Bytes,
 
     // 横棒と値 (アプリケーション固有値。0〜100)
@@ -38,7 +37,7 @@ public sealed partial class MetricCell
 
     private string fillClass = string.Empty;
 
-    private string fillStyle = string.Empty;
+    private string fillWidth = "0";
 
     private string text = "-";
 
@@ -81,7 +80,7 @@ public sealed partial class MetricCell
         };
         color = ViewHelper.LevelColor(level);
         fillClass = $"meter-fill {ViewHelper.LevelClass(level)}";
-        fillStyle = FormattableString.Invariant($"width: {Math.Clamp(ToRatio(Display, value.Value), 0, 1) * 100:0.#}%");
+        fillWidth = FormattableString.Invariant($"{Math.Clamp(ToRatio(Display, value.Value), 0, 1) * 100:0.#}%");
         text = showIcon ? string.Empty : formatted;
         title = $"{formatted} ({ViewHelper.FormatTime(value.TimeUnixNano)})";
     }

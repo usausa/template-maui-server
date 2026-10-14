@@ -15,5 +15,6 @@ public sealed class NavMenuTests : MudBlazorTestBase
         // Assert
         var links = cut.FindAll("a");
         Assert.Equal(8, links.Count);
+        Assert.Contains(links, static x => x.GetAttribute("href") == "notification");
     }
 }

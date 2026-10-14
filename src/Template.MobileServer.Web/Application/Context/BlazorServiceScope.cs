@@ -5,9 +5,9 @@ public sealed class BlazorServiceScope
 {
     private const string GuestUserId = "guest";
 
-    private readonly TimeProvider timeProvider;
+    private TimeProvider TimeProvider { get; }
 
-    private readonly ApplicationServiceContextProvider provider;
+    private ApplicationServiceContextProvider Provider { get; }
 
     // イベントごとのデリゲート生成を避けるため 1 回だけ作る
     private readonly Func<ServiceContext> factory;
@@ -16,12 +16,12 @@ public sealed class BlazorServiceScope
         TimeProvider timeProvider,
         ApplicationServiceContextProvider provider)
     {
-        this.timeProvider = timeProvider;
-        this.provider = provider;
+        TimeProvider = timeProvider;
+        Provider = provider;
         factory = CreateContext;
     }
 
-    public IDisposable Begin() => provider.Begin(factory);
+    public IDisposable Begin() => Provider.Begin(factory);
 
-    private ServiceContext CreateContext() => new(timeProvider.GetLocalNow(), GuestUserId);
+    private ServiceContext CreateContext() => new(TimeProvider.GetLocalNow(), GuestUserId);
 }

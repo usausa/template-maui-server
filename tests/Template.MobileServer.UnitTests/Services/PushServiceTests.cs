@@ -18,13 +18,12 @@ public sealed class PushServiceTests : IDisposable
         // Arrange
         await PrepareDevicesAsync();
         using var scope = storage.BeginScope(Now);
-        var cancellationToken = TestContext.Current.CancellationToken;
 
         // Act
-        var all = await storage.PushService.InsertAsync(null, "件名", "本文", cancellationToken);
-        var disabled = await storage.PushService.InsertAsync("device-2", "件名", "本文", cancellationToken);
-        var unknown = await storage.PushService.InsertAsync("unknown", "件名", "本文", cancellationToken);
-        var single = await storage.PushService.InsertAsync("device-1", "件名", "本文", cancellationToken);
+        var all = await storage.PushService.InsertAsync(null, "件名", "本文");
+        var disabled = await storage.PushService.InsertAsync("device-2", "件名", "本文");
+        var unknown = await storage.PushService.InsertAsync("unknown", "件名", "本文");
+        var single = await storage.PushService.InsertAsync("device-1", "件名", "本文");
 
         // Assert
         Assert.Equal(["device-1", "device-3"], all.Select(static x => x.DeviceId).Order(StringComparer.Ordinal));
@@ -45,16 +44,16 @@ public sealed class PushServiceTests : IDisposable
         await PrepareDevicesAsync();
         using var scope = storage.BeginScope(Now);
         var cancellationToken = TestContext.Current.CancellationToken;
-        var first = Assert.Single(await storage.PushService.InsertAsync("device-1", "1", string.Empty, cancellationToken));
-        var second = Assert.Single(await storage.PushService.InsertAsync("device-1", "2", string.Empty, cancellationToken));
+        var first = Assert.Single(await storage.PushService.InsertAsync("device-1", "1", string.Empty));
+        var second = Assert.Single(await storage.PushService.InsertAsync("device-1", "2", string.Empty));
 
         // Act / Assert: 未達は古い順
         Assert.Equal([first.Id, second.Id], (await storage.PushService.QueryPendingListAsync("device-1", cancellationToken)).Select(static x => x.Id));
 
         // Act / Assert: 応答
-        Assert.False(await storage.PushService.UpdateDeliveredAsync("device-3", first.Id, cancellationToken));
-        Assert.True(await storage.PushService.UpdateDeliveredAsync("device-1", first.Id, cancellationToken));
-        Assert.False(await storage.PushService.UpdateDeliveredAsync("device-1", first.Id, cancellationToken));
+        Assert.False(await storage.PushService.UpdateDeliveredAsync("device-3", first.Id));
+        Assert.True(await storage.PushService.UpdateDeliveredAsync("device-1", first.Id));
+        Assert.False(await storage.PushService.UpdateDeliveredAsync("device-1", first.Id));
         Assert.Equal([second.Id], (await storage.PushService.QueryPendingListAsync("device-1", cancellationToken)).Select(static x => x.Id));
         Assert.Equal("2026-09-28 03:00:00.0000000", await storage.QueryDataValueAsync(static x => x.CommandText = "SELECT DeliveredAt FROM PushMessage WHERE DeliveredAt IS NOT NULL"));
     }
@@ -68,16 +67,16 @@ public sealed class PushServiceTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         using (storage.BeginScope(Now.AddDays(-8)))
         {
-            var delivered = Assert.Single(await storage.PushService.InsertAsync("device-1", "delivered", string.Empty, cancellationToken));
-            await storage.PushService.UpdateDeliveredAsync("device-1", delivered.Id, cancellationToken);
-            await storage.PushService.InsertAsync("device-1", "pending", string.Empty, cancellationToken);
+            var delivered = Assert.Single(await storage.PushService.InsertAsync("device-1", "delivered", string.Empty));
+            await storage.PushService.UpdateDeliveredAsync("device-1", delivered.Id);
+            await storage.PushService.InsertAsync("device-1", "pending", string.Empty);
         }
 
         using var scope = storage.BeginScope(Now);
-        var current = Assert.Single(await storage.PushService.InsertAsync("device-1", "current", string.Empty, cancellationToken));
+        var current = Assert.Single(await storage.PushService.InsertAsync("device-1", "current", string.Empty));
 
         // Act
-        var rows = await storage.PushService.DeleteBeforeAsync(Now.AddDays(-7).UtcDateTime, cancellationToken);
+        var rows = await storage.PushService.DeleteBeforeAsync(Now.AddDays(-7).UtcDateTime);
 
         // Assert
         Assert.Equal(2, rows);
@@ -95,5 +94,5 @@ public sealed class PushServiceTests : IDisposable
     }
 
     private ValueTask<DataWriteStatus> InsertDeviceAsync(string deviceId, bool enabled) =>
-        storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = deviceId, Name = deviceId, IsEnabled = enabled }, TestContext.Current.CancellationToken);
+        storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = deviceId, Name = deviceId, IsEnabled = enabled });
 }

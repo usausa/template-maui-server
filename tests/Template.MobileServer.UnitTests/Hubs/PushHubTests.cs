@@ -39,9 +39,9 @@ public sealed class PushHubTests : IDisposable
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(Now);
         var cancellationToken = TestContext.Current.CancellationToken;
-        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = DeviceId, Name = "Pixel 9a", IsEnabled = true }, cancellationToken);
-        var first = Assert.Single(await storage.PushService.InsertAsync(DeviceId, "1", "本文", cancellationToken));
-        var second = Assert.Single(await storage.PushService.InsertAsync(DeviceId, "2", "本文", cancellationToken));
+        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = DeviceId, Name = "Pixel 9a", IsEnabled = true });
+        var first = Assert.Single(await storage.PushService.InsertAsync(DeviceId, "1", "本文"));
+        var second = Assert.Single(await storage.PushService.InsertAsync(DeviceId, "2", "本文"));
         using var hub = CreateHub(DeviceId);
 
         // Act / Assert: 接続

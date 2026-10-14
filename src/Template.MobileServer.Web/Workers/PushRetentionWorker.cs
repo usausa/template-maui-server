@@ -3,13 +3,13 @@ namespace Template.MobileServer.Web.Workers;
 // 通知の保持期間の削除 (起動の直後と一定の間隔)。期限を過ぎた行は届いた / 届いていないにかかわらず削除する
 public sealed class PushRetentionWorker : BackgroundService
 {
-    private readonly ILogger<PushRetentionWorker> log;
+    private ILogger<PushRetentionWorker> Log { get; }
 
-    private readonly TimeProvider timeProvider;
+    private TimeProvider TimeProvider { get; }
 
-    private readonly PushRetentionWorkerOption options;
+    private PushRetentionWorkerOption Options { get; }
 
-    private readonly PushService pushService;
+    private PushService PushService { get; }
 
     public PushRetentionWorker(
         ILogger<PushRetentionWorker> log,
@@ -17,28 +17,28 @@ public sealed class PushRetentionWorker : BackgroundService
         PushRetentionWorkerOption options,
         PushService pushService)
     {
-        this.log = log;
-        this.timeProvider = timeProvider;
-        this.options = options;
-        this.pushService = pushService;
+        Log = log;
+        TimeProvider = timeProvider;
+        Options = options;
+        PushService = pushService;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (!options.Enable)
+        if (!Options.Enable)
         {
-            log.InfoWorkerDisabled(nameof(PushRetentionWorker));
+            Log.WarnWorkerDisabled(nameof(PushRetentionWorker));
             return;
         }
 
-        log.InfoWorkerStart(nameof(PushRetentionWorker));
+        Log.InfoWorkerStart(nameof(PushRetentionWorker));
 
         try
         {
-            using var timer = new PeriodicTimer(TimeSpan.FromMinutes(options.IntervalMinutes), timeProvider);
+            using var timer = new PeriodicTimer(TimeSpan.FromMinutes(Options.IntervalMinutes), TimeProvider);
             do
             {
-                await DeleteExpiredAsync(stoppingToken);
+                await DeleteExpiredAsync();
             }
             while (await timer.WaitForNextTickAsync(stoppingToken));
         }
@@ -48,24 +48,24 @@ public sealed class PushRetentionWorker : BackgroundService
         }
         finally
         {
-            log.InfoWorkerStop(nameof(PushRetentionWorker));
+            Log.InfoWorkerStop(nameof(PushRetentionWorker));
         }
     }
 
     // 失敗はログに出して次の間隔でやり直す
-    private async Task DeleteExpiredAsync(CancellationToken cancellationToken)
+    private async Task DeleteExpiredAsync()
     {
         try
         {
-            var rows = await pushService.DeleteBeforeAsync(timeProvider.GetUtcNow().AddDays(-options.Days).UtcDateTime, cancellationToken);
+            var rows = await PushService.DeleteBeforeAsync(TimeProvider.GetUtcNow().AddDays(-Options.Days).UtcDateTime);
             if (rows > 0)
             {
-                log.InfoPushExpired(rows);
+                Log.InfoPushExpired(rows);
             }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            log.ErrorWorkerException(nameof(PushRetentionWorker), ex);
+            Log.ErrorWorkerException(nameof(PushRetentionWorker), ex);
         }
     }
 }

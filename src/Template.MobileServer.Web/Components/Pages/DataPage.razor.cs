@@ -139,4 +139,11 @@ public sealed partial class DataPage
 
         await grid.ReloadServerData();
     }
+
+    //--------------------------------------------------------------------------------
+    // Format
+    //--------------------------------------------------------------------------------
+
+    private static string FormatCreatedAt(DataEntity entity) =>
+        ViewHelper.FormatTimestamp(entity.CreatedAt.ToLocalTime());
 }

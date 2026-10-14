@@ -6,18 +6,18 @@ using Smart.Data;
 
 public sealed class DatabaseHealthCheck : IHealthCheck
 {
-    private readonly IDbProvider dbProvider;
+    private IDbProvider DbProvider { get; }
 
     public DatabaseHealthCheck(IDbProvider dbProvider)
     {
-        this.dbProvider = dbProvider;
+        DbProvider = dbProvider;
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
         try
         {
-            await using var con = dbProvider.CreateConnection();
+            await using var con = DbProvider.CreateConnection();
             await con.OpenAsync(cancellationToken);
 
             await using var command = con.CreateCommand();

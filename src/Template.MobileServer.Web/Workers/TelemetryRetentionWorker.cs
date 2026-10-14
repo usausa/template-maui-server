@@ -7,15 +7,15 @@ public sealed class TelemetryRetentionWorker : BackgroundService
 {
     private const long NanosecondsPerMillisecond = 1_000_000;
 
-    private readonly ILogger<TelemetryRetentionWorker> log;
+    private ILogger<TelemetryRetentionWorker> Log { get; }
 
-    private readonly TimeProvider timeProvider;
+    private TimeProvider TimeProvider { get; }
 
-    private readonly TelemetryRetentionWorkerOption options;
+    private TelemetryRetentionWorkerOption Options { get; }
 
-    private readonly TelemetryStore store;
+    private TelemetryStore Store { get; }
 
-    private readonly TelemetryDeviceRegistry registry;
+    private TelemetryDeviceRegistry Registry { get; }
 
     public TelemetryRetentionWorker(
         ILogger<TelemetryRetentionWorker> log,
@@ -24,29 +24,29 @@ public sealed class TelemetryRetentionWorker : BackgroundService
         TelemetryStore store,
         TelemetryDeviceRegistry registry)
     {
-        this.log = log;
-        this.timeProvider = timeProvider;
-        this.options = options;
-        this.store = store;
-        this.registry = registry;
+        Log = log;
+        TimeProvider = timeProvider;
+        Options = options;
+        Store = store;
+        Registry = registry;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (!options.Enable)
+        if (!Options.Enable)
         {
-            log.InfoWorkerDisabled(nameof(TelemetryRetentionWorker));
+            Log.WarnWorkerDisabled(nameof(TelemetryRetentionWorker));
             return;
         }
 
-        log.InfoWorkerStart(nameof(TelemetryRetentionWorker));
+        Log.InfoWorkerStart(nameof(TelemetryRetentionWorker));
 
         try
         {
-            using var timer = new PeriodicTimer(TimeSpan.FromMinutes(options.IntervalMinutes), timeProvider);
+            using var timer = new PeriodicTimer(TimeSpan.FromMinutes(Options.IntervalMinutes), TimeProvider);
             do
             {
-                await DeleteExpiredAsync(stoppingToken);
+                await DeleteExpiredAsync();
             }
             while (await timer.WaitForNextTickAsync(stoppingToken));
         }
@@ -56,37 +56,37 @@ public sealed class TelemetryRetentionWorker : BackgroundService
         }
         finally
         {
-            log.InfoWorkerStop(nameof(TelemetryRetentionWorker));
+            Log.InfoWorkerStop(nameof(TelemetryRetentionWorker));
         }
     }
 
     // 1 台の失敗はログに出して次の端末へ進む
-    private async Task DeleteExpiredAsync(CancellationToken cancellationToken)
+    private async Task DeleteExpiredAsync()
     {
-        var now = timeProvider.GetUtcNow();
-        var logBefore = ToUnixNano(now.AddDays(-options.LogDays));
-        var traceBefore = ToUnixNano(now.AddDays(-options.TraceDays));
-        var metricBefore = ToUnixNano(now.AddDays(-options.MetricDays));
-        var deviceBefore = ToUnixNano(now.AddDays(-options.DeviceDays));
+        var now = TimeProvider.GetUtcNow();
+        var logBefore = ToUnixNano(now.AddDays(-Options.LogDays));
+        var traceBefore = ToUnixNano(now.AddDays(-Options.TraceDays));
+        var metricBefore = ToUnixNano(now.AddDays(-Options.MetricDays));
+        var deviceBefore = ToUnixNano(now.AddDays(-Options.DeviceDays));
 
-        foreach (var deviceId in store.EnumerateDevices())
+        foreach (var deviceId in Store.EnumerateDevices())
         {
             try
             {
-                var result = await store.DeleteExpiredAsync(deviceId, logBefore, traceBefore, metricBefore, deviceBefore, cancellationToken);
+                var result = await Store.DeleteExpiredAsync(deviceId, logBefore, traceBefore, metricBefore, deviceBefore);
                 if (result.FileDeleted)
                 {
-                    registry.ClearTelemetry(deviceId);
-                    log.InfoTelemetryFileDeleted(deviceId);
+                    Registry.ClearTelemetry(deviceId);
+                    Log.InfoTelemetryFileDeleted(deviceId);
                 }
                 else if (result.Rows > 0)
                 {
-                    log.InfoTelemetryExpired(deviceId, result.Rows);
+                    Log.InfoTelemetryExpired(deviceId, result.Rows);
                 }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                log.ErrorWorkerException(nameof(TelemetryRetentionWorker), ex);
+                Log.ErrorWorkerException(nameof(TelemetryRetentionWorker), ex);
             }
         }
     }

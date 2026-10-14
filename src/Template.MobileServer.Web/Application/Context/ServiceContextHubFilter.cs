@@ -4,21 +4,21 @@ using Microsoft.AspNetCore.SignalR;
 
 public sealed class ServiceContextHubFilter : IHubFilter
 {
-    private readonly TimeProvider timeProvider;
+    private TimeProvider TimeProvider { get; }
 
-    private readonly ApplicationServiceContextProvider provider;
+    private ApplicationServiceContextProvider Provider { get; }
 
     public ServiceContextHubFilter(
         TimeProvider timeProvider,
         ApplicationServiceContextProvider provider)
     {
-        this.timeProvider = timeProvider;
-        this.provider = provider;
+        TimeProvider = timeProvider;
+        Provider = provider;
     }
 
     public async ValueTask<object?> InvokeMethodAsync(HubInvocationContext invocationContext, Func<HubInvocationContext, ValueTask<object?>> next)
     {
-        using var scope = provider.Begin(() => new ServiceContext(timeProvider.GetLocalNow(), HttpServiceContext.GetUserId(invocationContext.Context.User)));
+        using var scope = Provider.Begin(() => new ServiceContext(TimeProvider.GetLocalNow(), HttpServiceContext.GetUserId(invocationContext.Context.User)));
         return await next(invocationContext);
     }
 }

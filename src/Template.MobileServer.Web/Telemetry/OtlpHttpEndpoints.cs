@@ -43,11 +43,11 @@ public static class OtlpHttpEndpoints
         ReceiveAsync(request, option.MaxReceiveMessageSize, ExportLogsServiceRequest.Parser, receiver.ReceiveAsync);
 
     // 応答は protobuf の Export*ServiceResponse。protobuf 以外は 415、上限を超えたら 413、壊れていたら 400、保存できなければ 503 (端末は送り直す)
-    internal static async Task<IResult> ReceiveAsync<TRequest, TResponse>(HttpRequest request, int limit, MessageParser<TRequest> parser, Func<TRequest, CancellationToken, ValueTask<TResponse>> receive)
+    internal static async Task<IResult> ReceiveAsync<TRequest, TResponse>(HttpRequest request, int limit, MessageParser<TRequest> parser, Func<TRequest, ValueTask<TResponse>> receive)
         where TRequest : IMessage<TRequest>
         where TResponse : IMessage
     {
-        if (!String.Equals(request.ContentType, ProtobufContentType, StringComparison.OrdinalIgnoreCase))
+        if (request.GetTypedHeaders().ContentType?.MediaType.Equals(ProtobufContentType, StringComparison.OrdinalIgnoreCase) != true)
         {
             return TypedResults.StatusCode(StatusCodes.Status415UnsupportedMediaType);
         }
@@ -70,7 +70,7 @@ public static class OtlpHttpEndpoints
 
         try
         {
-            var response = await receive(message, request.HttpContext.RequestAborted);
+            var response = await receive(message);
             return TypedResults.Bytes(response.ToByteArray(), ProtobufContentType);
         }
         catch (Exception ex) when (OtlpReceiver.IsStorageError(ex))

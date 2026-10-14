@@ -18,30 +18,30 @@ public sealed class SqliteTelemetryDbProvider : ITelemetryDbProvider
 
     private readonly Lazy<string> schema = new(static () => File.ReadAllText(SchemaPath));
 
-    private readonly TelemetryStorageOption option;
+    private TelemetryStorageOption Option { get; }
 
-    private readonly GenericAccessor genericAccessor;
+    private GenericAccessor GenericAccessor { get; }
 
     public SqliteTelemetryDbProvider(
         TelemetryStorageOption option,
         GenericAccessor genericAccessor)
     {
-        this.option = option;
-        this.genericAccessor = genericAccessor;
+        Option = option;
+        GenericAccessor = genericAccessor;
     }
 
     public IReadOnlyList<string> EnumerateDevices() =>
-        Directory.Exists(option.Root)
-            ? Directory.EnumerateFiles(option.Root, "*" + Extension)
+        Directory.Exists(Option.Root)
+            ? Directory.EnumerateFiles(Option.Root, "*" + Extension)
                 .Select(static x => Path.GetFileNameWithoutExtension(x))
                 .Where(static x => DeviceIdFormat.IsValid(x))
                 .ToList()
             : [];
 
-    public ValueTask<DbConnection> OpenAsync(string deviceId, CancellationToken cancellationToken) =>
+    public ValueTask<DbConnection> OpenAsync(string deviceId, CancellationToken cancellationToken = default) =>
         OpenAsync(deviceId, SqliteOpenMode.ReadWriteCreate, cancellationToken);
 
-    public async ValueTask<DbConnection?> OpenExistingAsync(string deviceId, CancellationToken cancellationToken) =>
+    public async ValueTask<DbConnection?> OpenExistingAsync(string deviceId, CancellationToken cancellationToken = default) =>
         File.Exists(GetPath(deviceId)) ? await OpenAsync(deviceId, SqliteOpenMode.ReadWrite, cancellationToken) : null;
 
     public bool Delete(string deviceId)
@@ -78,15 +78,15 @@ public sealed class SqliteTelemetryDbProvider : ITelemetryDbProvider
             // A new file has the version 0, the schema sets the version
             if (!prepared.ContainsKey(deviceId))
             {
-                if (await genericAccessor.QueryUserVersionAsync(con, cancellationToken) == 0)
+                if (await GenericAccessor.QueryUserVersionAsync(con) == 0)
                 {
-                    await genericAccessor.ExecuteSchemaAsync(con, schema.Value, cancellationToken);
+                    await GenericAccessor.ExecuteSchemaAsync(con, schema.Value);
                 }
 
                 prepared[deviceId] = true;
             }
 
-            await genericAccessor.ExecuteTelemetryPragmaAsync(con, option.CacheSize, cancellationToken);
+            await GenericAccessor.ExecuteTelemetryPragmaAsync(con, Option.CacheSize);
 
             return con;
         }
@@ -104,7 +104,7 @@ public sealed class SqliteTelemetryDbProvider : ITelemetryDbProvider
             throw new ArgumentException("Invalid device id.", nameof(deviceId));
         }
 
-        return Path.Combine(option.Root, deviceId + Extension);
+        return Path.Combine(Option.Root, deviceId + Extension);
     }
 
     private static string MakeConnectionString(string path, SqliteOpenMode mode) =>

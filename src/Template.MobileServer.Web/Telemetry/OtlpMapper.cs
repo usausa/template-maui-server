@@ -89,10 +89,10 @@ public static class OtlpMapper
                     SpanId = span.SpanId.ToHex(),
                     ParentSpanId = span.ParentSpanId.ToHex(),
                     Name = span.Name,
-                    Kind = (TelemetrySpanKind)span.Kind,
+                    Kind = ToSpanKind(span.Kind),
                     StartTimeUnixNano = (long)span.StartTimeUnixNano,
                     EndTimeUnixNano = (long)span.EndTimeUnixNano,
-                    StatusCode = (TelemetryStatusCode)(span.Status?.Code ?? default),
+                    StatusCode = ToStatusCode(span.Status?.Code ?? default),
                     StatusMessage = span.Status?.Message ?? string.Empty,
                     ScopeName = scopeName,
                     AttributesJson = ToJson(span.Attributes),
@@ -104,6 +104,25 @@ public static class OtlpMapper
 
         return rejected;
     }
+
+    private static string ToSpanKind(Span.Types.SpanKind kind) =>
+        kind switch
+        {
+            Span.Types.SpanKind.Internal => TelemetrySpanKind.Internal,
+            Span.Types.SpanKind.Server => TelemetrySpanKind.Server,
+            Span.Types.SpanKind.Client => TelemetrySpanKind.Client,
+            Span.Types.SpanKind.Producer => TelemetrySpanKind.Producer,
+            Span.Types.SpanKind.Consumer => TelemetrySpanKind.Consumer,
+            _ => TelemetrySpanKind.Unspecified
+        };
+
+    private static string ToStatusCode(Status.Types.StatusCode code) =>
+        code switch
+        {
+            Status.Types.StatusCode.Ok => TelemetryStatusCode.Ok,
+            Status.Types.StatusCode.Error => TelemetryStatusCode.Error,
+            _ => TelemetryStatusCode.Unset
+        };
 
     //--------------------------------------------------------------------------------
     // Metric
@@ -131,14 +150,14 @@ public static class OtlpMapper
                     case Metric.DataOneofCase.Sum:
                         foreach (var point in metric.Sum.DataPoints)
                         {
-                            rejected += AddNumber(batch, metrics, metric, scopeName, (TelemetryTemporality)metric.Sum.AggregationTemporality, metric.Sum.IsMonotonic, point);
+                            rejected += AddNumber(batch, metrics, metric, scopeName, ToTemporality(metric.Sum.AggregationTemporality), metric.Sum.IsMonotonic, point);
                         }
 
                         break;
                     case Metric.DataOneofCase.Histogram:
                         foreach (var point in metric.Histogram.DataPoints)
                         {
-                            rejected += AddPoint(batch, metrics, metric, scopeName, TelemetryMetricKind.Histogram, (TelemetryTemporality)metric.Histogram.AggregationTemporality, false, point.Attributes, point.Flags, point.TimeUnixNano, new TelemetryMetricPointEntity
+                            rejected += AddPoint(batch, metrics, metric, scopeName, TelemetryMetricKind.Histogram, ToTemporality(metric.Histogram.AggregationTemporality), false, point.Attributes, point.Flags, point.TimeUnixNano, new TelemetryMetricPointEntity
                             {
                                 StartTimeUnixNano = (long)point.StartTimeUnixNano,
                                 Count = (long)point.Count,
@@ -153,7 +172,7 @@ public static class OtlpMapper
                     case Metric.DataOneofCase.ExponentialHistogram:
                         foreach (var point in metric.ExponentialHistogram.DataPoints)
                         {
-                            rejected += AddPoint(batch, metrics, metric, scopeName, TelemetryMetricKind.ExponentialHistogram, (TelemetryTemporality)metric.ExponentialHistogram.AggregationTemporality, false, point.Attributes, point.Flags, point.TimeUnixNano, new TelemetryMetricPointEntity
+                            rejected += AddPoint(batch, metrics, metric, scopeName, TelemetryMetricKind.ExponentialHistogram, ToTemporality(metric.ExponentialHistogram.AggregationTemporality), false, point.Attributes, point.Flags, point.TimeUnixNano, new TelemetryMetricPointEntity
                             {
                                 StartTimeUnixNano = (long)point.StartTimeUnixNano,
                                 Count = (long)point.Count,
@@ -185,7 +204,7 @@ public static class OtlpMapper
         return rejected;
     }
 
-    private static int AddNumber(TelemetryBatch batch, Dictionary<string, TelemetryMetric> metrics, Metric metric, string scopeName, TelemetryTemporality temporality, bool isMonotonic, NumberDataPoint point)
+    private static int AddNumber(TelemetryBatch batch, Dictionary<string, TelemetryMetric> metrics, Metric metric, string scopeName, string temporality, bool isMonotonic, NumberDataPoint point)
     {
         var kind = metric.DataCase == Metric.DataOneofCase.Sum ? TelemetryMetricKind.Sum : TelemetryMetricKind.Gauge;
         if (point.ValueCase == NumberDataPoint.ValueOneofCase.None)
@@ -200,7 +219,7 @@ public static class OtlpMapper
         });
     }
 
-    private static int AddPoint(TelemetryBatch batch, Dictionary<string, TelemetryMetric> metrics, Metric metric, string scopeName, TelemetryMetricKind kind, TelemetryTemporality temporality, bool isMonotonic, IEnumerable<KeyValue> attributes, uint flags, ulong time, TelemetryMetricPointEntity point)
+    private static int AddPoint(TelemetryBatch batch, Dictionary<string, TelemetryMetric> metrics, Metric metric, string scopeName, string kind, string temporality, bool isMonotonic, IEnumerable<KeyValue> attributes, uint flags, ulong time, TelemetryMetricPointEntity point)
     {
         if ((flags & NoRecordedValue) != 0)
         {
@@ -237,6 +256,14 @@ public static class OtlpMapper
         entry.Points.Add(point);
         return 0;
     }
+
+    private static string ToTemporality(AggregationTemporality temporality) =>
+        temporality switch
+        {
+            AggregationTemporality.Delta => TelemetryTemporality.Delta,
+            AggregationTemporality.Cumulative => TelemetryTemporality.Cumulative,
+            _ => TelemetryTemporality.Unspecified
+        };
 
     //--------------------------------------------------------------------------------
     // Log

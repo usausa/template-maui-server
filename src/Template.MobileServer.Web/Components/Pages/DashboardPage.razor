@@ -12,9 +12,11 @@
         </MudStack>
         <MudText Typo="Typo.h5" Class="summary-devices">@receivingCount / @enabledCount</MudText>
         <div class="state-bar" title="@StateSummary">
-            <span class="state-receiving" style="@ReceivingStyle"></span>
-            <span class="state-stopped" style="@StoppedStyle"></span>
-            <span class="state-nodata" style="@NoDataStyle"></span>
+            <svg>
+                <rect class="state-receiving" width="@ReceivingWidth" height="100%" />
+                <rect class="state-stopped" x="@ReceivingWidth" width="@StoppedWidth" height="100%" />
+                <rect class="state-nodata" x="@NoDataX" width="@NoDataWidth" height="100%" />
+            </svg>
         </div>
         <MudText Typo="Typo.caption">@StateSummary</MudText>
     </MudPaper>
@@ -78,10 +80,10 @@
             <th class="text-right">メモリ</th>
             <th>値 1</th>
             <th>値 2</th>
-            <th class="text-right">エラー</th>
-            <th class="text-right">クラッシュ</th>
-            <th class="text-right">未達</th>
-            <th class="w-120"></th>
+            <th class="text-right"><MudIcon Icon="@Icons.Material.Filled.BugReport" Size="Size.Small" Title="エラー" /></th>
+            <th class="text-right"><MudIcon Icon="@Icons.Material.Filled.ReportProblem" Size="Size.Small" Title="クラッシュ" /></th>
+            <th class="text-right"><MudIcon Icon="@Icons.Material.Filled.ScheduleSend" Size="Size.Small" Title="未達" /></th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -148,6 +150,6 @@
         </MudSimpleTable>
     </ChildContent>
     <ElseContent>
-        <MudText>エラーはありません。</MudText>
+        <MudText>直近 24 時間のエラーはありません。</MudText>
     </ElseContent>
 </Condition>

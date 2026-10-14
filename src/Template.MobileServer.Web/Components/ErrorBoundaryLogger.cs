@@ -4,16 +4,16 @@ using Microsoft.AspNetCore.Components.Web;
 
 public sealed class ErrorBoundaryLogger : IErrorBoundaryLogger
 {
-    private readonly ILogger<ErrorBoundaryLogger> log;
+    private ILogger<ErrorBoundaryLogger> Log { get; }
 
     public ErrorBoundaryLogger(ILogger<ErrorBoundaryLogger> log)
     {
-        this.log = log;
+        Log = log;
     }
 
     public ValueTask LogErrorAsync(Exception exception)
     {
-        log.ErrorComponentException(exception);
+        Log.ErrorComponentException(exception);
         return ValueTask.CompletedTask;
     }
 }

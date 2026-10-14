@@ -8,14 +8,14 @@ using Template.MobileServer.Web.Services;
 
 public sealed class ChatHandler : ChatRoom.ChatRoomBase
 {
-    private readonly TimeProvider timeProvider;
+    private TimeProvider TimeProvider { get; }
 
-    private readonly ChatService chatService;
+    private ChatService ChatService { get; }
 
     public ChatHandler(TimeProvider timeProvider, ChatService chatService)
     {
-        this.timeProvider = timeProvider;
-        this.chatService = chatService;
+        TimeProvider = timeProvider;
+        ChatService = chatService;
     }
 
     //--------------------------------------------------------------------------------
@@ -33,19 +33,19 @@ public sealed class ChatHandler : ChatRoom.ChatRoomBase
         var channel = Channel.CreateUnbounded<ChatEntry>(new UnboundedChannelOptions { SingleReader = true });
 
         // Send recent history upon connection
-        foreach (var entry in chatService.History)
+        foreach (var entry in ChatService.History)
         {
             await responseStream.WriteAsync(MapToMessage(entry), cancellationToken);
         }
 
-        chatService.Received += OnReceived;
+        ChatService.Received += OnReceived;
         var deliveryTask = DeliverAsync(channel.Reader, responseStream, cancellationToken);
         try
         {
             // Broadcast received messages to all participants (username is client-specified)
             await foreach (var message in requestStream.ReadAllAsync(cancellationToken))
             {
-                chatService.Publish(String.IsNullOrEmpty(message.User) ? "unknown" : message.User, message.Text, timeProvider.GetUtcNow());
+                ChatService.Publish(String.IsNullOrEmpty(message.User) ? "unknown" : message.User, message.Text, TimeProvider.GetUtcNow());
             }
         }
         catch (OperationCanceledException)
@@ -58,7 +58,7 @@ public sealed class ChatHandler : ChatRoom.ChatRoomBase
         }
         finally
         {
-            chatService.Received -= OnReceived;
+            ChatService.Received -= OnReceived;
             channel.Writer.TryComplete();
             await deliveryTask;
         }

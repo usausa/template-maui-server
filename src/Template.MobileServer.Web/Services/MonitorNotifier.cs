@@ -7,44 +7,44 @@ using Template.MobileServer.Web.Infrastructure.Notifications;
 
 public sealed class MonitorNotifier : IDisposable
 {
-    private readonly ILogger<MonitorNotifier> log;
+    private ILogger<MonitorNotifier> Log { get; }
 
-    private readonly IHubContext<MonitorHub, IMonitorClient> hub;
+    private TimeProvider TimeProvider { get; }
 
-    private readonly TimeProvider timeProvider;
+    private IHubContext<MonitorHub, IMonitorClient> Hub { get; }
 
-    private readonly NotificationBus bus;
+    private NotificationBus Bus { get; }
 
     public MonitorNotifier(
         ILogger<MonitorNotifier> log,
-        IHubContext<MonitorHub, IMonitorClient> hub,
         TimeProvider timeProvider,
+        IHubContext<MonitorHub, IMonitorClient> hub,
         NotificationBus bus)
     {
-        this.log = log;
-        this.hub = hub;
-        this.timeProvider = timeProvider;
-        this.bus = bus;
+        Log = log;
+        TimeProvider = timeProvider;
+        Hub = hub;
+        Bus = bus;
 
         bus.Received += OnReceived;
     }
 
     public void Dispose()
     {
-        bus.Received -= OnReceived;
+        Bus.Received -= OnReceived;
     }
 
     public Task NotifyAllAsync(string title, string body) =>
-        hub.Clients.All.Notify(CreateNotification(title, body));
+        Hub.Clients.All.Notify(CreateNotification(title, body));
 
     public Task NotifyAsync(string connectionId, string title, string body) =>
-        hub.Clients.Client(connectionId).Notify(CreateNotification(title, body));
+        Hub.Clients.Client(connectionId).Notify(CreateNotification(title, body));
 
     private NotificationMessage CreateNotification(string title, string body) => new()
     {
         Title = title,
         Body = body,
-        SentAt = timeProvider.GetLocalNow()
+        SentAt = TimeProvider.GetLocalNow()
     };
 
     private void OnReceived(object? sender, NotificationEventArgs e)
@@ -60,7 +60,7 @@ public sealed class MonitorNotifier : IDisposable
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            log.ErrorNotifyFailed(ex);
+            Log.ErrorNotifyFailed(ex);
         }
     }
 }

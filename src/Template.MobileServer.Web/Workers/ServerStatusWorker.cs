@@ -7,15 +7,15 @@ using Template.MobileServer.Web.Services;
 
 public sealed class ServerStatusWorker : BackgroundService
 {
-    private readonly ILogger<ServerStatusWorker> log;
+    private ILogger<ServerStatusWorker> Log { get; }
 
-    private readonly TimeProvider timeProvider;
+    private TimeProvider TimeProvider { get; }
 
-    private readonly ServerStatusWorkerOption options;
+    private ServerStatusWorkerOption Options { get; }
 
-    private readonly IHubContext<MonitorHub, IMonitorClient> hub;
+    private IHubContext<MonitorHub, IMonitorClient> Hub { get; }
 
-    private readonly DeviceRegistry registry;
+    private DeviceRegistry Registry { get; }
 
     public ServerStatusWorker(
         ILogger<ServerStatusWorker> log,
@@ -24,53 +24,53 @@ public sealed class ServerStatusWorker : BackgroundService
         IHubContext<MonitorHub, IMonitorClient> hub,
         DeviceRegistry registry)
     {
-        this.log = log;
-        this.timeProvider = timeProvider;
-        this.options = options;
-        this.hub = hub;
-        this.registry = registry;
+        Log = log;
+        TimeProvider = timeProvider;
+        Options = options;
+        Hub = hub;
+        Registry = registry;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        log.InfoWorkerStart(nameof(ServerStatusWorker));
+        Log.InfoWorkerStart(nameof(ServerStatusWorker));
 
         try
         {
             var lastCpuTime = Environment.CpuUsage.TotalTime;
-            var lastTimestamp = timeProvider.GetTimestamp();
+            var lastTimestamp = TimeProvider.GetTimestamp();
 
-            using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(options.Interval), timeProvider);
+            using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(Options.Interval), TimeProvider);
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
                 // Process CPU time against the elapsed time, one core = 100% (clamped when several threads are busy)
                 var cpuTime = Environment.CpuUsage.TotalTime;
-                var timestamp = timeProvider.GetTimestamp();
-                var elapsed = timeProvider.GetElapsedTime(lastTimestamp, timestamp);
+                var timestamp = TimeProvider.GetTimestamp();
+                var elapsed = TimeProvider.GetElapsedTime(lastTimestamp, timestamp);
                 var cpu = elapsed > TimeSpan.Zero
                     ? Math.Clamp((cpuTime - lastCpuTime) / elapsed * 100, 0, 100)
                     : 0;
                 lastCpuTime = cpuTime;
                 lastTimestamp = timestamp;
 
-                if (registry.Count == 0)
+                if (Registry.Count == 0)
                 {
                     continue;
                 }
 
                 try
                 {
-                    await hub.Clients.All.ServerStatus(new ServerStatusMessage
+                    await Hub.Clients.All.ServerStatus(new ServerStatusMessage
                     {
-                        Time = timeProvider.GetLocalNow(),
+                        Time = TimeProvider.GetLocalNow(),
                         CpuPercent = Math.Round(cpu, 1),
                         WorkingSet = Environment.WorkingSet,
-                        Connections = registry.Count
+                        Connections = Registry.Count
                     });
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    log.ErrorWorkerException(nameof(ServerStatusWorker), ex);
+                    Log.ErrorWorkerException(nameof(ServerStatusWorker), ex);
                 }
             }
         }
@@ -80,7 +80,7 @@ public sealed class ServerStatusWorker : BackgroundService
         }
         finally
         {
-            log.InfoWorkerStop(nameof(ServerStatusWorker));
+            Log.InfoWorkerStop(nameof(ServerStatusWorker));
         }
     }
 }

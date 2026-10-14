@@ -52,7 +52,7 @@ public sealed class OtlpReceiverTests : IDisposable
         using var scope = storage.BeginScope(Now);
 
         // Act
-        var response = await receiver.ReceiveAsync(request, TestContext.Current.CancellationToken);
+        var response = await receiver.ReceiveAsync(request);
 
         // Assert
         Assert.Equal(1, response.PartialSuccess.RejectedSpans);
@@ -90,7 +90,7 @@ public sealed class OtlpReceiverTests : IDisposable
         using var scope = storage.BeginScope(Now);
 
         // Act
-        var response = await receiver.ReceiveAsync(request, TestContext.Current.CancellationToken);
+        var response = await receiver.ReceiveAsync(request);
 
         // Assert
         Assert.Equal(1, response.PartialSuccess.RejectedDataPoints);
@@ -120,12 +120,12 @@ public sealed class OtlpReceiverTests : IDisposable
         using var scope = storage.BeginScope(Now);
 
         // Act
-        var response = await receiver.ReceiveAsync(request, TestContext.Current.CancellationToken);
+        var response = await receiver.ReceiveAsync(request);
 
         // Assert
         Assert.Null(response.PartialSuccess);
         Assert.Equal("warning", await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT Body FROM Log"));
-        var device = await storage.DeviceService.QueryAsync(DeviceId, TestContext.Current.CancellationToken);
+        var device = await storage.DeviceService.QueryAsync(DeviceId);
         Assert.NotNull(device);
         Assert.True(device.IsEnabled);
         Assert.Single(Assert.Single(received).Logs);
@@ -138,7 +138,7 @@ public sealed class OtlpReceiverTests : IDisposable
         // Arrange
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(Now);
-        await storage.Registry.AddAsync(new DeviceEntity { DeviceId = DeviceId, Name = "disabled", IsEnabled = false }, TestContext.Current.CancellationToken);
+        await storage.Registry.AddAsync(new DeviceEntity { DeviceId = DeviceId, Name = "disabled", IsEnabled = false });
         var receiver = new OtlpReceiver(CreateLogger<OtlpReceiver>(), storage.Store, storage.Registry, storage.Bus);
         var request = new ExportLogsServiceRequest
         {
@@ -153,7 +153,7 @@ public sealed class OtlpReceiverTests : IDisposable
         };
 
         // Act
-        var response = await receiver.ReceiveAsync(request, TestContext.Current.CancellationToken);
+        var response = await receiver.ReceiveAsync(request);
 
         // Assert
         Assert.Equal(1, response.PartialSuccess.RejectedLogRecords);
@@ -177,7 +177,7 @@ public sealed class OtlpReceiverTests : IDisposable
         using var scope = storage.BeginScope(Now);
 
         // Act
-        var ex = await Assert.ThrowsAnyAsync<Exception>(async () => await receiver.ReceiveAsync(request, TestContext.Current.CancellationToken));
+        var ex = await Assert.ThrowsAnyAsync<Exception>(async () => await receiver.ReceiveAsync(request));
 
         // Assert
         Assert.True(OtlpReceiver.IsStorageError(ex));

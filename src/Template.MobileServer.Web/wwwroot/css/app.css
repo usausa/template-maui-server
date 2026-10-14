@@ -114,6 +114,12 @@ html, body {
     white-space: nowrap;
 }
 
+.mud-simple-table.dashboard-table * tr th,
+.mud-simple-table.dashboard-table * tr td {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
 .dashboard-table td.error-body {
     white-space: normal;
     word-break: break-all;
@@ -124,7 +130,6 @@ html, body {
 }
 
 .state-bar {
-    display: flex;
     height: 8px;
     margin: 6px 0 2px;
     border-radius: 2px;
@@ -132,20 +137,22 @@ html, body {
     background-color: var(--mud-palette-lines-default);
 }
 
-.state-bar span {
-    flex-basis: 0;
+.state-bar svg {
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 
 .state-receiving {
-    background-color: var(--mud-palette-success);
+    fill: var(--mud-palette-success);
 }
 
 .state-stopped {
-    background-color: var(--mud-palette-warning);
+    fill: var(--mud-palette-warning);
 }
 
 .state-nodata {
-    background-color: var(--mud-palette-gray-light);
+    fill: var(--mud-palette-gray-light);
 }
 
 /* Telemetry value */
@@ -164,25 +171,20 @@ html, body {
     background-color: var(--mud-palette-lines-default);
 }
 
-.meter-fill {
-    display: block;
-    height: 100%;
-}
-
 .meter-good {
-    background-color: var(--mud-palette-success);
+    fill: var(--mud-palette-success);
 }
 
 .meter-warning {
-    background-color: var(--mud-palette-warning);
+    fill: var(--mud-palette-warning);
 }
 
 .meter-critical {
-    background-color: var(--mud-palette-error);
+    fill: var(--mud-palette-error);
 }
 
 .meter-none {
-    background-color: var(--mud-palette-primary);
+    fill: var(--mud-palette-primary);
 }
 
 .value-muted {
@@ -380,42 +382,40 @@ html, body {
     cursor: pointer;
 }
 
+.waterfall-indent {
+    flex: none;
+}
+
 .waterfall-timeline {
-    position: relative;
+    display: block;
+    width: 100%;
     height: 28px;
+    overflow: visible;
 }
 
 .waterfall-tick {
-    position: absolute;
-    top: 6px;
-    padding-left: 2px;
-    border-left: 1px solid var(--mud-palette-lines-default);
-    white-space: nowrap;
+    stroke: var(--mud-palette-lines-default);
+    shape-rendering: crispEdges;
+}
+
+.waterfall-tick-label {
+    fill: currentColor;
 }
 
 .waterfall-bar {
-    position: absolute;
-    top: 8px;
-    height: 12px;
-    border-radius: 2px;
-    background-color: var(--mud-palette-primary);
+    fill: var(--mud-palette-primary);
 }
 
 .waterfall-bar-error {
-    background-color: var(--mud-palette-error);
+    fill: var(--mud-palette-error);
 }
 
 .waterfall-event {
-    position: absolute;
-    top: 5px;
-    width: 2px;
-    height: 18px;
-    background-color: var(--mud-palette-text-primary);
+    fill: var(--mud-palette-text-primary);
 }
 
 .waterfall-event-exception {
-    width: 3px;
-    background-color: var(--mud-palette-error);
+    fill: var(--mud-palette-error);
 }
 
 .waterfall-duration {

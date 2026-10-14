@@ -59,40 +59,40 @@ public interface IMonitorClient
 
 public sealed class MonitorHub : Hub<IMonitorClient>
 {
-    private readonly ILogger<MonitorHub> log;
+    private ILogger<MonitorHub> Log { get; }
 
-    private readonly TimeProvider timeProvider;
+    private TimeProvider TimeProvider { get; }
 
-    private readonly DeviceRegistry registry;
+    private DeviceRegistry Registry { get; }
 
     public MonitorHub(
         ILogger<MonitorHub> log,
         TimeProvider timeProvider,
         DeviceRegistry registry)
     {
-        this.log = log;
-        this.timeProvider = timeProvider;
-        this.registry = registry;
+        Log = log;
+        TimeProvider = timeProvider;
+        Registry = registry;
     }
 
     public override Task OnConnectedAsync()
     {
-        registry.Register(Context.ConnectionId, timeProvider.GetUtcNow(), Context.Abort);
+        Registry.Register(Context.ConnectionId, TimeProvider.GetUtcNow(), Context.Abort);
 
-        log.InfoMonitorConnected(Context.ConnectionId, registry.Count);
+        Log.InfoMonitorConnected(Context.ConnectionId, Registry.Count);
 
         return base.OnConnectedAsync();
     }
 
     public override Task OnDisconnectedAsync(Exception? exception)
     {
-        registry.Remove(Context.ConnectionId);
+        Registry.Remove(Context.ConnectionId);
 
-        log.InfoMonitorDisconnected(Context.ConnectionId, registry.Count, exception);
+        Log.InfoMonitorDisconnected(Context.ConnectionId, Registry.Count, exception);
 
         return base.OnDisconnectedAsync(exception);
     }
 
     public void ReportDeviceStatus(DeviceStatusMessage status) =>
-        registry.Update(Context.ConnectionId, status, timeProvider.GetUtcNow());
+        Registry.Update(Context.ConnectionId, status, TimeProvider.GetUtcNow());
 }

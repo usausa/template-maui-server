@@ -8,7 +8,7 @@ using OpenTelemetry.Proto.Metrics.V1;
 using OpenTelemetry.Proto.Resource.V1;
 using OpenTelemetry.Proto.Trace.V1;
 
-using Template.MobileServer.Models.Enums;
+using Template.MobileServer.Domain;
 using Template.MobileServer.Web.Telemetry;
 
 public sealed class OtlpMapperTests

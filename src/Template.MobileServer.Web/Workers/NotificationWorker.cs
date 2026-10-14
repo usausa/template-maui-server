@@ -4,48 +4,48 @@ using Template.MobileServer.Web.Infrastructure.Notifications;
 
 public sealed class NotificationWorker : BackgroundService
 {
-    private readonly ILogger<NotificationWorker> log;
+    private ILogger<NotificationWorker> Log { get; }
 
-    private readonly NotificationWorkerOption options;
+    private TimeProvider TimeProvider { get; }
 
-    private readonly NotificationBus bus;
+    private NotificationWorkerOption Options { get; }
 
-    private readonly TimeProvider timeProvider;
+    private NotificationBus Bus { get; }
 
     public NotificationWorker(
         ILogger<NotificationWorker> log,
+        TimeProvider timeProvider,
         NotificationWorkerOption options,
-        NotificationBus bus,
-        TimeProvider timeProvider)
+        NotificationBus bus)
     {
-        this.log = log;
-        this.options = options;
-        this.bus = bus;
-        this.timeProvider = timeProvider;
+        Log = log;
+        TimeProvider = timeProvider;
+        Options = options;
+        Bus = bus;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (!options.Enable)
+        if (!Options.Enable)
         {
-            log.InfoWorkerDisabled(nameof(NotificationWorker));
+            Log.WarnWorkerDisabled(nameof(NotificationWorker));
             return;
         }
 
-        log.InfoWorkerStart(nameof(NotificationWorker));
+        Log.InfoWorkerStart(nameof(NotificationWorker));
 
         try
         {
-            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(options.IntervalSeconds));
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(Options.IntervalSeconds), TimeProvider);
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
                 try
                 {
-                    bus.Publish($"Server time: {timeProvider.GetLocalNow():HH:mm:ss}");
+                    Bus.Publish($"Server time: {TimeProvider.GetLocalNow():HH:mm:ss}");
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    log.ErrorWorkerException(nameof(NotificationWorker), ex);
+                    Log.ErrorWorkerException(nameof(NotificationWorker), ex);
                 }
             }
         }
@@ -55,7 +55,7 @@ public sealed class NotificationWorker : BackgroundService
         }
         finally
         {
-            log.InfoWorkerStop(nameof(NotificationWorker));
+            Log.InfoWorkerStop(nameof(NotificationWorker));
         }
     }
 }

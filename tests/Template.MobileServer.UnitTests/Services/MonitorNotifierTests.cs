@@ -22,7 +22,7 @@ public sealed class MonitorNotifierTests
         var hub = Substitute.For<IHubContext<MonitorHub, IMonitorClient>>();
         hub.Clients.Returns(clients);
         var bus = new NotificationBus();
-        var notifier = new MonitorNotifier(NullLogger<MonitorNotifier>.Instance, hub, TimeProvider.System, bus);
+        var notifier = new MonitorNotifier(NullLogger<MonitorNotifier>.Instance, TimeProvider.System, hub, bus);
 
         // Act
         bus.Publish("hello");

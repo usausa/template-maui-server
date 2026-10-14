@@ -6,11 +6,11 @@ using OpenTelemetry.Proto.Collector.Metrics.V1;
 
 public sealed class OtlpMetricsHandler : MetricsService.MetricsServiceBase
 {
-    private readonly OtlpReceiver receiver;
+    private OtlpReceiver Receiver { get; }
 
     public OtlpMetricsHandler(OtlpReceiver receiver)
     {
-        this.receiver = receiver;
+        Receiver = receiver;
     }
 
     // 保存できなければ UNAVAILABLE (端末は送り直す)
@@ -18,7 +18,7 @@ public sealed class OtlpMetricsHandler : MetricsService.MetricsServiceBase
     {
         try
         {
-            return await receiver.ReceiveAsync(request, context.CancellationToken);
+            return await Receiver.ReceiveAsync(request);
         }
         catch (Exception ex) when (OtlpReceiver.IsStorageError(ex))
         {

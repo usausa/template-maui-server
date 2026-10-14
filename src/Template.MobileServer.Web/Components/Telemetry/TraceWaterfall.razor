@@ -1,19 +1,21 @@
 <div class="waterfall">
     <div class="waterfall-row waterfall-head">
         <div class="waterfall-name">スパン</div>
-        <div class="waterfall-timeline">
+        <svg class="waterfall-timeline">
             <ListItem Items="ticks" Context="tick">
                 <ItemTemplate>
-                    <span class="waterfall-tick" style="@tick.Style">@tick.Label</span>
+                    <line class="waterfall-tick" x1="@tick.X" y1="6" x2="@tick.X" y2="23" />
+                    <text class="waterfall-tick-label" x="@tick.X" y="19" dx="3">@tick.Label</text>
                 </ItemTemplate>
             </ListItem>
-        </div>
+        </svg>
         <div class="waterfall-duration">所要時間</div>
     </div>
     <ListItem Items="Model.VisibleRows" Context="row">
         <ItemTemplate>
             <div class="@RowClass(row)" @onclick="() => SelectAsync(row)">
-                <div class="waterfall-name" style="@IndentStyle(row)">
+                <div class="waterfall-name">
+                    <svg class="waterfall-indent" width="@Indent(row)" height="1"></svg>
                     <Condition Value="row.HasChildren">
                         <ChildContent>
                             <button type="button" class="waterfall-toggle" @onclick="() => Toggle(row)" @onclick:stopPropagation="true">
@@ -26,14 +28,15 @@
                     </Condition>
                     <span class="waterfall-span-name" title="@row.Span.Name">@row.Span.Name</span>
                 </div>
-                <div class="waterfall-timeline">
-                    <span class="@BarClass(row)" style="@BarStyle(row)"></span>
+                <svg class="waterfall-timeline">
+                    <rect class="@BarClass(row)" x="@BarX(row)" y="8" width="@BarWidth(row)" height="12" rx="2" />
+                    <rect class="@BarClass(row)" x="@BarX(row)" y="8" width="2" height="12" rx="1" />
                     <ListItem Items="row.Events" Context="item">
                         <ItemTemplate>
-                            <span class="@EventClass(item)" style="@EventStyle(item)" title="@item.Name"></span>
+                            <rect class="@EventClass(item)" x="@EventX(item)" y="5" width="@EventWidth(item)" height="18"><title>@item.Name</title></rect>
                         </ItemTemplate>
                     </ListItem>
-                </div>
+                </svg>
                 <div class="waterfall-duration">@FormatDuration(row.Duration)</div>
             </div>
         </ItemTemplate>

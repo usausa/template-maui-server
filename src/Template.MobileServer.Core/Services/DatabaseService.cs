@@ -4,21 +4,21 @@ using Template.MobileServer.Accessors;
 
 public sealed class DatabaseService
 {
-    private readonly IDbProvider provider;
+    private IDbProvider Provider { get; }
 
-    private readonly GenericAccessor genericAccessor;
+    private GenericAccessor GenericAccessor { get; }
 
     public DatabaseService(
         IDbProvider provider,
         GenericAccessor genericAccessor)
     {
-        this.provider = provider;
-        this.genericAccessor = genericAccessor;
+        Provider = provider;
+        GenericAccessor = genericAccessor;
     }
 
-    public async ValueTask InitializeAsync(string schemaPath, CancellationToken cancellationToken = default)
+    public async ValueTask InitializeAsync(string schemaPath)
     {
-        var schema = await File.ReadAllTextAsync(schemaPath, cancellationToken);
-        await provider.UsingAsync(con => genericAccessor.ExecuteSchemaAsync(con, schema, cancellationToken), cancellationToken);
+        var schema = await File.ReadAllTextAsync(schemaPath);
+        await Provider.UsingAsync(con => GenericAccessor.ExecuteSchemaAsync(con, schema));
     }
 }

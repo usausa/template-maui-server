@@ -258,7 +258,7 @@ public sealed partial class TimeSeriesChart
             latest += $"・{values.Line.Buckets.Values.Sum(static x => x.Count)} 回";
         }
 
-        return new LegendItem($"background-color: {values.Line.Color}", label, latest);
+        return new LegendItem(values.Line.Color, label, latest);
     }
 
     //--------------------------------------------------------------------------------
@@ -286,5 +286,5 @@ public sealed partial class TimeSeriesChart
 
     private sealed record ChartPoint(string X, string Y, string Fill, string Title);
 
-    private sealed record LegendItem(string SwatchStyle, string Label, string Value);
+    private sealed record LegendItem(string Color, string Label, string Value);
 }

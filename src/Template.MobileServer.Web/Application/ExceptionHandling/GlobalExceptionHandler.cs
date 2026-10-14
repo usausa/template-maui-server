@@ -6,16 +6,16 @@ using Template.MobileServer.Web.Endpoints;
 
 public sealed class GlobalExceptionHandler : IExceptionHandler
 {
-    private readonly IProblemDetailsService problemDetailsService;
+    private ILogger<GlobalExceptionHandler> Logger { get; }
 
-    private readonly ILogger<GlobalExceptionHandler> logger;
+    private IProblemDetailsService ProblemDetailsService { get; }
 
     public GlobalExceptionHandler(
-        IProblemDetailsService problemDetailsService,
-        ILogger<GlobalExceptionHandler> logger)
+        ILogger<GlobalExceptionHandler> logger,
+        IProblemDetailsService problemDetailsService)
     {
-        this.problemDetailsService = problemDetailsService;
-        this.logger = logger;
+        Logger = logger;
+        ProblemDetailsService = problemDetailsService;
     }
 
     public ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
@@ -29,7 +29,7 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         {
             httpContext.Response.StatusCode = badRequest.StatusCode;
 
-            return problemDetailsService.TryWriteAsync(new ProblemDetailsContext
+            return ProblemDetailsService.TryWriteAsync(new ProblemDetailsContext
             {
                 HttpContext = httpContext,
                 Exception = exception,
@@ -40,11 +40,11 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             });
         }
 
-        logger.ErrorUnhandledException(exception);
+        Logger.ErrorUnhandledException(exception);
 
         httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
-        return problemDetailsService.TryWriteAsync(new ProblemDetailsContext
+        return ProblemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = httpContext,
             Exception = exception,

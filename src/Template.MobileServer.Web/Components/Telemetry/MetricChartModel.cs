@@ -2,7 +2,6 @@ namespace Template.MobileServer.Web.Components.Telemetry;
 
 using System.Text.Json;
 
-// 点の値の出し方
 public enum MetricValueMode
 {
     // 平均 (ゲージ、Cumulative の合計、単調でない合計)

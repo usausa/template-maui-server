@@ -28,6 +28,16 @@ public sealed class QrPageTests : MudBlazorTestBase
     }
 
     [Fact]
+    public void MakeEndPointUsesEndpointScheme()
+    {
+        // Act
+        var result = QrPage.MakeEndPoint("https://server/", "http://*:9090");
+
+        // Assert
+        Assert.Equal("http://server:9090/", result);
+    }
+
+    [Fact]
     public void MakeEndPointWithoutConfigurationReturnsEmpty()
     {
         // Act
@@ -37,7 +47,7 @@ public sealed class QrPageTests : MudBlazorTestBase
         Assert.Equal(string.Empty, result);
     }
 
-    // 保存: 入力した値が Setting テーブルに保存され、QR の生成値に含まれる。接続先 (API / gRPC / OTEL) はサーバー自身のホスト (gRPC / OTEL は Kestrel のポート)
+    // 保存: 入力した値が Setting テーブルに保存され、QR の生成値に含まれる。接続先 (API / gRPC / OTEL) はサーバー自身のホスト (gRPC / OTEL は Kestrel のスキームとポート)
     [Fact]
     public async Task SavedValuesAreStoredAndIncludedInQr()
     {
@@ -82,6 +92,38 @@ public sealed class QrPageTests : MudBlazorTestBase
         Assert.Empty(await service.QueryAllAsync(Xunit.TestContext.Current.CancellationToken));
     }
 
+    // 注意: localhost で開いたときだけ、接続先が端末から届かないことを出す
+    [Fact]
+    public async Task LoopbackShowsWarning()
+    {
+        // Arrange
+        await using var keeper = OpenSharedMemoryDatabase("qr-loopback");
+        await AddSettingServiceAsync(keeper.ConnectionString);
+
+        // Act
+        var cut = Render<QrPage>();
+
+        // Assert
+        Assert.Contains("localhost で開いているため", cut.Find(".loopback-alert").TextContent, StringComparison.Ordinal);
+    }
+
+    // 注意: 端末から届くホスト名で開けば出さない。gRPC / OTEL も同じホスト
+    [Fact]
+    public async Task HostNameShowsNoWarning()
+    {
+        // Arrange
+        await using var keeper = OpenSharedMemoryDatabase("qr-host");
+        Services.AddSingleton<NavigationManager>(new HostNavigationManager());
+        await AddSettingServiceAsync(keeper.ConnectionString);
+
+        // Act
+        var cut = Render<QrPage>();
+
+        // Assert
+        Assert.Empty(cut.FindAll(".loopback-alert"));
+        await cut.WaitForAssertionAsync(() => Assert.Contains("ApiEndPoint=http://server:8080/\nGrpcEndPoint=http://server:9090/\nOtelEndPoint=http://server:4318/\n", cut.Find("pre.qr-text").TextContent, StringComparison.Ordinal));
+    }
+
     // 画面を経由しない直接の呼び出しはワーカーと同じく明示的にスコープを開始する
     private IDisposable BeginSystemScope() =>
         Services.GetRequiredService<ApplicationServiceContextProvider>().Begin(static () => new ServiceContext(TimeProvider.System.GetLocalNow(), "test"));
@@ -109,7 +151,16 @@ public sealed class QrPageTests : MudBlazorTestBase
             })
             .Build());
 
-        await Services.GetRequiredService<DatabaseService>().InitializeAsync("Assets/Data/Schema.sql", Xunit.TestContext.Current.CancellationToken);
+        await Services.GetRequiredService<DatabaseService>().InitializeAsync("Assets/Data/Schema.sql");
         return Services.GetRequiredService<SettingService>();
+    }
+
+    // ホスト名で開いた画面 (bUnit は http://localhost/ で開く)
+    private sealed class HostNavigationManager : NavigationManager
+    {
+        public HostNavigationManager()
+        {
+            Initialize("http://server:8080/", "http://server:8080/qr");
+        }
     }
 }

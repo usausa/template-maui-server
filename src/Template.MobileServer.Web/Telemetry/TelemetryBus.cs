@@ -23,7 +23,7 @@ public sealed class TelemetryDeviceChangedEventArgs : EventArgs
 // 受信と端末の登録の変更の通知 (プロセス内)。受け手は発行した側のスレッドで呼ばれるので、描画せずに更新を予約してすぐ戻る。受け手の例外はログに出して次の受け手へ進む
 public sealed class TelemetryBus
 {
-    private readonly ILogger<TelemetryBus> log;
+    private ILogger<TelemetryBus> Log { get; }
 
     public event EventHandler<TelemetryReceivedEventArgs>? Received;
 
@@ -31,7 +31,7 @@ public sealed class TelemetryBus
 
     public TelemetryBus(ILogger<TelemetryBus> log)
     {
-        this.log = log;
+        Log = log;
     }
 
     public void PublishReceived(TelemetrySaveResult result) =>
@@ -56,7 +56,7 @@ public sealed class TelemetryBus
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                log.ErrorTelemetryHandlerFailed(ex);
+                Log.ErrorTelemetryHandlerFailed(ex);
             }
         }
     }

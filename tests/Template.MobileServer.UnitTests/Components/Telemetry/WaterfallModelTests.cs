@@ -1,7 +1,7 @@
 namespace Template.MobileServer.Components.Telemetry;
 
+using Template.MobileServer.Domain;
 using Template.MobileServer.Models.Entity;
-using Template.MobileServer.Models.Enums;
 using Template.MobileServer.Web.Components.Telemetry;
 
 public sealed class WaterfallModelTests

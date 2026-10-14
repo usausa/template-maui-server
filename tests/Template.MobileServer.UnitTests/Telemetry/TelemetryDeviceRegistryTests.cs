@@ -1,7 +1,7 @@
 namespace Template.MobileServer.Telemetry;
 
+using Template.MobileServer.Domain;
 using Template.MobileServer.Models.Entity;
-using Template.MobileServer.Models.Enums;
 using Template.MobileServer.Models.Parameters;
 using Template.MobileServer.Services;
 
@@ -24,16 +24,16 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         storage.Bus.DeviceChanged += (_, e) => changed.Add(e.DeviceId);
 
         // Act / Assert: 登録
-        Assert.True(await storage.Registry.EnsureRegisteredAsync(CreateInfo(), TestContext.Current.CancellationToken));
-        var device = await storage.DeviceService.QueryAsync(DeviceId, TestContext.Current.CancellationToken);
+        Assert.True(await storage.Registry.EnsureRegisteredAsync(CreateInfo()));
+        var device = await storage.DeviceService.QueryAsync(DeviceId);
         Assert.NotNull(device);
         Assert.Equal("Pixel 9a", device.Name);
         Assert.Equal([DeviceId], changed);
 
         // Act / Assert: 無効にする
         device.IsEnabled = false;
-        Assert.Equal(DataWriteStatus.Success, await storage.Registry.UpdateAsync(device, TestContext.Current.CancellationToken));
-        Assert.False(await storage.Registry.EnsureRegisteredAsync(CreateInfo(), TestContext.Current.CancellationToken));
+        Assert.Equal(DataWriteStatus.Success, await storage.Registry.UpdateAsync(device));
+        Assert.False(await storage.Registry.EnsureRegisteredAsync(CreateInfo()));
     }
 
     // 要約: 保存した内容で最新値・エラーとクラッシュの件数・直近のエラー・受信の推移を更新する
@@ -43,8 +43,8 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         // Arrange
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(DateTimeOffset.Now);
-        await storage.Registry.EnsureRegisteredAsync(CreateInfo(), TestContext.Current.CancellationToken);
-        var result = await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        await storage.Registry.EnsureRegisteredAsync(CreateInfo());
+        var result = await storage.Store.SaveAsync(CreateBatch());
 
         // Act
         storage.Registry.Apply(result);
@@ -62,6 +62,29 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         Assert.Equal(4, storage.Registry.IngestHistory.Sum());
     }
 
+    // 直近のエラー: エラーとクラッシュの件数と同じく、直近 24 時間のものだけ
+    [Fact]
+    public async Task RecentErrorsAreWithinCountHours()
+    {
+        // Arrange
+        await storage.PrepareDatabaseAsync();
+        using var scope = storage.BeginScope(DateTimeOffset.Now);
+        await storage.Registry.EnsureRegisteredAsync(CreateInfo());
+        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000;
+        var batch = CreateBatch();
+        batch.Logs.Clear();
+        batch.Logs.Add(CreateLog(now - (25 * 3_600_000_000_000), 17, "old"));
+        batch.Logs.Add(CreateLog(now, 17, "new"));
+        var result = await storage.Store.SaveAsync(batch);
+
+        // Act
+        storage.Registry.Apply(result);
+
+        // Assert
+        Assert.Equal(["new"], storage.Registry.RecentErrors.Select(static x => x.Body));
+        Assert.Equal(1, Assert.Single(storage.Registry.Devices).ErrorCount);
+    }
+
     // 起動時の読み込み: 端末のファイルから要約を作り直し、登録の無いファイルは登録する
     [Fact]
     public async Task LoadRestoresSummaryAndRegistersFile()
@@ -70,7 +93,7 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         await storage.PrepareDatabaseAsync();
         using (storage.BeginScope(DateTimeOffset.Now))
         {
-            await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+            await storage.Store.SaveAsync(CreateBatch());
         }
 
         // Act
@@ -83,7 +106,7 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         Assert.Equal(42, summary.CustomValue1?.Value);
         Assert.Equal(2, summary.ErrorCount);
         Assert.Equal(1, summary.CrashCount);
-        Assert.NotNull(await storage.DeviceService.QueryAsync(DeviceId, TestContext.Current.CancellationToken));
+        Assert.NotNull(await storage.DeviceService.QueryAsync(DeviceId));
     }
 
     // 削除: 登録とテレメトリのファイルを消す
@@ -93,16 +116,16 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         // Arrange
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(DateTimeOffset.Now);
-        await storage.Registry.EnsureRegisteredAsync(CreateInfo(), TestContext.Current.CancellationToken);
-        await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        await storage.Registry.EnsureRegisteredAsync(CreateInfo());
+        await storage.Store.SaveAsync(CreateBatch());
 
         // Act
-        var status = await storage.Registry.DeleteAsync(DeviceId, TestContext.Current.CancellationToken);
+        var status = await storage.Registry.DeleteAsync(DeviceId);
 
         // Assert
         Assert.Equal(DataWriteStatus.Success, status);
         Assert.Empty(storage.Registry.Devices);
-        Assert.Null(await storage.DeviceService.QueryAsync(DeviceId, TestContext.Current.CancellationToken));
+        Assert.Null(await storage.DeviceService.QueryAsync(DeviceId));
         Assert.False(File.Exists(Path.Combine(storage.Root, DeviceId + ".db")));
     }
 
@@ -115,7 +138,7 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         using var scope = storage.BeginScope(DateTimeOffset.Now);
 
         // Act / Assert: 登録
-        var (device, created) = await storage.Registry.RegisterAsync(DeviceId, "受付", TestContext.Current.CancellationToken);
+        var (device, created) = await storage.Registry.RegisterAsync(DeviceId, "受付");
         Assert.True(created);
         Assert.True(device.IsEnabled);
         Assert.Equal("受付", device.Name);
@@ -123,8 +146,8 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         // Act / Assert: 管理画面でグループを付けて無効にした後、端末から名前を変える
         device.GroupName = "1F";
         device.IsEnabled = false;
-        await storage.Registry.UpdateAsync(device, TestContext.Current.CancellationToken);
-        (device, created) = await storage.Registry.RegisterAsync(DeviceId, "入口", TestContext.Current.CancellationToken);
+        await storage.Registry.UpdateAsync(device);
+        (device, created) = await storage.Registry.RegisterAsync(DeviceId, "入口");
         Assert.False(created);
         Assert.Equal("入口", device.Name);
         Assert.Equal("1F", device.GroupName);

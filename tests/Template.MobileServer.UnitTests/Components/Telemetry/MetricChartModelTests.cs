@@ -1,7 +1,7 @@
 namespace Template.MobileServer.Components.Telemetry;
 
+using Template.MobileServer.Domain;
 using Template.MobileServer.Models.Entity;
-using Template.MobileServer.Models.Enums;
 using Template.MobileServer.Models.Parameters;
 using Template.MobileServer.Models.Views;
 using Template.MobileServer.Web.Components.Telemetry;
@@ -133,7 +133,7 @@ public sealed class MetricChartModelTests
         Assert.Equal([Minute, 2 * Minute], model.Charts[0].Lines[0].Buckets.Keys);
     }
 
-    private static TelemetryMetricSeriesEntity CreateSeries(long id, string name, TelemetryMetricKind kind, string unit, string attributesJson = "{}") =>
+    private static TelemetryMetricSeriesEntity CreateSeries(long id, string name, string kind, string unit, string attributesJson = "{}") =>
         new()
         {
             Id = id,

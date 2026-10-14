@@ -9,19 +9,19 @@ public sealed partial class DeviceAccessor
 
     [QueryFirst]
     [SelectSingle(typeof(DeviceEntity))]
-    public partial ValueTask<DeviceEntity?> QueryAsync(string deviceId, CancellationToken cancellationToken);
+    public partial ValueTask<DeviceEntity?> QueryAsync(string deviceId);
 
     // 登録済みなら入れない (0 件)
     [Execute]
-    public partial ValueTask<int> InsertAsync(string deviceId, string name, string? groupName, string? note, bool isEnabled, DateTime registeredAt, CancellationToken cancellationToken);
+    public partial ValueTask<int> InsertAsync(string deviceId, string name, string? groupName, string? note, bool isEnabled, DateTime registeredAt);
 
     [QueryFirst]
-    public partial ValueTask<DeviceEntity?> UpdateAsync(string deviceId, string name, string? groupName, string? note, bool isEnabled, CancellationToken cancellationToken);
+    public partial ValueTask<DeviceEntity?> UpdateAsync(string deviceId, string name, string? groupName, string? note, bool isEnabled);
 
     [QueryFirst]
-    public partial ValueTask<DeviceEntity?> UpdateNameAsync(string deviceId, string name, CancellationToken cancellationToken);
+    public partial ValueTask<DeviceEntity?> UpdateNameAsync(string deviceId, string name);
 
     [Execute]
     [Delete(typeof(DeviceEntity))]
-    public partial ValueTask<int> DeleteAsync(string deviceId, CancellationToken cancellationToken);
+    public partial ValueTask<int> DeleteAsync(DbTransaction tx, string deviceId);
 }

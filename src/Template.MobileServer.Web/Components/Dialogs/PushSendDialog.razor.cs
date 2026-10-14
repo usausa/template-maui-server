@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Components;
 
 using MudBlazor;
 
-// 通知の件名と本文の入力。OK で前後の空白を除いた (件名, 本文) を返す
 public sealed partial class PushSendDialog
 {
     private static readonly PushFormValidator Validator = new();

@@ -52,7 +52,7 @@ public sealed class MetricCellTests : MudBlazorTestBase
         // Assert
         var fill = cut.Find(".meter-fill");
         Assert.Contains("meter-none", fill.ClassName, StringComparison.Ordinal);
-        Assert.Equal("width: 42%", fill.GetAttribute("style"));
+        Assert.Equal("42%", fill.GetAttribute("width"));
         Assert.Equal("42", cut.Find(".metric-cell").TextContent.Trim());
         Assert.StartsWith("42 (", cut.Find(".metric-cell").GetAttribute("title"), StringComparison.Ordinal);
     }

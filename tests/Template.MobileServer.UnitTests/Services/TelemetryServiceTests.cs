@@ -1,7 +1,7 @@
 namespace Template.MobileServer.Services;
 
+using Template.MobileServer.Domain;
 using Template.MobileServer.Models.Entity;
-using Template.MobileServer.Models.Enums;
 using Template.MobileServer.Models.Parameters;
 using Template.MobileServer.Telemetry;
 
@@ -25,8 +25,8 @@ public sealed class TelemetryServiceTests : IDisposable
         using var scope = storage.BeginScope(Now);
 
         // Act
-        var first = await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
-        var second = await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        var first = await storage.Store.SaveAsync(CreateBatch());
+        var second = await storage.Store.SaveAsync(CreateBatch());
 
         // Assert
         Assert.Equal(2, Assert.Single(first.Metrics).Points.Count);
@@ -50,12 +50,12 @@ public sealed class TelemetryServiceTests : IDisposable
     {
         // Arrange
         using var scope = storage.BeginScope(Now);
-        var first = await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        var first = await storage.Store.SaveAsync(CreateBatch());
         var batch = CreateBatch();
         batch.Metrics[0].Points.Add(new TelemetryMetricPointEntity { TimeUnixNano = 3_000, Value = 300 });
 
         // Act
-        var second = await storage.Store.SaveAsync(batch, TestContext.Current.CancellationToken);
+        var second = await storage.Store.SaveAsync(batch);
 
         // Assert
         var metric = Assert.Single(second.Metrics);
@@ -74,13 +74,13 @@ public sealed class TelemetryServiceTests : IDisposable
         var root = CreateBatch([CreateSpan("0000000000000001", string.Empty, "TelemetryTest", 1_000, 4_000, TelemetryStatusCode.Unset)]);
 
         // Act / Assert: 子だけ
-        var first = await storage.Store.SaveAsync(child, TestContext.Current.CancellationToken);
+        var first = await storage.Store.SaveAsync(child);
         var trace = Assert.Single(first.Traces);
         Assert.Equal("Compute", trace.RootName);
         Assert.Equal(1, trace.ErrorCount);
 
         // Act / Assert: ルートが届く
-        var second = await storage.Store.SaveAsync(root, TestContext.Current.CancellationToken);
+        var second = await storage.Store.SaveAsync(root);
         trace = Assert.Single(second.Traces);
         Assert.Equal("TelemetryTest", trace.RootName);
         Assert.Equal(2, trace.SpanCount);
@@ -95,10 +95,10 @@ public sealed class TelemetryServiceTests : IDisposable
     {
         // Arrange
         using var scope = storage.BeginScope(Now);
-        await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        await storage.Store.SaveAsync(CreateBatch());
 
         // Act
-        var result = await storage.Service.DeleteExpiredAsync(DeviceId, 1_600, 1_500, 1_500, 0, TestContext.Current.CancellationToken);
+        var result = await storage.Service.DeleteExpiredAsync(DeviceId, 1_600, 1_500, 1_500, 0);
 
         // Assert
         Assert.False(result.FileDeleted);
@@ -115,10 +115,10 @@ public sealed class TelemetryServiceTests : IDisposable
     {
         // Arrange
         using var scope = storage.BeginScope(Now);
-        var saved = await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        var saved = await storage.Store.SaveAsync(CreateBatch());
 
         // Act
-        var result = await storage.Service.DeleteExpiredAsync(DeviceId, 0, 0, 0, saved.ReceivedAt + 1, TestContext.Current.CancellationToken);
+        var result = await storage.Service.DeleteExpiredAsync(DeviceId, 0, 0, 0, saved.ReceivedAt + 1);
 
         // Assert
         Assert.True(result.FileDeleted);
@@ -131,7 +131,7 @@ public sealed class TelemetryServiceTests : IDisposable
     {
         // Arrange
         using var scope = storage.BeginScope(Now);
-        await storage.Store.SaveAsync(CreateBatch(), TestContext.Current.CancellationToken);
+        await storage.Store.SaveAsync(CreateBatch());
 
         // Act
         var grouped = await storage.Service.QueryMetricHistoryAsync(DeviceId, 0, 10_000, TestContext.Current.CancellationToken);
@@ -162,8 +162,7 @@ public sealed class TelemetryServiceTests : IDisposable
             [
                 CreateSpan("0000000000000002", "0000000000000001", "Load", 1_200, 1_800, TelemetryStatusCode.Error),
                 CreateSpan("0000000000000001", string.Empty, "Navigate", 1_000, 2_000, TelemetryStatusCode.Unset)
-            ]),
-            TestContext.Current.CancellationToken);
+            ]));
 
         // Act
         var all = await storage.Service.QueryTraceListAsync(DeviceId, 0, false, null, 10, TestContext.Current.CancellationToken);
@@ -196,7 +195,7 @@ public sealed class TelemetryServiceTests : IDisposable
         var batch = CreateBatch();
         batch.Logs.Add(CreateLog(2_500, 17, "error one", TraceId));
         batch.Logs.Add(CreateLog(3_500, 21, "crash", string.Empty));
-        await storage.Store.SaveAsync(batch, TestContext.Current.CancellationToken);
+        await storage.Store.SaveAsync(batch);
 
         // Act
         var all = await storage.Service.QueryLogListAsync(DeviceId, new TelemetryLogQuery { Limit = 10 }, TestContext.Current.CancellationToken);
@@ -213,7 +212,7 @@ public sealed class TelemetryServiceTests : IDisposable
         Assert.Equal("error one", Assert.Single(trace).Body);
         Assert.Equal(["crash", "error one"], first.Select(static x => x.Body));
         Assert.Equal("warning", Assert.Single(next).Body);
-        Assert.NotNull(await storage.Service.QueryResourceAsync(DeviceId, all[0].ResourceId, TestContext.Current.CancellationToken));
+        Assert.NotNull(await storage.Service.QueryResourceAsync(DeviceId, all[0].ResourceId));
     }
 
     private static TelemetryLogEntity CreateLog(long time, int severity, string body, string traceId) =>
@@ -295,7 +294,7 @@ public sealed class TelemetryServiceTests : IDisposable
         return batch;
     }
 
-    private static TelemetrySpanEntity CreateSpan(string spanId, string parentSpanId, string name, long start, long end, TelemetryStatusCode statusCode) =>
+    private static TelemetrySpanEntity CreateSpan(string spanId, string parentSpanId, string name, long start, long end, string statusCode) =>
         new()
         {
             TraceId = TraceId,

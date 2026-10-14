@@ -6,11 +6,11 @@ using OpenTelemetry.Proto.Collector.Logs.V1;
 
 public sealed class OtlpLogsHandler : LogsService.LogsServiceBase
 {
-    private readonly OtlpReceiver receiver;
+    private OtlpReceiver Receiver { get; }
 
     public OtlpLogsHandler(OtlpReceiver receiver)
     {
-        this.receiver = receiver;
+        Receiver = receiver;
     }
 
     // 保存できなければ UNAVAILABLE (端末は送り直す)
@@ -18,7 +18,7 @@ public sealed class OtlpLogsHandler : LogsService.LogsServiceBase
     {
         try
         {
-            return await receiver.ReceiveAsync(request, context.CancellationToken);
+            return await Receiver.ReceiveAsync(request);
         }
         catch (Exception ex) when (OtlpReceiver.IsStorageError(ex))
         {

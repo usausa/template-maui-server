@@ -37,7 +37,7 @@
     <div class="chart-legend">
         <ListItem Items="legend" Context="item">
             <ItemTemplate>
-                <span class="chart-legend-item"><span class="chart-swatch" style="@item.SwatchStyle"></span>@item.Label <strong>@item.Value</strong></span>
+                <span class="chart-legend-item"><svg class="chart-swatch"><rect width="100%" height="100%" fill="@item.Color" /></svg>@item.Label <strong>@item.Value</strong></span>
             </ItemTemplate>
         </ListItem>
     </div>

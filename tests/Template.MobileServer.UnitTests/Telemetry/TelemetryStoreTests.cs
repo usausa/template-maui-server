@@ -1,7 +1,7 @@
 namespace Template.MobileServer.Telemetry;
 
+using Template.MobileServer.Domain;
 using Template.MobileServer.Models.Entity;
-using Template.MobileServer.Models.Enums;
 using Template.MobileServer.Models.Parameters;
 
 public sealed class TelemetryStoreTests : IDisposable
@@ -20,13 +20,12 @@ public sealed class TelemetryStoreTests : IDisposable
     {
         // Arrange
         using var scope = storage.BeginScope(Now);
-        var cancellationToken = TestContext.Current.CancellationToken;
 
         // Act
-        var first = await storage.Store.SaveAsync(CreateBatch(1_000), cancellationToken);
-        var second = await storage.Store.SaveAsync(CreateBatch(2_000), cancellationToken);
-        var deleted = await storage.Store.DeleteDeviceAsync(DeviceId, cancellationToken);
-        var third = await storage.Store.SaveAsync(CreateBatch(3_000), cancellationToken);
+        var first = await storage.Store.SaveAsync(CreateBatch(1_000));
+        var second = await storage.Store.SaveAsync(CreateBatch(2_000));
+        var deleted = await storage.Store.DeleteDeviceAsync(DeviceId);
+        var third = await storage.Store.SaveAsync(CreateBatch(3_000));
 
         // Assert
         Assert.Single(first.AddedResources);

@@ -50,20 +50,20 @@ public sealed class PushHub : Hub<IPushClient>
 
     private const string DeviceIdKey = "DeviceId";
 
-    private readonly ILogger<PushHub> log;
+    private ILogger<PushHub> Log { get; }
 
-    private readonly PushService pushService;
+    private PushService PushService { get; }
 
-    private readonly PushNotifier notifier;
+    private PushNotifier Notifier { get; }
 
     public PushHub(
         ILogger<PushHub> log,
         PushService pushService,
         PushNotifier notifier)
     {
-        this.log = log;
-        this.pushService = pushService;
-        this.notifier = notifier;
+        Log = log;
+        PushService = pushService;
+        Notifier = notifier;
     }
 
     public override async Task OnConnectedAsync()
@@ -71,7 +71,7 @@ public sealed class PushHub : Hub<IPushClient>
         var deviceId = Context.GetHttpContext()?.Request.Query[DeviceIdParameter].ToString();
         if (!DeviceIdFormat.IsValid(deviceId))
         {
-            log.WarnPushRejected(Context.ConnectionId, deviceId);
+            Log.WarnPushRejected(Context.ConnectionId, deviceId);
             Context.Abort();
             return;
         }
@@ -80,22 +80,22 @@ public sealed class PushHub : Hub<IPushClient>
 
         // Join the group before reading, so that a message sent meanwhile is not lost (the device ignores the duplicate)
         await Groups.AddToGroupAsync(Context.ConnectionId, deviceId, Context.ConnectionAborted);
-        var messages = await pushService.QueryPendingListAsync(deviceId, Context.ConnectionAborted);
+        var messages = await PushService.QueryPendingListAsync(deviceId, Context.ConnectionAborted);
         foreach (var message in messages)
         {
             await Clients.Caller.Receive(message.ToPushMessage());
         }
 
-        log.InfoPushConnected(Context.ConnectionId, deviceId, messages.Count);
+        Log.InfoPushConnected(Context.ConnectionId, deviceId, messages.Count);
 
         await base.OnConnectedAsync();
     }
 
     public override Task OnDisconnectedAsync(Exception? exception)
     {
-        if (log.IsEnabled(LogLevel.Information))
+        if (Log.IsEnabled(LogLevel.Information))
         {
-            log.InfoPushDisconnected(Context.ConnectionId, GetDeviceId(), exception);
+            Log.InfoPushDisconnected(Context.ConnectionId, GetDeviceId(), exception);
         }
 
         return base.OnDisconnectedAsync(exception);
@@ -106,7 +106,7 @@ public sealed class PushHub : Hub<IPushClient>
     {
         if (GetDeviceId() is { } deviceId)
         {
-            await notifier.AcknowledgeAsync(deviceId, id, Context.ConnectionAborted);
+            await Notifier.AcknowledgeAsync(deviceId, id);
         }
     }
 

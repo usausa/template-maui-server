@@ -13,27 +13,17 @@
     <MudDrawer @bind-Open="drawerOpen" Elevation="2">
         <NavMenu />
     </MudDrawer>
-    <MudMainContent Class="pa-4">
-        <ErrorBoundary @ref="errorBoundary">
-            <ChildContent>
-                @Body
-            </ChildContent>
-            <ErrorContent>
-                <MudAlert Severity="Severity.Error" Class="mb-4">エラーが発生しました。</MudAlert>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Recover">再試行</MudButton>
-            </ErrorContent>
-        </ErrorBoundary>
+    <MudMainContent>
+        <div class="pa-4">
+            <ErrorBoundary @ref="errorBoundary">
+                <ChildContent>
+                    @Body
+                </ChildContent>
+                <ErrorContent>
+                    <MudAlert Severity="Severity.Error" Class="mb-4">エラーが発生しました。</MudAlert>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Recover">再試行</MudButton>
+                </ErrorContent>
+            </ErrorBoundary>
+        </div>
     </MudMainContent>
 </MudLayout>
-
-@code {
-    private ErrorBoundary? errorBoundary;
-
-    private bool drawerOpen = true;
-
-    private void ToggleDrawer() => drawerOpen = !drawerOpen;
-
-    private void Recover() => errorBoundary?.Recover();
-
-    protected override void OnParametersSet() => errorBoundary?.Recover();
-}

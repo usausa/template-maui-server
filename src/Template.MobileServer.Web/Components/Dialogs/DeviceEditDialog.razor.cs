@@ -18,7 +18,6 @@ public sealed partial class DeviceEditDialog
 
     private DeviceForm model = default!;
 
-    // 端末 ID は追加のときだけ入力する
     private bool IsEdit => Entity is not null;
 
     //--------------------------------------------------------------------------------

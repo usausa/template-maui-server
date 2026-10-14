@@ -25,9 +25,8 @@ public sealed class PushNotifierTests : IDisposable
         // Arrange
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(Now);
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "1", IsEnabled = true }, cancellationToken);
-        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-2", Name = "2", IsEnabled = true }, cancellationToken);
+        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "1", IsEnabled = true });
+        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-2", Name = "2", IsEnabled = true });
         var received = new List<(string Group, PushMessage Message)>();
         var clients = Substitute.For<IHubClients<IPushClient>>();
         clients.Group(Arg.Any<string>()).Returns(x =>
@@ -42,8 +41,8 @@ public sealed class PushNotifierTests : IDisposable
         var notifier = new PushNotifier(NullLogger<PushNotifier>.Instance, hub, storage.PushService);
 
         // Act
-        var all = await notifier.SendAsync(null, "件名", "本文", cancellationToken);
-        var unknown = await notifier.SendAsync("unknown", "件名", "本文", cancellationToken);
+        var all = await notifier.SendAsync(null, "件名", "本文");
+        var unknown = await notifier.SendAsync("unknown", "件名", "本文");
 
         // Assert
         Assert.Equal(2, all.Count);
@@ -59,20 +58,19 @@ public sealed class PushNotifierTests : IDisposable
         // Arrange
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(Now);
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "1", IsEnabled = true }, cancellationToken);
+        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "1", IsEnabled = true });
         var notifier = new PushNotifier(NullLogger<PushNotifier>.Instance, Substitute.For<IHubContext<PushHub, IPushClient>>(), storage.PushService);
         var changed = 0;
         notifier.Changed += (_, _) => changed++;
 
         // Act / Assert: 送信 (宛先の端末が無ければ知らせない)
-        var message = Assert.Single(await notifier.SendAsync("device-1", "件名", "本文", cancellationToken));
-        await notifier.SendAsync("unknown", "件名", "本文", cancellationToken);
+        var message = Assert.Single(await notifier.SendAsync("device-1", "件名", "本文"));
+        await notifier.SendAsync("unknown", "件名", "本文");
         Assert.Equal(1, changed);
 
         // Act / Assert: 応答 (2 回目は記録しないので知らせない)
-        Assert.True(await notifier.AcknowledgeAsync("device-1", message.Id, cancellationToken));
-        Assert.False(await notifier.AcknowledgeAsync("device-1", message.Id, cancellationToken));
+        Assert.True(await notifier.AcknowledgeAsync("device-1", message.Id));
+        Assert.False(await notifier.AcknowledgeAsync("device-1", message.Id));
         Assert.Equal(2, changed);
     }
 }
