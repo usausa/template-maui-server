@@ -37,7 +37,7 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Usa.Smart.Blazor" Version="2.5.0" />
     <PackageReference Include="Usa.Smart.Core" Version="2.20.0" />
-    <PackageReference Include="Usa.Smart.Data.Accessor.Extensions.DependencyInjection" Version="3.0.0-beta15" />
+    <PackageReference Include="Usa.Smart.Data.Accessor.Extensions.DependencyInjection" Version="3.0.0-beta16" />
     <PackageReference Include="Usa.Smart.Mapper" Version="1.0.0-beta14" />
   </ItemGroup>
 
