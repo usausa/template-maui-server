@@ -9,6 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Transitive pin: GHSA-qhrr-8q5h-9q3h -->
+    <PackageReference Include="MessagePack" Version="2.5.307" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Template.MobileServer.Web\Template.MobileServer.Web.csproj" />
   </ItemGroup>
 
