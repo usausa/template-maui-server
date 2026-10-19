@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Models.Entity;
 
-// 端末への通知 (data.db)。宛先の端末ごとに 1 行。DeliveredAt は端末が受け取りを応答した日時 (未達は null)
 [Name("PushMessage")]
 public sealed class PushMessageEntity
 {

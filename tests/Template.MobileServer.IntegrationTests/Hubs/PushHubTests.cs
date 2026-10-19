@@ -14,7 +14,6 @@ public sealed class PushHubTests : IClassFixture<ServerFixture>
         Fixture = fixture;
     }
 
-    // 接続中の端末に送った通知が届き、受け取りの応答を返せる
     [Fact]
     public async Task SendDeliversToConnectedDevice()
     {
@@ -40,7 +39,6 @@ public sealed class PushHubTests : IClassFixture<ServerFixture>
         Assert.Equal("Body", message.Body);
     }
 
-    // 接続していない間の通知は、次の接続で届く
     [Fact]
     public async Task PendingMessageIsDeliveredOnConnect()
     {
@@ -62,7 +60,6 @@ public sealed class PushHubTests : IClassFixture<ServerFixture>
         Assert.Equal(DateTimeKind.Utc, message.CreatedAt.Kind);
     }
 
-    // 未登録の端末への送信は 404
     [Fact]
     public async Task SendToUnknownDeviceReturnsNotFound()
     {

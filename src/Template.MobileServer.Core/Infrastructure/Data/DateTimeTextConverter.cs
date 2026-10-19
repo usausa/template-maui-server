@@ -2,7 +2,6 @@ namespace Template.MobileServer.Infrastructure.Data;
 
 using Smart.Data.Accessor.Converters;
 
-// 日時は UTC の yyyy-MM-dd HH:mm:ss.fffffff の TEXT で保存する (Microsoft.Data.Sqlite の既定書式。文字列比較で範囲検索できる)
 public sealed class DateTimeTextConverter : IValueConverter<string, DateTime>
 {
     private const string Format = "yyyy-MM-dd HH:mm:ss.fffffff";

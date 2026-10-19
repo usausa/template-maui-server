@@ -13,7 +13,6 @@ public sealed class SecretEndpointsTests : IClassFixture<ServerFixture>
         Fixture = fixture;
     }
 
-    // トークンが無ければ 401 (ProblemDetails)、ログインの JWT を付ければ呼べる
     [Fact]
     public async Task MessageRequiresToken()
     {

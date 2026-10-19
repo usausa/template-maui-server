@@ -17,7 +17,6 @@ public sealed class TelemetryServiceTests : IDisposable
 
     public void Dispose() => storage.Dispose();
 
-    // 保存: 点・スパン・ログを端末のファイルに保存し、同じ内容の送り直しは入れない。列挙型は名前の文字列、時刻は Unix ナノ秒
     [Fact]
     public async Task SaveStoresItemsAndIgnoresDuplicates()
     {
@@ -44,7 +43,6 @@ public sealed class TelemetryServiceTests : IDisposable
         Assert.Equal(Now.ToUnixTimeMilliseconds() * 1_000_000, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT LastReceivedAt FROM DeviceInfo"));
     }
 
-    // 系列: 同じ系列は次の保存でも同じ Id を使い、新しい時刻の点だけが入る
     [Fact]
     public async Task SaveReusesSeries()
     {
@@ -64,7 +62,6 @@ public sealed class TelemetryServiceTests : IDisposable
         Assert.Equal(1L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM MetricSeries"));
     }
 
-    // トレース: 子のスパンが先に届くと最初のスパンの名前、ルートが届くとルートの名前で集計し直す
     [Fact]
     public async Task SaveRecalculatesTrace()
     {
@@ -89,7 +86,6 @@ public sealed class TelemetryServiceTests : IDisposable
         Assert.Equal(4_000, trace.EndTimeUnixNano);
     }
 
-    // 保持期間: 種類ごとの時刻より前の行を削除する (スパンはトレースの開始で判定)
     [Fact]
     public async Task DeleteExpiredRemovesOldRows()
     {
@@ -109,7 +105,6 @@ public sealed class TelemetryServiceTests : IDisposable
         Assert.Equal(2_000L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT TimeUnixNano FROM MetricPoint"));
     }
 
-    // 保持期間: 最後の受信が時刻より前の端末は、ファイルごと削除する
     [Fact]
     public async Task DeleteExpiredDeletesFileOfSilentDevice()
     {
@@ -125,7 +120,6 @@ public sealed class TelemetryServiceTests : IDisposable
         Assert.False(File.Exists(Path.Combine(storage.Root, DeviceId + ".db")));
     }
 
-    // 推移: 時刻以降の点を系列ごと・間隔ごとに束ねる (1 なら点ごと)。ファイルが無ければ空
     [Fact]
     public async Task QueryMetricHistoryGroupsPoints()
     {
@@ -151,7 +145,6 @@ public sealed class TelemetryServiceTests : IDisposable
         Assert.Empty(missing.Buckets);
     }
 
-    // トレース: エラーのあるものだけ・ルートスパンの名前の部分一致 (% は文字として扱う) で絞る。詳細はスパン (開始の順)・ログ・Resource
     [Fact]
     public async Task QueryTracesFiltersAndReturnsDetail()
     {
@@ -186,7 +179,6 @@ public sealed class TelemetryServiceTests : IDisposable
         Assert.Null(missing);
     }
 
-    // ログ: 重大度以上・本文の部分一致 (大文字と小文字を区別しない)・トレースで絞り、新しい順に件数ずつ (続きは時刻と Id の前から)。Resource は Id で
     [Fact]
     public async Task QueryLogListFiltersAndPages()
     {

@@ -6,7 +6,6 @@ using Template.MobileServer.Web.Components;
 
 public sealed class RefreshTimerTests
 {
-    // 予約: 1 秒ごとの確認で反映する (続けて予約しても 1 回にまとめる)
     [Fact]
     public async Task RequestRefreshesOnNextTick()
     {
@@ -29,7 +28,6 @@ public sealed class RefreshTimerTests
         Assert.Equal(1, Volatile.Read(ref count.Value));
     }
 
-    // 間隔: 予約が無くても指定の間隔で反映する
     [Fact]
     public async Task IntervalRefreshesWithoutRequest()
     {

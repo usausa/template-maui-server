@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 
-// 実際のポートで起動するサーバー (gRPC と OTLP はポートで受け口を限定しているため)。データ・ファイル・ログは一時フォルダーに置く
 public sealed class ServerFixture : WebApplicationFactory<Program>
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "template-integration-tests", Guid.NewGuid().ToString("N"));

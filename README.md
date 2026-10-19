@@ -3,7 +3,7 @@
 template-maui 系(maui / maui-blazor)の通信処理の対向となるサーバーテンプレート。
 template-blazor-server をベースに、モバイル契約 API と管理画面を提供する。
 
-## 機能一覧
+## ✨ 機能一覧
 
 - モバイル契約 API(Minimal API、camelCase JSON。認証確認用の 1 本だけ JWT Bearer 認証)
 - ファイルストレージ API(簡易 FTP: 一覧 / ダウンロード / アップロード / 削除)
@@ -15,7 +15,32 @@ template-blazor-server をベースに、モバイル契約 API と管理画面�
 - OpenAPI(開発時 `/swagger` / `/redoc`)、ヘルスチェック(`/health` / `/alive`)
 - Serilog / OpenTelemetry / FeatureManagement / Aspire AppHost
 
-## 構成(Web プロジェクト)
+## 💻 管理画面
+
+| |
+|---|
+| ![ダッシュボード](Document/Images/server-dashboard.png) |
+| ダッシュボード: 受信の状況のサマリ、端末ごとの状態と最新値・エラー・未達の通知、直近のエラー |
+| ![テレメトリ(メトリクス)](Document/Images/server-telemetry-metrics.png) |
+| テレメトリ(メトリクス): 端末の情報と最新値、計器ごとのグラフ(範囲は 15 分〜30 日) |
+| ![テレメトリ(トレース)](Document/Images/server-telemetry-traces.png) |
+| テレメトリ(トレース): トレースの一覧と絞り込み、ウォーターフォールとスパンの詳細 |
+| ![テレメトリ(ログ)](Document/Images/server-telemetry-logs.png) |
+| テレメトリ(ログ): 重大度と本文で絞り込み、行を開くと属性と例外のスタックトレース |
+| ![データ](Document/Images/server-data.png) |
+| データ: MudDataGrid による CRUD |
+| ![ファイル](Document/Images/server-files.png) |
+| ファイル: ストレージのフォルダーをたどり、アップロード・フォルダーの作成・ダウンロード・削除 |
+| ![チャット](Document/Images/server-chat.png) |
+| チャット: gRPC の端末と同じ部屋に入って送受信する |
+| ![通知](Document/Images/server-notification.png) |
+| 通知: SignalR で接続中の端末の一覧と、通知の送信 |
+| ![QR](Document/Images/server-qr.png) |
+| QR: 端末に設定を読み込ませる QR コードと、設定値の編集 |
+| ![サーバー](Document/Images/server-server.png) |
+| サーバー: サーバー時刻・ストレージ使用量・Data 件数・接続数 |
+
+## 📁 構成(Web プロジェクト)
 
 - `Endpoints/` = Minimal API、`Handlers/` = gRPC(proto は `Handlers/Protos/`)、`Telemetry/` = OTLP の受信口(HTTP と gRPC。proto は `Telemetry/Protos/` 直下の opentelemetry-proto v1.11.0。上流の `opentelemetry/proto/<種類>/v1/` の階層は使わず、`import` はファイル名だけに書き換えてある。生成型の名前空間は上流の `OpenTelemetry.Proto.*`。保存用の変換 `OtlpMapper`、端末ごとの DB の接続 `SqliteTelemetryDbProvider`、端末ごとの書き込みのロックと保存済みの Id `TelemetryStore`、端末の登録とテレメトリの要約のキャッシュ `TelemetryDeviceRegistry`、受信と登録の変更を画面へ知らせる `TelemetryBus` も置く。サーバー自身の計測は `Application/Telemetry/`)、`Hubs/` = SignalR、`Workers/` = 常駐処理、`Components/` = 管理画面(`Pages/` と `Dialogs/` = 業務のページ・ダイアログで基底は `AppPageBase`、`Shared/` = 汎用部品(`MessageBox` / `InputDialog` と `DialogServiceExtensions`)、`Telemetry/` = テレメトリの表示部品(小さな折れ線 `Sparkline` / 最新値のセル `MetricCell` / 件数のバッジ `CountBadge`)、`Layout/`。View まわりのヘルパー `ViewHelper`(テレメトリの値の表示と色を含む。`_Imports.razor` で static インポート)/ `Styles` / `AppComponentBase` / `AppPageBase` / `SnackbarExtensions` / バスの通知をまとめて描画する `RefreshTimer` / MudBlazor の文言を日本語にする `JapaneseMudLocalizer`(UI の言語が英語でも使う)は直下。razor の分岐と繰り返しは `@if` / `@foreach` を書かず Smart.Blazor の `Condition` / `ListItem`、式は code-behind のプロパティに寄せる)、`Assets/Data/` = スキーマ / サンプルデータの SQL
 - 契約の DTO は使う側と同じファイルの先頭に置く: REST(`<対象><操作>Request` / `Response`、一覧の要素は `<対象>ListEntry`)は各 `Endpoints/*Endpoints.cs`、SignalR のメッセージ(`<内容>Message`)は `Hubs/MonitorHub.cs` / `PushHub.cs`、gRPC の生成型(単項は `Request` / `Reply`、ストリームは `Message`)は `Handlers` 名前空間
@@ -25,7 +50,7 @@ template-blazor-server をベースに、モバイル契約 API と管理画面�
 - `Infrastructure/` = `Application` / `Settings` / `Services` に依存せず他へ持ち出せる部品だけ(セキュリティヘッダー(`SecurityHeadersOption` で CSP を渡す。`{nonce}` は `CspNonce` に置換)、進捗ストリーム、Serilog エンリッチャー、通知バス、ポート限定のルーティング)。`StorageException` → 400 は `StorageEndpoints` のグループのフィルター(インライン)
 - Core: `Accessors/` = Smart.Data.Accessor(SQL は `Sql/` に 1 メソッド 1 ファイル。日時は `DataProfile` の `DateTimeTextConverter` で UTC の `yyyy-MM-dd HH:mm:ss.fffffff` の文字列にする)、`Services/` = 業務処理(`DatabaseService` = スキーマの実行、`DataService` = Data の照会と更新、`DeviceService` = 端末の登録、`PushService` = 端末への通知の保存と未達の照会、`SettingService` = QR の設定値(`Setting` テーブル)、`TelemetryService` = テレメトリの保存と照会。Core のサービスは状態を持たない)、`Models/Entity/` = テーブルの行(テーブル名は `[Name]`)、`Models/Views/` = 集計・結合の結果、`Models/Parameters/` = Service への入力(一覧の並び順 `DataSort`(列挙名 = 列名、先頭が既定)、テレメトリの保存のまとまり)、`Infrastructure/` = ストレージ / JSON / データの変換(列挙型と日時の文字列)/ 端末ごとのテレメトリの DB の interface、`Domain/` = 長さの定数、端末 ID の形式、ログの重大度の区切り、DB に入るコード値(スパンの種類 `TelemetrySpanKind`・状態 `TelemetryStatusCode`・メトリクスの種類 `TelemetryMetricKind`・集計の区間 `TelemetryTemporality`。列挙型にせず static class の const の文字列)
 
-## API 一覧
+## 🔌 API 一覧
 
 | メソッド | パス | 認証 | 内容 |
 |---|---|---|---|
@@ -52,7 +77,7 @@ template-blazor-server をベースに、モバイル契約 API と管理画面�
 | SignalR | `/hubs/monitor` | 匿名 | 端末の常時接続(下記) |
 | SignalR | `/hubs/push?deviceId=` | 匿名 | 端末への通知(下記) |
 
-## 管理画面一覧
+## 📋 管理画面一覧
 
 管理画面に認証はない。
 
@@ -67,7 +92,7 @@ template-blazor-server をベースに、モバイル契約 API と管理画面�
 | QR | `/qr` | 設定 QR コード表示(template-maui の設定読取フォーマット互換)。値の編集と保存(`Setting` テーブル)。localhost で開くと、接続先が端末から届かないことを出す |
 | サーバー | `/server` | 簡易ステータス(サーバー時刻 / ストレージ使用量 / Data 件数 / 接続中の端末 / 接続中の画面) |
 
-## 起動方法
+## 🚀 起動方法
 
 ```
 dotnet run --project src/Template.MobileServer.Web
@@ -80,7 +105,7 @@ dotnet run --project src/Template.MobileServer.Web
 - データベース(SQLite)は起動時に `Assets/Data/Schema.sql` を実行して作成(`GenericAccessor.ExecuteSchemaAsync`)。サンプルデータは `Assets/Data/SampleData.sql`(手動)。ストレージディレクトリも起動時に作成。日時の列は UTC(管理画面はローカル時刻で表示)
 - リバースプロキシの後ろに置くときは `ForwardedHeaders` の `KnownNetworks`(CIDR)/ `KnownProxies`(IP アドレス)にプロキシを書く(既定はループバックだけ。それ以外からの `X-Forwarded-*` は無視する)。`ForwardLimit` はプロキシの段数(既定 1)
 
-## テスト
+## 🧪 テスト
 
 ```
 dotnet run --project tests/Template.MobileServer.UnitTests
@@ -91,7 +116,7 @@ dotnet run --project tests/Template.MobileServer.IntegrationTests
 - `UnitTests` = Core のサービス・受信の処理・ワーカー・ハブ・管理画面の部品(bunit)
 - `IntegrationTests` = `WebApplicationFactory` でサーバーを実際のポートに起動し(テストクラスごとに空きポートと一時フォルダーの DB・ストレージ)、API・gRPC・SignalR・OTLP/HTTP を端末と同じ形で呼ぶ
 
-## モバイル契約の要点
+## 📱 モバイル契約の要点
 
 - JSON は **camelCase**(クライアント Rester の既定と同じ)、null プロパティは省略
 - 要求の JSON は厳しく読む: 未知のプロパティ・同じプロパティの重複・文字列で書いた数値は 400(要求に項目を足すときはサーバーを先に更新する)
@@ -101,7 +126,7 @@ dotnet run --project tests/Template.MobileServer.IntegrationTests
 - ファイル不在は 404 の意味論を維持
 - ストレージのパスは `Storage:Root` の下だけ(外を指すものと、ルートの下のシンボリックリンクやジャンクションを経由するものは 400)
 
-## チャット(gRPC)
+## 💬 チャット(gRPC)
 
 - proto: `src/Template.MobileServer.Web/Handlers/Protos/chat.proto`(`chat.ChatRoom/Connect`、双方向ストリーミング)
 - 認証なし。`ChatMessage.user` はクライアントが指定(空なら `unknown`)、`timestamp` はサーバー時刻(Unix ミリ秒)
@@ -109,7 +134,7 @@ dotnet run --project tests/Template.MobileServer.IntegrationTests
 - 管理画面 `/chat` は同じプロセス内ハブ(ChatService)に直結した**完全参加者**: gRPC クライアントの発言は `/chat` に表示され、`/chat` からの送信は全 gRPC クライアントへ配送される
 - `Handlers/Protos/server.proto`(`info.ServerInfo/GetServerTime`、単項 RPC、匿名): サーバー時刻を Unix ミリ秒で返す。接続前の疎通確認用
 
-## 端末の監視(SignalR)
+## 📡 端末の監視(SignalR)
 
 - ハブ: `/hubs/monitor`(`Hubs/MonitorHub.cs`)。認証なし(接続は `ConnectionId` 単位で `DeviceRegistry` に登録し、端末の識別は `ReportDeviceStatus` の端末 ID)
 - KeepAlive 15 秒 / ClientTimeout 30 秒(クライアントの `KeepAliveInterval` / `ServerTimeout` と対にする)
@@ -117,7 +142,7 @@ dotnet run --project tests/Template.MobileServer.IntegrationTests
 - サーバー → 端末: `ServerStatus(ServerStatusMessage)`(`ServerStatus:Interval` ミリ秒ごと、既定 1 秒。プロセスの CPU 使用率(`Environment.CpuUsage` の差分、1 コア = 100%)/ ワーキングセット / 接続数。接続が無いときは配信しない)、`Notify(NotificationMessage)`(管理画面 `/notification` からの送信と、`NotificationBus` の通知(`Notification:Enable` の定期通知)の中継。中継は `MonitorNotifier` がバスを購読して行う)
 - メッセージの DTO は `Hubs/MonitorHub.cs` の先頭(`DeviceStatusMessage` / `ServerStatusMessage` / `NotificationMessage`。時刻は `DateTimeOffset`)
 
-## 端末への通知(SignalR)
+## 🔔 端末への通知(SignalR)
 
 - ハブ: `/hubs/push`(`Hubs/PushHub.cs`)。認証なし。端末は接続の URL のクエリ `deviceId` で端末 ID を渡す(形式が違えば切る)。ハブは接続を端末 ID のグループに入れ、未達の通知を古い順に送る
 - サーバー → 端末: `Receive(PushMessage)`(`Id` / `Title` / `Body` / `CreatedAt` = 送った日時(UTC))。端末 → サーバー: `Acknowledge(id)`(表示の後に呼ぶ。届いた日時を記録する)。応答の無いまま切れた通知は次の接続で送り直す(端末は同じ `Id` を 2 回出さない)
@@ -125,7 +150,7 @@ dotnet run --project tests/Template.MobileServer.IntegrationTests
 - 保持期間(`PushRetention`、`Workers/PushRetentionWorker`): 起動の直後と `IntervalMinutes`(既定 60)ごとに、送ってから `Days`(既定 7)日を過ぎた通知を届いた / 届いていないにかかわらず削除する。端末の登録を削除すると、その端末宛ての通知も削除する
 - ログ: 送信(宛先と件数)・接続(端末 ID と未達の件数)・切断は Information、形式の違う端末 ID の接続は Warning
 
-## テレメトリの受信(OTLP)
+## 📈 テレメトリの受信(OTLP)
 
 - 受信口(OTLP 仕様 1.11.0、認証なし): OTLP/HTTP = `Telemetry/OtlpHttpEndpoints.cs` の `POST /v1/traces` / `/v1/metrics` / `/v1/logs`(4318 だけ)、OTLP/gRPC = `Telemetry/OtlpTraceHandler.cs` / `OtlpMetricsHandler.cs` / `OtlpLogsHandler.cs` の `Export`(4317 だけ)。受信の処理は共通の `Telemetry/OtlpReceiver.cs`
 - 端末は OTLP/HTTP で送る。送信先は `http://<サーバー>:4318/`(QR の `OtelEndPoint`。端末がシグナルごとの `v1/traces` などを付ける)
@@ -138,7 +163,7 @@ dotnet run --project tests/Template.MobileServer.IntegrationTests
 - 受信上限は `TelemetryReceiver:MaxReceiveMessageSize`(既定 16 MiB、1〜16 MiB。HTTP は展開後の本文に適用し、超えたら 413。gRPC の既定は 4 MB。単項の呼び出しは Kestrel の `MaxRequestBodySize`(30 MB)も受けるため上限を 16 MiB にしている)
 - サーバー自身のトレース(ASP.NET Core の計装)から受信口のパス(`/v1` と `/opentelemetry.proto.collector.` で始まるパス)を除く
 
-## QR 設定フォーマット
+## 📲 QR 設定フォーマット
 
 `/qr` が生成する QR コードは行単位の `Key=Value` テキスト(template-maui の `SettingParser` 互換)。
 

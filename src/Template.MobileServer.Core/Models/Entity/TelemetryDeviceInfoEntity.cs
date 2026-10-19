@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Models.Entity;
 
-// 受信した Resource から取った端末の情報 (端末のファイルに 1 行)。時刻は UTC の Unix ナノ秒
 [Name("DeviceInfo")]
 public sealed class TelemetryDeviceInfoEntity
 {

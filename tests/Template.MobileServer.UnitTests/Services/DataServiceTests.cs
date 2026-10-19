@@ -11,7 +11,6 @@ public sealed class DataServiceTests : IDisposable
 
     public void Dispose() => storage.Dispose();
 
-    // 作成日時は UTC の 7 桁の書式で保存し、UTC として読む
     [Fact]
     public async Task InsertStoresCreatedAtInUtc()
     {

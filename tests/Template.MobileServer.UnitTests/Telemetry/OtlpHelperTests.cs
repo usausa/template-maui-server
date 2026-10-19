@@ -10,7 +10,6 @@ using Template.MobileServer.Web.Telemetry;
 
 public sealed class OtlpHelperTests
 {
-    // 端末: device.id を優先する
     [Fact]
     public void GetDeviceIdPrefersDeviceId()
     {
@@ -24,7 +23,6 @@ public sealed class OtlpHelperTests
         Assert.Equal("device-1", result);
     }
 
-    // 端末: device.id が無い (空) ときは app.installation.id
     [Fact]
     public void GetDeviceIdWithoutDeviceIdReturnsInstallationId()
     {
@@ -48,7 +46,6 @@ public sealed class OtlpHelperTests
         Assert.Equal(string.Empty, result);
     }
 
-    // 属性: 配列 / キー値リスト / バイト列を展開する。値の無い属性は空
     [Fact]
     public void FormatAttributesFormatsNestedValues()
     {
@@ -69,7 +66,6 @@ public sealed class OtlpHelperTests
         Assert.Equal("text=a, list=[1, 1.5], map={flag=true}, bytes=0aff, empty=", result);
     }
 
-    // 数値の点: 属性があれば値の前に付ける
     [Fact]
     public void FormatPointsFormatsNumberPoints()
     {
@@ -96,7 +92,6 @@ public sealed class OtlpHelperTests
         Assert.Equal(AggregationTemporality.Delta, metric.GetTemporality());
     }
 
-    // 分布の点: 件数と合計
     [Fact]
     public void FormatPointsFormatsHistogramPoints()
     {
@@ -117,7 +112,6 @@ public sealed class OtlpHelperTests
         Assert.Equal("count=3 sum=0.25", result);
     }
 
-    // 期間: 終了が開始より前なら 0
     [Theory]
     [InlineData(1_000_000UL, 3_500_000UL, 25_000L)]
     [InlineData(2_000_000UL, 1_000_000UL, 0L)]

@@ -29,10 +29,10 @@ public sealed class ChatHandler : ChatRoom.ChatRoomBase
         // Connection detection
         await context.WriteResponseHeadersAsync([]);
 
-        // Serialize messages to response stream using channel
+        // Channel
         var channel = Channel.CreateUnbounded<ChatEntry>(new UnboundedChannelOptions { SingleReader = true });
 
-        // Send recent history upon connection
+        // History
         foreach (var entry in ChatService.History)
         {
             await responseStream.WriteAsync(MapToMessage(entry), cancellationToken);
@@ -42,7 +42,7 @@ public sealed class ChatHandler : ChatRoom.ChatRoomBase
         var deliveryTask = DeliverAsync(channel.Reader, responseStream, cancellationToken);
         try
         {
-            // Broadcast received messages to all participants (username is client-specified)
+            // Receive
             await foreach (var message in requestStream.ReadAllAsync(cancellationToken))
             {
                 ChatService.Publish(String.IsNullOrEmpty(message.User) ? "unknown" : message.User, message.Text, TimeProvider.GetUtcNow());

@@ -2,10 +2,8 @@ namespace Template.MobileServer.Web.Telemetry;
 
 using Template.MobileServer.Web.Application.Context;
 
-// 端末の登録とテレメトリの要約をメモリに持つ (ダッシュボード用のキャッシュ)。登録の変更は data.db に書いてから反映し、バスで知らせる
 public sealed class TelemetryDeviceRegistry
 {
-    // 受信中とみなす最後の受信からの時間 (メトリクスは 30 秒ごとに届く)
     public static readonly TimeSpan ReceivingThreshold = TimeSpan.FromMinutes(2);
 
     public const int HistoryMinutes = 60;
@@ -75,7 +73,6 @@ public sealed class TelemetryDeviceRegistry
     // Snapshot
     //--------------------------------------------------------------------------------
 
-    // 端末 ID の順
     public IReadOnlyList<TelemetryDeviceSummary> Devices
     {
         get
@@ -88,7 +85,6 @@ public sealed class TelemetryDeviceRegistry
         }
     }
 
-    // 新しい順 (エラーとクラッシュの件数と同じ直近 24 時間)
     public IReadOnlyList<TelemetryErrorEntry> RecentErrors
     {
         get
@@ -101,7 +97,6 @@ public sealed class TelemetryDeviceRegistry
         }
     }
 
-    // 1 分ごとの受信件数 (点・スパン・ログ)。古い順に HistoryMinutes 個、最後が今の分
     public IReadOnlyList<int> IngestHistory
     {
         get
@@ -151,7 +146,6 @@ public sealed class TelemetryDeviceRegistry
     // Load
     //--------------------------------------------------------------------------------
 
-    // 起動時に登録と全端末のファイルから作る。登録の無いファイルは登録する
     public async Task LoadAsync(CancellationToken cancellationToken)
     {
         using var scope = ContextProvider.Begin(() => new ServiceContext(TimeProvider.GetLocalNow(), SystemUserId));
@@ -211,7 +205,6 @@ public sealed class TelemetryDeviceRegistry
                 entries[entry.Device.DeviceId] = entry;
             }
 
-            // Registered devices that have not sent telemetry
             foreach (var device in registered.Values)
             {
                 entries[device.DeviceId] = new Entry(device);
@@ -226,7 +219,6 @@ public sealed class TelemetryDeviceRegistry
     // Receive
     //--------------------------------------------------------------------------------
 
-    // 受信した端末の登録を確かめる (未登録なら登録する)。無効の端末は false
     public async ValueTask<bool> EnsureRegisteredAsync(TelemetryDeviceInfoEntity info)
     {
         lock (sync)
@@ -244,7 +236,6 @@ public sealed class TelemetryDeviceRegistry
         }
         else
         {
-            // Registered at the same time by another request
             device = await DeviceService.QueryAsync(info.DeviceId) ?? device;
         }
 
@@ -264,7 +255,6 @@ public sealed class TelemetryDeviceRegistry
         return enabled;
     }
 
-    // 保存で新しく入った分で要約を更新する
     public void Apply(TelemetrySaveResult result)
     {
         var hour = CurrentHour();
@@ -312,7 +302,6 @@ public sealed class TelemetryDeviceRegistry
     // Management
     //--------------------------------------------------------------------------------
 
-    // 登録済みなら Duplicate
     public async ValueTask<DataWriteStatus> AddAsync(DeviceEntity device)
     {
         var status = await DeviceService.InsertAsync(device);
@@ -329,7 +318,6 @@ public sealed class TelemetryDeviceRegistry
         return status;
     }
 
-    // 端末からの登録。未登録なら登録し、登録済みなら名前だけを更新する (グループ・メモ・有効はそのまま)。登録したときは Created が true
     public async ValueTask<(DeviceEntity Device, bool Created)> RegisterAsync(string deviceId, string name)
     {
         var device = new DeviceEntity { DeviceId = deviceId, Name = name, IsEnabled = true };
@@ -359,7 +347,6 @@ public sealed class TelemetryDeviceRegistry
         return (device, created);
     }
 
-    // 名前・グループ・メモ・有効を更新する
     public async ValueTask<DataWriteStatus> UpdateAsync(DeviceEntity device)
     {
         var updated = await DeviceService.UpdateAsync(device);
@@ -384,7 +371,6 @@ public sealed class TelemetryDeviceRegistry
         return DataWriteStatus.Success;
     }
 
-    // 登録とテレメトリのファイルを削除する (送信が続けば自動で登録し直される)
     public async ValueTask<DataWriteStatus> DeleteAsync(string deviceId)
     {
         await Store.DeleteDeviceAsync(deviceId);
@@ -400,7 +386,6 @@ public sealed class TelemetryDeviceRegistry
         return status;
     }
 
-    // 保持期間でテレメトリのファイルを削除した端末は、要約だけを消す (登録は残る)
     public void ClearTelemetry(string deviceId)
     {
         lock (sync)
@@ -425,7 +410,6 @@ public sealed class TelemetryDeviceRegistry
 
     private long CurrentMinute() => TimeProvider.GetUtcNow().ToUnixTimeSeconds() / 60;
 
-    // 名前の既定は機種 (無ければ端末 ID)
     private static DeviceEntity CreateDevice(TelemetryDeviceInfoEntity info) =>
         new()
         {
@@ -455,7 +439,6 @@ public sealed class TelemetryDeviceRegistry
     {
         if (minute > historyMinute)
         {
-            // Clear the buckets of the minutes without receiving
             var clear = Math.Min(minute - historyMinute, HistoryMinutes);
             for (var i = 1; i <= clear; i++)
             {
@@ -479,7 +462,6 @@ public sealed class TelemetryDeviceRegistry
 
         public Dictionary<string, TelemetryValue> Latest { get; } = [with(StringComparer.Ordinal)];
 
-        // Hour (UTC Unix hour) → (errors, crashes)
         public Dictionary<long, (int Errors, int Crashes)> Counts { get; } = [];
 
         public Entry(DeviceEntity device)
@@ -501,7 +483,6 @@ public sealed class TelemetryDeviceRegistry
             Counts[hour] = (errors + 1, crash ? crashes + 1 : crashes);
         }
 
-        // The counts of the hour and before are no longer used
         public void RemoveCounts(long hour)
         {
             foreach (var key in Counts.Keys.Where(x => x <= hour).ToList())

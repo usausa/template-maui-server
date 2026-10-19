@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Models.Entity;
 
-// 端末の登録 (data.db)。受信で自動登録するか、管理画面・端末から登録する
 [Name("Device")]
 public sealed class DeviceEntity
 {

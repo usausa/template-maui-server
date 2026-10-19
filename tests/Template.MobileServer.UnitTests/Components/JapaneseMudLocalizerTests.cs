@@ -9,7 +9,6 @@ using Template.MobileServer.Web.Components;
 
 public sealed class JapaneseMudLocalizerTests
 {
-    // MudBlazor の既定の文言 (英語のリソース) のキーをすべて訳している
     [Fact]
     public void AllMudBlazorTextsAreTranslated()
     {
@@ -28,7 +27,6 @@ public sealed class JapaneseMudLocalizerTests
         Assert.Empty(missing);
     }
 
-    // 書式の引数を埋める。知らないキーは見つからないとして返す (MudBlazor の英語に戻る)
     [Fact]
     public void FormatsArgumentsAndReportsUnknownKey()
     {

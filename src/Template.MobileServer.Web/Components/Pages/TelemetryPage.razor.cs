@@ -9,11 +9,8 @@ using MudBlazor;
 using Template.MobileServer.Web.Components.Telemetry;
 using Template.MobileServer.Web.Telemetry;
 
-// 端末を選んでテレメトリを見る。タブ・範囲・選んだトレース・ログの重大度は URL のクエリ (tab / range / trace / level) に持つ。表示中のタブだけ読み込み、
-// 表示中の端末の受信の通知をまとめて足し、一定の間隔で時間軸を進める
 public sealed partial class TelemetryPage
 {
-    // 通知が無くても時間軸を進める間隔
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(10);
 
     private static readonly string[] Tabs = [TelemetryLinks.MetricsTab, TelemetryLinks.TracesTab, TelemetryLinks.LogsTab];
@@ -42,7 +39,6 @@ public sealed partial class TelemetryPage
 
     private bool loading;
 
-    // 時間軸の範囲 (UTC の Unix ナノ秒)
     private long from;
 
     private long to;
@@ -219,7 +215,6 @@ public sealed partial class TelemetryPage
 
     private string LogCountText => hasMoreLogs ? $"{logs.Count} 件 (続きあり)" : $"{logs.Count} 件";
 
-    // ログのタブでは、URL のトレースで絞る
     private bool HasTraceFilter => TraceId is not null;
 
     private string TraceFilterText => $"トレース {TraceId}";
@@ -265,7 +260,6 @@ public sealed partial class TelemetryPage
     // Event
     //--------------------------------------------------------------------------------
 
-    // 表示中の端末の分だけ溜めて、反映を予約する
     private void OnReceived(object? sender, TelemetryReceivedEventArgs e)
     {
         if (e.Result.DeviceId == loadedDeviceId)
@@ -314,7 +308,6 @@ public sealed partial class TelemetryPage
     // Action
     //--------------------------------------------------------------------------------
 
-    // 端末は履歴に残し、タブと範囲は引き継ぐ
     private void SelectDevice(string? deviceId)
     {
         if ((deviceId is null) || (deviceId == DeviceId))
@@ -326,14 +319,12 @@ public sealed partial class TelemetryPage
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(uri, new Dictionary<string, object?> { ["tab"] = Tab, ["range"] = RangeKey }));
     }
 
-    // タブと範囲の切り替えは履歴を増やさない
     private void SelectRange(string? key) =>
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("range", key), replace: true);
 
     private void SelectTab(int index) =>
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("tab", Tabs[index]), replace: true);
 
-    // トレースは履歴に残す
     private void SelectTrace(string traceId) =>
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("trace", traceId));
 
@@ -351,7 +342,6 @@ public sealed partial class TelemetryPage
         return LoadActiveTabAsync();
     }
 
-    // 重大度は URL に持ち、履歴を増やさない
     private void SelectLevel(string? key) =>
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("level", key == TelemetryLogLevel.Default.Key ? null : key), replace: true);
 
@@ -367,7 +357,6 @@ public sealed partial class TelemetryPage
     private Task LoadMoreLogsAsync() =>
         summary is null ? Task.CompletedTask : LoadLogsAsync(summary.Device.DeviceId, true);
 
-    // 開くときに Resource を読む
     private async Task ToggleLogAsync(TelemetryLogEntity log)
     {
         if (expandedLogs.Remove(log.Id))
@@ -414,7 +403,6 @@ public sealed partial class TelemetryPage
         logResources.Clear();
     }
 
-    // 表示中のタブだけ、範囲・絞り込み・選んだトレースが変わったときに読む
     private async Task LoadActiveTabAsync()
     {
         UpdateRange();
@@ -455,7 +443,6 @@ public sealed partial class TelemetryPage
         }
     }
 
-    // 範囲の点を束ねて読む (読んでいる間に届いた通知は、読んだ後に足す)
     private async Task LoadMetricsAsync(string deviceId)
     {
         var version = ++metricsVersion;
@@ -490,7 +477,6 @@ public sealed partial class TelemetryPage
         loading = false;
     }
 
-    // 同じトレースの読み直し (受信でスパンが増えたとき) は、開閉と選んだスパンを引き継ぐ
     private async Task LoadTraceDetailAsync(string deviceId)
     {
         var version = ++detailVersion;
@@ -518,7 +504,6 @@ public sealed partial class TelemetryPage
         }
     }
 
-    // 新しい順に LogLimit 件ずつ。続きは表示中の最後のログの時刻と Id の前から
     private async Task LoadLogsAsync(string deviceId, bool more)
     {
         var version = ++logsVersion;
@@ -563,7 +548,6 @@ public sealed partial class TelemetryPage
     // Trace
     //--------------------------------------------------------------------------------
 
-    // 受信で集計し直したトレースを一覧に反映する (範囲と絞り込みに合うものを新しい順に TraceLimit 件)
     private void MergeTraces(IEnumerable<TelemetryTraceEntity> items)
     {
         foreach (var trace in items)
@@ -591,7 +575,6 @@ public sealed partial class TelemetryPage
     // Log
     //--------------------------------------------------------------------------------
 
-    // 受信したログのうち絞り込みに合うものを、新しい順の位置に足す
     private void MergeLogs(IEnumerable<TelemetryLogEntity> items)
     {
         var count = logs.Count;
@@ -614,18 +597,15 @@ public sealed partial class TelemetryPage
 
     private static bool HasTrace(TelemetryLogEntity log) => log.TraceId.Length > 0;
 
-    // トレースのタブで開く (履歴に残す)
     private string TraceLink(TelemetryLogEntity log) =>
         Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["tab"] = Tabs[TracesTab], ["trace"] = log.TraceId });
 
-    // 名前空間を除いたスコープ
     private static string ShortScope(TelemetryLogEntity log)
     {
         var index = log.ScopeName.LastIndexOf('.');
         return index >= 0 ? log.ScopeName[(index + 1)..] : log.ScopeName;
     }
 
-    // 表示中のトレースのスパンかログが届いた
     private bool IsDetailChanged(TelemetrySaveResult result) =>
         (detailTraceId is not null) &&
         (result.Traces.Any(x => x.TraceId == detailTraceId) || result.Logs.Any(x => x.TraceId == detailTraceId));

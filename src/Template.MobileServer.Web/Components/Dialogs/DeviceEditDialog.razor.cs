@@ -60,7 +60,6 @@ public sealed partial class DeviceEditDialog
     [Mapper]
     private static partial DeviceForm ToForm(DeviceEntity entity);
 
-    // 名前の前後の空白を除き、空のグループとメモは null
     private static DeviceEntity ToEntity(DeviceForm form) =>
         new()
         {
@@ -92,7 +91,6 @@ public sealed partial class DeviceEditDialog
     {
         public DeviceFormValidator()
         {
-            // 受信と同じ形式 (ファイル名に使う)
             RuleFor(static x => x.DeviceId)
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("端末 ID を入力してください。")

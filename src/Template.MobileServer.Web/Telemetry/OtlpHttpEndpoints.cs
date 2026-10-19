@@ -11,7 +11,6 @@ using OpenTelemetry.Proto.Collector.Trace.V1;
 using Template.MobileServer.Web.Application.Context;
 using Template.MobileServer.Web.Infrastructure.Routing;
 
-// OTLP/HTTP の受信口 (protobuf。gzip の本文も受ける)。保存の処理が時刻を読むので、サービスコンテキストを開始する
 public static class OtlpHttpEndpoints
 {
     public const string ProtobufContentType = "application/x-protobuf";
@@ -42,7 +41,6 @@ public static class OtlpHttpEndpoints
     private static Task<IResult> HandleLogsAsync(HttpRequest request, OtlpReceiver receiver, TelemetryReceiverOption option) =>
         ReceiveAsync(request, option.MaxReceiveMessageSize, ExportLogsServiceRequest.Parser, receiver.ReceiveAsync);
 
-    // 応答は protobuf の Export*ServiceResponse。protobuf 以外は 415、上限を超えたら 413、壊れていたら 400、保存できなければ 503 (端末は送り直す)
     internal static async Task<IResult> ReceiveAsync<TRequest, TResponse>(HttpRequest request, int limit, MessageParser<TRequest> parser, Func<TRequest, ValueTask<TResponse>> receive)
         where TRequest : IMessage<TRequest>
         where TResponse : IMessage
@@ -83,7 +81,6 @@ public static class OtlpHttpEndpoints
     // Helper
     //--------------------------------------------------------------------------------
 
-    // null when the (decompressed) body exceeds the limit
     private static async Task<byte[]?> ReadBodyAsync(HttpRequest request, int limit)
     {
         if (!String.Equals(request.Headers.ContentEncoding, "gzip", StringComparison.OrdinalIgnoreCase))

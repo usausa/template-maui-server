@@ -14,7 +14,6 @@ public sealed class TelemetryStoreTests : IDisposable
 
     public void Dispose() => storage.Dispose();
 
-    // 保存済みの Id: 同じ Resource と系列は足さない。ファイルを削除したら Id を捨て、保存し直せる
     [Fact]
     public async Task SaveReusesIdsAndResetsAfterDelete()
     {
@@ -39,7 +38,6 @@ public sealed class TelemetryStoreTests : IDisposable
         Assert.Equal(1L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM MetricPoint"));
     }
 
-    // メモリ 1 点
     private static TelemetryBatch CreateBatch(long time)
     {
         var batch = new TelemetryBatch

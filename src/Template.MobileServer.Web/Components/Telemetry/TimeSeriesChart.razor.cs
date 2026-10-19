@@ -2,7 +2,6 @@ namespace Template.MobileServer.Web.Components.Telemetry;
 
 using Microsoft.AspNetCore.Components;
 
-// 計器のグラフ (SVG の折れ線。系列ごとに線)。幅に合わせて伸縮し、欠けた区間は線を切る (前後が欠けた点は丸で出す)。点が少なければ点ごとにホバーで時刻と値を出す
 public sealed partial class TimeSeriesChart
 {
     private const double Width = 600;
@@ -16,14 +15,12 @@ public sealed partial class TimeSeriesChart
     private const int ValueTickCount = 4;
     private const int TimeTickLimit = 6;
 
-    // 欠けとみなす間隔 (点の間隔の中央値の倍数)
     private const double GapFactor = 3;
 
     private const long NanosecondsPerMinute = 60_000_000_000;
     private const long NanosecondsPerDay = 1440 * NanosecondsPerMinute;
     private const long NanosecondsPerTick = 100;
 
-    // 時間軸の目盛りの間隔 (分)
     private static readonly long[] TimeSteps = [1, 2, 5, 10, 15, 30, 60, 120, 180, 360, 720, 1440, 2880, 10080];
 
     private IReadOnlyList<ChartTick> valueTicks = [];
@@ -46,7 +43,6 @@ public sealed partial class TimeSeriesChart
     [EditorRequired]
     public MetricChart Chart { get; set; } = default!;
 
-    // 時間軸の範囲 (UTC の Unix ナノ秒)
     [Parameter]
     public long From { get; set; }
 
@@ -101,7 +97,6 @@ public sealed partial class TimeSeriesChart
     // Value
     //--------------------------------------------------------------------------------
 
-    // 範囲の中の値 (範囲の前から始まる束は範囲の始まりに置く)
     private ChartValue[] CollectValues(MetricLine line) =>
         line.Buckets
             .Where(x => x.Key <= To)
@@ -110,7 +105,6 @@ public sealed partial class TimeSeriesChart
             .Select(static x => new ChartValue(x.Time, x.Value!.Value, x.Bucket))
             .ToArray();
 
-    // 0 以上の値は 0 から。区切りのよい間隔に広げる
     private static (double Min, double Max, double Step) MakeValueRange(double min, double max)
     {
         if (min >= 0)
@@ -127,7 +121,6 @@ public sealed partial class TimeSeriesChart
         return (Math.Floor(min / step) * step, Math.Ceiling(max / step) * step, step);
     }
 
-    // 1・2・5 × 10 のべき乗
     private static double NiceStep(double raw)
     {
         var magnitude = Math.Pow(10, Math.Floor(Math.Log10(raw)));
@@ -158,7 +151,6 @@ public sealed partial class TimeSeriesChart
     // Time
     //--------------------------------------------------------------------------------
 
-    // 目盛りは現地時刻の区切り
     private List<ChartTick> MakeTimeTicks()
     {
         var span = To - From;
@@ -198,7 +190,6 @@ public sealed partial class TimeSeriesChart
         return builder.ToString().TrimEnd();
     }
 
-    // 前後が欠けた点は線にならないので丸で出す。all なら全部の点をホバー用に置く
     private IEnumerable<ChartPoint> MakePoints(LineValues line, bool all, double min, double max)
     {
         var gap = GapFactor * MedianSpacing(line.Values);
@@ -212,7 +203,6 @@ public sealed partial class TimeSeriesChart
         }
     }
 
-    // 最初の点の前と最後の点の後も欠けとみなす
     private static bool IsGapBefore(ChartValue[] values, int index, double gap) =>
         (index == 0) || (index >= values.Length) || (values[index].Time - values[index - 1].Time > gap);
 
@@ -236,7 +226,6 @@ public sealed partial class TimeSeriesChart
     private ChartPoint MakePoint(MetricLine line, ChartValue value, bool single, double min, double max) =>
         new(Format(ToX(value.Time)), Format(ToY(value.Value, min, max)), single ? line.Color : "transparent", MakeTitle(line, value));
 
-    // 時刻と値 (ヒストグラムは最大と回数も)。線が複数なら属性の値を先に付ける
     private string MakeTitle(MetricLine line, ChartValue value)
     {
         var text = $"{ViewHelper.FormatTime(value.Time)} {FormatValue(value.Value)}";
@@ -248,7 +237,6 @@ public sealed partial class TimeSeriesChart
         return line.Label.Length > 0 ? $"{line.Label}: {text}" : text;
     }
 
-    // 最新値 (ヒストグラムは範囲の回数も)
     private LegendItem MakeLegend(LineValues values)
     {
         var label = values.Line.Label.Length > 0 ? values.Line.Label : Chart.Title;
@@ -270,7 +258,6 @@ public sealed partial class TimeSeriesChart
     private static double ToY(double value, double min, double max) =>
         Height - Bottom - ((value - min) / (max - min) * (Height - Top - Bottom));
 
-    // % は数字に続ける
     private string FormatValue(double value) =>
         Chart.Unit == "%" ? $"{ViewHelper.FormatNumber(value)}%" : $"{ViewHelper.FormatNumber(value)} {Chart.Unit}".TrimEnd();
 

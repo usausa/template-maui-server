@@ -11,7 +11,6 @@ using Template.MobileServer.Web.Services;
 
 public sealed class MonitorNotifierTests
 {
-    // 中継: 通知バスへの発行が全端末へ配信される (購読は Dispose で解除)
     [Fact]
     public void BusMessageIsRelayedToAllClients()
     {

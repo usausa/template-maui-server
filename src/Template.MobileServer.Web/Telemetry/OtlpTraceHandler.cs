@@ -13,7 +13,6 @@ public sealed class OtlpTraceHandler : TraceService.TraceServiceBase
         Receiver = receiver;
     }
 
-    // 保存できなければ UNAVAILABLE (端末は送り直す)
     public override async Task<ExportTraceServiceResponse> Export(ExportTraceServiceRequest request, ServerCallContext context)
     {
         try

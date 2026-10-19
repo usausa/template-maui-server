@@ -20,7 +20,6 @@ public sealed class OtlpHttpEndpointsTests : IClassFixture<ServerFixture>
         Fixture = fixture;
     }
 
-    // device.id の付いたログは保存する (拒否なし)
     [Fact]
     public async Task LogsWithDeviceIdAreAccepted()
     {
@@ -37,7 +36,6 @@ public sealed class OtlpHttpEndpointsTests : IClassFixture<ServerFixture>
         Assert.Null(reply.PartialSuccess);
     }
 
-    // device.id の無いログは拒否した件数を返す
     [Fact]
     public async Task LogsWithoutDeviceIdAreRejected()
     {
@@ -55,7 +53,6 @@ public sealed class OtlpHttpEndpointsTests : IClassFixture<ServerFixture>
         Assert.Equal(1, reply.PartialSuccess.RejectedLogRecords);
     }
 
-    // OTLP/HTTP の受信口は専用のポートだけで受ける
     [Fact]
     public async Task LogsAreNotFoundOnHttpPort()
     {

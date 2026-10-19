@@ -2,7 +2,6 @@ namespace Template.MobileServer.Web.Workers;
 
 using Template.MobileServer.Web.Telemetry;
 
-// テレメトリの保持期間の削除 (起動の直後と一定の間隔)。端末ごとに期限を過ぎた行を削除し、受信が途絶えた端末はファイルごと削除する (登録は残る)
 public sealed class TelemetryRetentionWorker : BackgroundService
 {
     private const long NanosecondsPerMillisecond = 1_000_000;
@@ -60,7 +59,6 @@ public sealed class TelemetryRetentionWorker : BackgroundService
         }
     }
 
-    // 1 台の失敗はログに出して次の端末へ進む
     private async Task DeleteExpiredAsync()
     {
         var now = TimeProvider.GetUtcNow();

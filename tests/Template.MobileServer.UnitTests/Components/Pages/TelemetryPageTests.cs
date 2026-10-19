@@ -19,7 +19,6 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
 
     private static readonly string TraceId = new('a', 32);
 
-    // 表示: 端末の見出しと、既知の計器のグラフ (名前と単位を整え、凡例に最新値)
     [Fact]
     public async Task RenderShowsHeaderAndCharts()
     {
@@ -36,7 +35,6 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         Assert.Contains("20%", cut.Find(".chart-legend").TextContent, StringComparison.Ordinal);
     }
 
-    // 未登録の端末は見出しとグラフを出さない
     [Fact]
     public async Task UnknownDeviceShowsMessage()
     {
@@ -52,7 +50,6 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         Assert.Empty(cut.FindAll(".chart"));
     }
 
-    // 通知: 表示中の端末の受信をグラフに足す
     [Fact]
     public async Task ReceivedPointsAreAdded()
     {
@@ -74,7 +71,6 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         await cut.WaitForAssertionAsync(() => Assert.Contains("50%", cut.Find(".chart-legend").TextContent, StringComparison.Ordinal), TimeSpan.FromSeconds(5));
     }
 
-    // トレース: タブと選んだトレースを URL のクエリで開き、一覧・ウォーターフォール (親子)・ルートスパンの詳細を出す
     [Fact]
     public async Task TracesTabShowsWaterfall()
     {
@@ -92,7 +88,6 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         Assert.Contains("TelemetryTest", cut.Find(".span-detail-name").TextContent, StringComparison.Ordinal);
     }
 
-    // ログ: 重大度 (URL の level) で絞り、行を開くと例外のスタックトレース。受信したログは先頭に足す
     [Fact]
     public async Task LogsTabFiltersAndExpands()
     {
@@ -122,7 +117,6 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         await cut.WaitForAssertionAsync(() => Assert.Contains("crashed", cut.FindAll("tr.log-row")[0].TextContent, StringComparison.Ordinal), TimeSpan.FromSeconds(5));
     }
 
-    // CPU 20% とメモリの点、親子のスパン、警告とエラーのログを保存した端末
     private async Task PrepareAsync(TelemetryTestStorage storage)
     {
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000;
@@ -141,7 +135,6 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         Services.AddSingleton(storage.Bus);
     }
 
-    // 時刻は今
     private static TelemetryBatch CreateBatch(double cpu)
     {
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000;

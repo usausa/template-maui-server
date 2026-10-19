@@ -17,7 +17,6 @@ public sealed class NotificationPageTests : MudBlazorTestBase
 {
     private static readonly DateTimeOffset Now = new(2026, 9, 15, 12, 0, 0, TimeSpan.Zero);
 
-    // 一覧: 登録済みの端末が表示され、状態の報告で更新される
     [Fact]
     public void RegisteredDevicesAreRendered()
     {
@@ -42,7 +41,6 @@ public sealed class NotificationPageTests : MudBlazorTestBase
         cut.WaitForAssertion(() => Assert.Contains("Pixel 9a", cut.Markup, StringComparison.Ordinal));
     }
 
-    // 電池: 割合と状態。不明 (負の値) は空
     [Theory]
     [InlineData(0.5, "Charging", "50% Charging")]
     [InlineData(-1, "Unknown", "")]
@@ -64,7 +62,6 @@ public sealed class NotificationPageTests : MudBlazorTestBase
         Assert.Equal(expected, cut.FindAll(".devices-table tbody td")[3].TextContent.Trim());
     }
 
-    // 送信: 全端末への通知がハブへ配信される
     [Fact]
     public void SendNotifiesAllClients()
     {
@@ -85,7 +82,6 @@ public sealed class NotificationPageTests : MudBlazorTestBase
         cut.WaitForAssertion(() => client.Received(1).Notify(Arg.Is<NotificationMessage>(static x => x.Title == "お知らせ")));
     }
 
-    // 切断: 一覧のボタンで登録時のコールバック(ハブの Context.Abort)が呼ばれる
     [Fact]
     public void DisconnectButtonAbortsConnection()
     {

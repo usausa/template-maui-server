@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Web.Components.Telemetry;
 
-// テレメトリ画面の範囲と、点を束ねる間隔 (Interval が 0 なら束ねない)
 public sealed record TelemetryRange(string Key, string Label, TimeSpan Duration, TimeSpan Interval)
 {
     private const long NanosecondsPerTick = 100;
@@ -19,14 +18,11 @@ public sealed record TelemetryRange(string Key, string Label, TimeSpan Duration,
 
     public long DurationNanoseconds => Duration.Ticks * NanosecondsPerTick;
 
-    // 束の長さ (ナノ秒。束ねないときは 1)
     public long IntervalNanoseconds => Interval > TimeSpan.Zero ? Interval.Ticks * NanosecondsPerTick : 1;
 
-    // 24 時間以上は時間軸に日付を付ける
     public bool ShowDate => Duration >= TimeSpan.FromHours(24);
 
     public static TelemetryRange Find(string? key) => All.FirstOrDefault(x => x.Key == key) ?? Default;
 
-    // 経過時間を含むいちばん短い範囲 (無ければいちばん長い範囲)
     public static TelemetryRange Covering(TimeSpan elapsed) => All.FirstOrDefault(x => x.Duration >= elapsed) ?? All[^1];
 }

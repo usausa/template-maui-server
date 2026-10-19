@@ -11,7 +11,6 @@ public sealed class DeviceServiceTests : IDisposable
 
     public void Dispose() => storage.Dispose();
 
-    // 登録: 登録日時 (UTC) を補い、登録済みの端末 ID は Duplicate
     [Fact]
     public async Task InsertRejectsDuplicate()
     {
@@ -32,7 +31,6 @@ public sealed class DeviceServiceTests : IDisposable
         Assert.Equal(Now.UtcDateTime, device.RegisteredAt);
     }
 
-    // 更新と削除: 更新後の行を返し、無い端末は null / NotFound
     [Fact]
     public async Task UpdateAndDelete()
     {
@@ -54,7 +52,6 @@ public sealed class DeviceServiceTests : IDisposable
         Assert.Equal(DataWriteStatus.NotFound, await storage.DeviceService.DeleteAsync("device-1"));
     }
 
-    // 削除: 端末宛ての通知も削除する
     [Fact]
     public async Task DeleteRemovesPushMessages()
     {

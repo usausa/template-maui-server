@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 
 public sealed partial class DeviceIdFormatTests
 {
-    // 端末 ID の形式: 英数字・'-'・'_' の 64 文字以内。API の検証の正規表現 (Pattern) と同じ判定
     [Theory]
     [InlineData("4db55dc544d5fec3", true)]
     [InlineData("9e97fa77-df72-458e-a8e0-5e9e359d0794", true)]
@@ -20,7 +19,6 @@ public sealed partial class DeviceIdFormatTests
         Assert.Equal(expected, PatternRegex().IsMatch(value));
     }
 
-    // 長さ: 64 文字まで
     [Fact]
     public void IsValidChecksLength()
     {

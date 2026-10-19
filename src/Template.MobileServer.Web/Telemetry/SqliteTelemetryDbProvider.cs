@@ -7,7 +7,6 @@ using Microsoft.Data.Sqlite;
 using Template.MobileServer.Accessors;
 using Template.MobileServer.Infrastructure.Telemetry;
 
-// 端末ごとの SQLite ファイル (<Root>/<端末 ID>.db)。プロセスで最初に開くときにスキーマ (WAL を含む) を確かめ、開くたびに PRAGMA を設定する
 public sealed class SqliteTelemetryDbProvider : ITelemetryDbProvider
 {
     private const string Extension = ".db";
@@ -48,7 +47,6 @@ public sealed class SqliteTelemetryDbProvider : ITelemetryDbProvider
     {
         var path = GetPath(deviceId);
 
-        // Close the idle connections of the pool, otherwise the files are in use
         foreach (var mode in (ReadOnlySpan<SqliteOpenMode>)[SqliteOpenMode.ReadWriteCreate, SqliteOpenMode.ReadWrite])
         {
             using var con = new SqliteConnection(MakeConnectionString(path, mode));
@@ -75,7 +73,6 @@ public sealed class SqliteTelemetryDbProvider : ITelemetryDbProvider
         {
             await con.OpenAsync(cancellationToken);
 
-            // A new file has the version 0, the schema sets the version
             if (!prepared.ContainsKey(deviceId))
             {
                 if (await GenericAccessor.QueryUserVersionAsync(con) == 0)

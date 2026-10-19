@@ -159,7 +159,6 @@ public sealed partial class QrPage
     // Helper
     //--------------------------------------------------------------------------------
 
-    // Same host as the server with the scheme and port of the Kestrel endpoint
     internal static string MakeEndPoint(string baseUri, string? url)
     {
         if (String.IsNullOrEmpty(url) ||

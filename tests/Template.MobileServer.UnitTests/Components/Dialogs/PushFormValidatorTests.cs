@@ -5,7 +5,6 @@ using Template.MobileServer.Web.Components.Dialogs;
 
 public sealed class PushFormValidatorTests
 {
-    // 正しい入力: 本文は省略できる
     [Fact]
     public void ValidateValidFormReturnsValid()
     {
@@ -20,7 +19,6 @@ public sealed class PushFormValidatorTests
         Assert.True(result.IsValid);
     }
 
-    // 件名: 空と空白だけは不可
     [Theory]
     [InlineData("")]
     [InlineData("  ")]
@@ -37,7 +35,6 @@ public sealed class PushFormValidatorTests
         Assert.Equal(nameof(PushSendDialog.PushForm.Title), Assert.Single(result.Errors).PropertyName);
     }
 
-    // 件名と本文: 長すぎるものは不可
     [Fact]
     public void ValidateTooLongReturnsInvalid()
     {

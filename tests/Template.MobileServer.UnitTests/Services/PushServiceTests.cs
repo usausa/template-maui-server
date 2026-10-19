@@ -11,7 +11,6 @@ public sealed class PushServiceTests : IDisposable
 
     public void Dispose() => storage.Dispose();
 
-    // 作成: 宛先の省略は登録済みで有効な端末ごとに 1 行。無効・未登録の端末宛ては作らない
     [Fact]
     public async Task InsertTargetsEnabledDevices()
     {
@@ -36,7 +35,6 @@ public sealed class PushServiceTests : IDisposable
         Assert.Null(message.DeliveredAt);
     }
 
-    // 応答: 届いた日時を入れて未達から外す。2 回目と他の端末からの応答は記録しない
     [Fact]
     public async Task DeliveredLeavesPending()
     {
@@ -58,7 +56,6 @@ public sealed class PushServiceTests : IDisposable
         Assert.Equal("2026-09-28 03:00:00.0000000", await storage.QueryDataValueAsync(static x => x.CommandText = "SELECT DeliveredAt FROM PushMessage WHERE DeliveredAt IS NOT NULL"));
     }
 
-    // 期限: 指定の日時より前に送った行は、届いた / 届いていないにかかわらず削除する
     [Fact]
     public async Task DeleteBeforeRemovesOldMessages()
     {
@@ -83,7 +80,6 @@ public sealed class PushServiceTests : IDisposable
         Assert.Equal([current.Id], (await storage.PushService.QueryPendingListAsync("device-1", cancellationToken)).Select(static x => x.Id));
     }
 
-    // 登録: device-1 と device-3 は有効、device-2 は無効
     private async Task PrepareDevicesAsync()
     {
         await storage.PrepareDatabaseAsync();

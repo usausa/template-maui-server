@@ -30,7 +30,6 @@ public sealed class DeviceService
     public ValueTask<DeviceEntity?> QueryAsync(string deviceId) =>
         DeviceAccessor.QueryAsync(deviceId);
 
-    // 登録済みなら Duplicate。登録日時を補う
     public async ValueTask<DataWriteStatus> InsertAsync(DeviceEntity entity)
     {
         var context = ContextProvider.Current;
@@ -40,15 +39,12 @@ public sealed class DeviceService
         return rows > 0 ? DataWriteStatus.Success : DataWriteStatus.Duplicate;
     }
 
-    // 名前・グループ・メモ・有効を更新し、更新後の行を返す (無ければ null)
     public ValueTask<DeviceEntity?> UpdateAsync(DeviceEntity entity) =>
         DeviceAccessor.UpdateAsync(entity.DeviceId, entity.Name, entity.GroupName, entity.Note, entity.IsEnabled);
 
-    // 名前だけを更新し、更新後の行を返す (無ければ null)
     public ValueTask<DeviceEntity?> UpdateNameAsync(string deviceId, string name) =>
         DeviceAccessor.UpdateNameAsync(deviceId, name);
 
-    // 登録と、その端末宛ての通知を削除する
     public ValueTask<DataWriteStatus> DeleteAsync(string deviceId) =>
         Provider.UsingTxAsync(async (_, tx) =>
         {

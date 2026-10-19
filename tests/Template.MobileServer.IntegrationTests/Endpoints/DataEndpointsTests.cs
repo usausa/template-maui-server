@@ -13,7 +13,6 @@ public sealed class DataEndpointsTests : IClassFixture<ServerFixture>
         Fixture = fixture;
     }
 
-    // 作成 (201)・取得・更新 (204)・削除 (204)。削除の後は 404
     [Fact]
     public async Task CreateGetUpdateDelete()
     {
@@ -40,7 +39,6 @@ public sealed class DataEndpointsTests : IClassFixture<ServerFixture>
         Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
     }
 
-    // 名前の重複は 409
     [Fact]
     public async Task DuplicateNameReturnsConflict()
     {
@@ -57,7 +55,6 @@ public sealed class DataEndpointsTests : IClassFixture<ServerFixture>
         Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
     }
 
-    // 要求の JSON は厳しく読む (知らない項目は 400)
     [Fact]
     public async Task UnknownPropertyReturnsBadRequest()
     {

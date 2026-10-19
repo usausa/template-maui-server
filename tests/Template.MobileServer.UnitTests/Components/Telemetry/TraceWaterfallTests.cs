@@ -8,7 +8,6 @@ using Template.MobileServer.Web.Components.Telemetry;
 
 public sealed class TraceWaterfallTests : MudBlazorTestBase
 {
-    // 字下げは深さ × 16 px、バーはトレースの長さに対する位置と長さ (最低 2 px の重ね)、イベントは時刻の位置 (例外は太い印)
     [Fact]
     public void RowsShowIndentBarAndEvents()
     {

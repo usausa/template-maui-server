@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Models.Entity;
 
-// Resource (プロセスの起動ごとに変わる)。Hash は属性をキー順に並べた JSON の SHA-256
 [Name("Resource")]
 public sealed class TelemetryResourceEntity
 {

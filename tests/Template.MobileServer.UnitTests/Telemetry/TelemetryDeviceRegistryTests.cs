@@ -13,7 +13,6 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
 
     public void Dispose() => storage.Dispose();
 
-    // 自動登録: 未登録の端末を機種の名前で登録して通知し、無効にした端末は false
     [Fact]
     public async Task EnsureRegisteredRegistersUnknownDevice()
     {
@@ -36,7 +35,6 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         Assert.False(await storage.Registry.EnsureRegisteredAsync(CreateInfo()));
     }
 
-    // 要約: 保存した内容で最新値・エラーとクラッシュの件数・直近のエラー・受信の推移を更新する
     [Fact]
     public async Task ApplyUpdatesSummary()
     {
@@ -62,7 +60,6 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         Assert.Equal(4, storage.Registry.IngestHistory.Sum());
     }
 
-    // 直近のエラー: エラーとクラッシュの件数と同じく、直近 24 時間のものだけ
     [Fact]
     public async Task RecentErrorsAreWithinCountHours()
     {
@@ -85,7 +82,6 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         Assert.Equal(1, Assert.Single(storage.Registry.Devices).ErrorCount);
     }
 
-    // 起動時の読み込み: 端末のファイルから要約を作り直し、登録の無いファイルは登録する
     [Fact]
     public async Task LoadRestoresSummaryAndRegistersFile()
     {
@@ -109,7 +105,6 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         Assert.NotNull(await storage.DeviceService.QueryAsync(DeviceId));
     }
 
-    // 削除: 登録とテレメトリのファイルを消す
     [Fact]
     public async Task DeleteRemovesRegistrationAndFile()
     {
@@ -129,7 +124,6 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         Assert.False(File.Exists(Path.Combine(storage.Root, DeviceId + ".db")));
     }
 
-    // 端末からの登録: 未登録なら有効で登録し、登録済みなら名前だけを更新する (グループと有効はそのまま)
     [Fact]
     public async Task RegisterCreatesAndRenames()
     {
@@ -168,7 +162,6 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
             ServiceVersion = "1.0"
         };
 
-    // メモリと固有値 1 の 1 点ずつ、エラー 1 件、クラッシュ 1 件 (時刻は今)
     private static TelemetryBatch CreateBatch()
     {
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000;

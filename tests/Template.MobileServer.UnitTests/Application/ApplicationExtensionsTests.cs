@@ -15,7 +15,6 @@ using Template.MobileServer.Web.Settings;
 
 public sealed class ApplicationExtensionsTests
 {
-    // X-Forwarded-* を受けるのは、既定のループバックと設定のネットワーク・プロキシから。転送の段数は設定から、Server ヘッダーは出さない
     [Fact]
     public async Task ConfigureHttpUsesForwardedHeadersSetting()
     {
@@ -36,7 +35,6 @@ public sealed class ApplicationExtensionsTests
         Assert.False(provider.GetRequiredService<IOptions<KestrelServerOptions>>().Value.AddServerHeader);
     }
 
-    // MudBlazor の文言は、UI の言語が英語でも日本語
     [Fact]
     public async Task ConfigureBlazorUsesJapaneseMudTexts()
     {

@@ -15,7 +15,6 @@ public sealed class TelemetryRetentionWorkerTests : IDisposable
 
     public void Dispose() => storage.Dispose();
 
-    // 起動の直後: 受信が途絶えた端末のテレメトリのファイルを削除し、登録は残す
     [Fact]
     public async Task StartDeletesFileOfSilentDevice()
     {

@@ -1,7 +1,5 @@
 namespace Template.MobileServer.Web.Components;
 
-// バスの通知をまとめて画面に反映する。通知の受け手は Request で予約するだけですぐ戻り、1 秒ごとに予約があれば refresh を呼ぶ (通知が続いても 1 秒に 1 回)。
-// 予約が無くても interval ごとに呼ぶ (受信が途絶えた状態や時間軸を進めるため)。refresh は呼ぶ側で InvokeAsync の中で反映して描画する
 public sealed class RefreshTimer : IDisposable
 {
     private static readonly TimeSpan Tick = TimeSpan.FromSeconds(1);
@@ -54,7 +52,7 @@ public sealed class RefreshTimer : IDisposable
         }
         catch (ObjectDisposedException)
         {
-            // The circuit is gone
+            // Ignore
         }
     }
 }

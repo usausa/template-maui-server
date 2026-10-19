@@ -18,7 +18,6 @@ public sealed class PushNotifierTests : IDisposable
 
     public void Dispose() => storage.Dispose();
 
-    // 送信: 作った行ごとに宛先の端末のグループへ送る。宛先の端末が無ければ送らない
     [Fact]
     public async Task SendDeliversToDeviceGroups()
     {
@@ -51,7 +50,6 @@ public sealed class PushNotifierTests : IDisposable
         Assert.All(received, static x => Assert.Equal("件名", x.Message.Title));
     }
 
-    // 知らせ: 行を作ったときと届いた日時を記録したときだけ Changed
     [Fact]
     public async Task ChangedIsRaisedWhenPendingChanges()
     {

@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Web.Components.Telemetry;
 
-// ログのタブの重大度の絞り込み (Severity 以上)
 public sealed record TelemetryLogLevel(string Key, string Label, int Severity)
 {
     public static IReadOnlyList<TelemetryLogLevel> All { get; } =

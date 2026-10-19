@@ -4,7 +4,6 @@ using System.Collections.Concurrent;
 
 using Template.MobileServer.Infrastructure.Telemetry;
 
-// 端末ごとのテレメトリのファイルへの書き込み (保存・保持期間の削除・ファイルの削除) を端末ごとに 1 つずつにし、保存済みの Id を持つ
 public sealed class TelemetryStore : IDisposable
 {
     private readonly ConcurrentDictionary<string, Entry> entries = new(StringComparer.Ordinal);
@@ -31,10 +30,8 @@ public sealed class TelemetryStore : IDisposable
         entries.Clear();
     }
 
-    // テレメトリのファイルがある端末
     public IReadOnlyList<string> EnumerateDevices() => Provider.EnumerateDevices();
 
-    // 保存済みの Id は最初の書き込みで読み、新しく足した Id はコミットの後に足す
     public async ValueTask<TelemetrySaveResult> SaveAsync(TelemetryBatch batch)
     {
         var entry = GetEntry(batch.DeviceId);
@@ -58,7 +55,6 @@ public sealed class TelemetryStore : IDisposable
         }
     }
 
-    // 端末のファイルを削除する (ファイルが無ければ false)
     public async ValueTask<bool> DeleteDeviceAsync(string deviceId)
     {
         var entry = GetEntry(deviceId);
@@ -74,7 +70,6 @@ public sealed class TelemetryStore : IDisposable
         }
     }
 
-    // 保持期間の削除。ファイルごと削除したら保存済みの Id も捨てる
     public async ValueTask<TelemetryDeleteResult> DeleteExpiredAsync(string deviceId, long logBefore, long traceBefore, long metricBefore, long deviceBefore)
     {
         var entry = GetEntry(deviceId);
@@ -97,7 +92,6 @@ public sealed class TelemetryStore : IDisposable
 
     private Entry GetEntry(string deviceId) => entries.GetOrAdd(deviceId, static _ => new Entry());
 
-    // 端末ごとの書き込みのロックと、保存済みの Resource (Hash → Id) と系列 (キー → Id)
     private sealed class Entry : IDisposable
     {
         public SemaphoreSlim Lock { get; } = new(1, 1);

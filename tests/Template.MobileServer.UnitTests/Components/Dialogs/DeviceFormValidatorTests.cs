@@ -5,7 +5,6 @@ using Template.MobileServer.Web.Components.Dialogs;
 
 public sealed class DeviceFormValidatorTests
 {
-    // 正しい入力: グループとメモは省略できる
     [Fact]
     public void ValidateValidFormReturnsValid()
     {
@@ -20,7 +19,6 @@ public sealed class DeviceFormValidatorTests
         Assert.True(result.IsValid);
     }
 
-    // 端末 ID: 空と受信と違う形式 (空白・記号) は不可。理由は 1 つだけ返す
     [Theory]
     [InlineData("")]
     [InlineData("device 1")]
@@ -38,7 +36,6 @@ public sealed class DeviceFormValidatorTests
         Assert.Equal(nameof(DeviceEditDialog.DeviceForm.DeviceId), Assert.Single(result.Errors).PropertyName);
     }
 
-    // 端末 ID: 長すぎるものは不可
     [Fact]
     public void ValidateTooLongDeviceIdReturnsInvalid()
     {
@@ -53,7 +50,6 @@ public sealed class DeviceFormValidatorTests
         Assert.Single(result.Errors);
     }
 
-    // 名前: 空白だけは不可
     [Fact]
     public void ValidateBlankNameReturnsInvalid()
     {
@@ -68,7 +64,6 @@ public sealed class DeviceFormValidatorTests
         Assert.False(result.IsValid);
     }
 
-    // 長さ: グループは名前と同じ、メモは Note まで
     [Fact]
     public void ValidateTooLongGroupAndNoteReturnsInvalid()
     {

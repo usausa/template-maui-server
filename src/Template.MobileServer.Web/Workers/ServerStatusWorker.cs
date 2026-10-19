@@ -43,7 +43,6 @@ public sealed class ServerStatusWorker : BackgroundService
             using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(Options.Interval), TimeProvider);
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
-                // Process CPU time against the elapsed time, one core = 100% (clamped when several threads are busy)
                 var cpuTime = Environment.CpuUsage.TotalTime;
                 var timestamp = TimeProvider.GetTimestamp();
                 var elapsed = TimeProvider.GetElapsedTime(lastTimestamp, timestamp);

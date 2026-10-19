@@ -18,7 +18,6 @@ public sealed class FileStorageTests : IDisposable
         Directory.Delete(outside, true);
     }
 
-    // root の下のパスは使える
     [Fact]
     public async Task WriteAndReadInsideRoot()
     {
@@ -33,7 +32,6 @@ public sealed class FileStorageTests : IDisposable
         Assert.True(await storage.FileExistsAsync("dir/file.txt", TestContext.Current.CancellationToken));
     }
 
-    // root の外へ出るパスは使えない
     [Fact]
     public async Task RejectsPathOutsideRoot()
     {
@@ -44,7 +42,6 @@ public sealed class FileStorageTests : IDisposable
         await Assert.ThrowsAsync<StorageException>(async () => await storage.FileExistsAsync("../file.txt", TestContext.Current.CancellationToken));
     }
 
-    // root の下のシンボリックリンクを経由するパスは使えない (リンクを作れない環境では飛ばす)
     [Fact]
     public async Task RejectsPathThroughSymbolicLink()
     {

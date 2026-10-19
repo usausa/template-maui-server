@@ -13,7 +13,6 @@ public sealed class MonitorHubTests : IClassFixture<ServerFixture>
         Fixture = fixture;
     }
 
-    // 接続するとサーバーの状態が届く (接続数に自分を含む)
     [Fact]
     public async Task ServerStatusIsBroadcast()
     {

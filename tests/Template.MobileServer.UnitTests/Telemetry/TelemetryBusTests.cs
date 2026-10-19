@@ -6,7 +6,6 @@ using Template.MobileServer.Web.Telemetry;
 
 public sealed class TelemetryBusTests
 {
-    // 受け手の例外: 次の受け手へ進み、発行した側には返さない
     [Fact]
     public void PublishContinuesAfterHandlerException()
     {

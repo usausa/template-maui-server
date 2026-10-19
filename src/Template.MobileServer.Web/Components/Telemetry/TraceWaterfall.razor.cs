@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Components;
 
 using MudBlazor;
 
-// トレースのウォーターフォール。字下げで深さを示し、子を持つ行は開閉できる。バーはトレースの開始からの位置と長さ (幅は最低 2 px)、エラーは赤、イベントの時刻に印 (例外は赤)
 public sealed partial class TraceWaterfall
 {
     private const int TickCount = 4;
@@ -31,7 +30,6 @@ public sealed partial class TraceWaterfall
     // Initialize
     //--------------------------------------------------------------------------------
 
-    // 目盛りは区切りのよい時間 (1・2・5 × 10 のべき乗)
     protected override void OnParametersSet()
     {
         var step = NiceStep((double)Model.Duration / TickCount);

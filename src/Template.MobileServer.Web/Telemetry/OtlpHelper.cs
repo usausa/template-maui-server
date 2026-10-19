@@ -20,7 +20,6 @@ public static class OtlpHelper
     public static string GetServiceName(this Resource? resource) =>
         FindString(resource, ServiceNameKey) ?? string.Empty;
 
-    // Devices without device.id are identified by app.installation.id
     public static string GetDeviceId(this Resource? resource) =>
         FindString(resource, DeviceIdKey) ?? FindString(resource, InstallationIdKey) ?? string.Empty;
 
@@ -89,7 +88,6 @@ public static class OtlpHelper
             _ => string.Empty
         };
 
-    // Number: value, histogram and summary: count and sum. Attributes precede the value
     public static string FormatPoints(this Metric metric) =>
         metric.DataCase switch
         {

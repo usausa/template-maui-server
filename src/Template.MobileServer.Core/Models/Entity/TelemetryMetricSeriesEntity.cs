@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Models.Entity;
 
-// 計器と属性の組み合わせ (系列)。属性はキー順に並べた JSON
 [Name("MetricSeries")]
 public sealed class TelemetryMetricSeriesEntity
 {

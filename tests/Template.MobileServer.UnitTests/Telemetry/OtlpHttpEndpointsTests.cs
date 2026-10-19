@@ -16,7 +16,6 @@ public sealed class OtlpHttpEndpointsTests
 {
     private const int Limit = 1024 * 1024;
 
-    // protobuf の本文を受け、protobuf の応答を返す
     [Fact]
     public async Task ReceiveAcceptsProtobuf()
     {
@@ -37,7 +36,6 @@ public sealed class OtlpHttpEndpointsTests
         Assert.Equal(2, received?.ResourceLogs[0].ScopeLogs[0].LogRecords.Count);
     }
 
-    // メディアタイプで比べる (パラメーター付き・大文字も受ける)
     [Theory]
     [InlineData("application/x-protobuf; charset=binary")]
     [InlineData("Application/X-Protobuf")]
@@ -53,7 +51,6 @@ public sealed class OtlpHttpEndpointsTests
         Assert.IsType<FileContentHttpResult>(result);
     }
 
-    // gzip の本文は展開する
     [Fact]
     public async Task ReceiveAcceptsGzip()
     {
@@ -80,7 +77,6 @@ public sealed class OtlpHttpEndpointsTests
         Assert.Equal(2, received?.ResourceLogs[0].ScopeLogs[0].LogRecords.Count);
     }
 
-    // protobuf 以外 (JSON) は 415、上限を超えたら 413、壊れた本文は 400
     [Theory]
     [InlineData("application/json", Limit, new byte[] { 0x7b, 0x7d }, StatusCodes.Status415UnsupportedMediaType)]
     [InlineData(OtlpHttpEndpoints.ProtobufContentType, 1, new byte[] { 0x0a, 0x00 }, StatusCodes.Status413PayloadTooLarge)]
@@ -97,7 +93,6 @@ public sealed class OtlpHttpEndpointsTests
         Assert.Equal(statusCode, Assert.IsAssignableFrom<IStatusCodeHttpResult>(result).StatusCode);
     }
 
-    // 保存できなければ 503 (端末は送り直す)
     [Fact]
     public async Task ReceiveReturnsServiceUnavailableOnStorageError()
     {

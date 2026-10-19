@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Models.Entity;
 
-// トレースの集計 (スパンを保存するたびに、そのトレースのスパンから作り直す)。RootName は親の無いスパン、無ければ最初のスパンの名前
 [Name("Trace")]
 public sealed class TelemetryTraceEntity
 {

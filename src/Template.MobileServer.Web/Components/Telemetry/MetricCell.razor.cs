@@ -6,25 +6,19 @@ using MudBlazor;
 
 using Template.MobileServer.Web.Telemetry;
 
-// 最新値の表し方
 public enum MetricDisplay
 {
-    // 電池のアイコン (0〜1。値はホバーで出す)
     Battery,
 
-    // 横棒と % (0〜1。小数 1 桁)
     Utilization,
 
-    // 電波のアイコン (値はホバーで出す)
     Signal,
 
     Bytes,
 
-    // 横棒と値 (アプリケーション固有値。0〜100)
     CustomValue
 }
 
-// 最新値のセル。色は値の良し悪し、ホバーで値と測った時刻を出す。値が無ければ "-"
 public sealed partial class MetricCell
 {
     private bool showIcon;
@@ -98,7 +92,6 @@ public sealed partial class MetricCell
         _ => ViewHelper.FormatBytes((long)value)
     };
 
-    // 横棒の割合 (固有値は 0〜100)
     private static double ToRatio(MetricDisplay display, double value) =>
         display == MetricDisplay.CustomValue ? value / 100 : value;
 

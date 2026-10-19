@@ -13,7 +13,6 @@ public sealed class OtlpMetricsHandler : MetricsService.MetricsServiceBase
         Receiver = receiver;
     }
 
-    // 保存できなければ UNAVAILABLE (端末は送り直す)
     public override async Task<ExportMetricsServiceResponse> Export(ExportMetricsServiceRequest request, ServerCallContext context)
     {
         try

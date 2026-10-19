@@ -47,7 +47,6 @@ public sealed class QrPageTests : MudBlazorTestBase
         Assert.Equal(string.Empty, result);
     }
 
-    // 保存: 入力した値が Setting テーブルに保存され、QR の生成値に含まれる。接続先 (API / gRPC / OTEL) はサーバー自身のホスト (gRPC / OTEL は Kestrel のスキームとポート)
     [Fact]
     public async Task SavedValuesAreStoredAndIncludedInQr()
     {
@@ -69,7 +68,6 @@ public sealed class QrPageTests : MudBlazorTestBase
         Assert.Equal("http://server:11434/", entity.Value);
     }
 
-    // 読込: 保存済みの値が表示され、空の値は削除される
     [Fact]
     public async Task StoredValuesAreLoadedAndEmptyValueDeletesRow()
     {
@@ -92,7 +90,6 @@ public sealed class QrPageTests : MudBlazorTestBase
         Assert.Empty(await service.QueryAllAsync(Xunit.TestContext.Current.CancellationToken));
     }
 
-    // 注意: localhost で開いたときだけ、接続先が端末から届かないことを出す
     [Fact]
     public async Task LoopbackShowsWarning()
     {
@@ -107,7 +104,6 @@ public sealed class QrPageTests : MudBlazorTestBase
         Assert.Contains("localhost で開いているため", cut.Find(".loopback-alert").TextContent, StringComparison.Ordinal);
     }
 
-    // 注意: 端末から届くホスト名で開けば出さない。gRPC / OTEL も同じホスト
     [Fact]
     public async Task HostNameShowsNoWarning()
     {
@@ -124,11 +120,9 @@ public sealed class QrPageTests : MudBlazorTestBase
         await cut.WaitForAssertionAsync(() => Assert.Contains("ApiEndPoint=http://server:8080/\nGrpcEndPoint=http://server:9090/\nOtelEndPoint=http://server:4318/\n", cut.Find("pre.qr-text").TextContent, StringComparison.Ordinal));
     }
 
-    // 画面を経由しない直接の呼び出しはワーカーと同じく明示的にスコープを開始する
     private IDisposable BeginSystemScope() =>
         Services.GetRequiredService<ApplicationServiceContextProvider>().Begin(static () => new ServiceContext(TimeProvider.System.GetLocalNow(), "test"));
 
-    // 共有キャッシュのインメモリ DB。接続を 1 つ開いたままにして生存させる
     private static SqliteConnection OpenSharedMemoryDatabase(string name)
     {
         var connection = new SqliteConnection($"Data Source=file:{name}?mode=memory&cache=shared");
@@ -136,7 +130,6 @@ public sealed class QrPageTests : MudBlazorTestBase
         return connection;
     }
 
-    // スキーマは Web の Assets/Data/Schema.sql (参照プロジェクトから出力先へコピーされる)。Kestrel のポートは appsettings.json と同じ
     private async Task<SettingService> AddSettingServiceAsync(string connectionString)
     {
         Services.AddSingleton<IDbProvider>(new DelegateDbProvider(() => new SqliteConnection(connectionString)));
@@ -155,7 +148,6 @@ public sealed class QrPageTests : MudBlazorTestBase
         return Services.GetRequiredService<SettingService>();
     }
 
-    // ホスト名で開いた画面 (bUnit は http://localhost/ で開く)
     private sealed class HostNavigationManager : NavigationManager
     {
         public HostNavigationManager()

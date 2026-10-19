@@ -4,7 +4,6 @@ using System.Text.Json;
 
 using Microsoft.AspNetCore.Components;
 
-// ログの詳細 (本文の全体、重大度・イベント・観測時刻・スコープ・ID、属性、例外のスタックトレース、Resource)
 public sealed partial class LogDetail
 {
     private const string StackTraceKey = "exception.stacktrace";
@@ -42,7 +41,6 @@ public sealed partial class LogDetail
     // Initialize
     //--------------------------------------------------------------------------------
 
-    // 例外のスタックトレースは属性の表から外して別に出す
     protected override void OnParametersSet()
     {
         using var document = JsonDocument.Parse(Log.AttributesJson);

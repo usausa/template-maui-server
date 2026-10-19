@@ -29,7 +29,6 @@ public sealed class OtlpReceiverTests : IDisposable
 
     public void Dispose() => storage.Dispose();
 
-    // トレース: 端末ごとに保存し、端末を識別できないリソースのスパンは partial_success の拒否件数で返す
     [Fact]
     public async Task ReceiveTracesSavesAndRejectsUnknownDevice()
     {
@@ -60,7 +59,6 @@ public sealed class OtlpReceiverTests : IDisposable
         Assert.Contains("Telemetry rejected. service=[], device=[], items=[1]", GetMessages(logger));
     }
 
-    // メトリクス: 時刻の無い点は partial_success の拒否件数に入り、ほかの点は保存する
     [Fact]
     public async Task ReceiveMetricsRejectsPointWithoutTime()
     {
@@ -97,7 +95,6 @@ public sealed class OtlpReceiverTests : IDisposable
         Assert.Equal(1024d, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT Value FROM MetricPoint"));
     }
 
-    // ログ: 未登録の端末を登録して保存し、バスに通知する。partial_success は無い
     [Fact]
     public async Task ReceiveLogsSavesRecords()
     {
@@ -131,7 +128,6 @@ public sealed class OtlpReceiverTests : IDisposable
         Assert.Single(Assert.Single(received).Logs);
     }
 
-    // 無効の端末: 保存せず、partial_success の拒否件数と理由で返す
     [Fact]
     public async Task ReceiveRejectsDisabledDevice()
     {
@@ -161,7 +157,6 @@ public sealed class OtlpReceiverTests : IDisposable
         Assert.False(File.Exists(Path.Combine(storage.Root, DeviceId + ".db")));
     }
 
-    // 保存の失敗: 例外のまま返す (受信口が 503 / UNAVAILABLE にする)
     [Fact]
     public async Task ReceiveThrowsStorageError()
     {
@@ -191,7 +186,6 @@ public sealed class OtlpReceiverTests : IDisposable
         return logger;
     }
 
-    // LoggerMessage の状態は ToString でメッセージになる
     private static List<string> GetMessages(ILogger logger) =>
         logger.ReceivedCalls()
             .Where(static x => x.GetMethodInfo().Name == nameof(ILogger.Log))

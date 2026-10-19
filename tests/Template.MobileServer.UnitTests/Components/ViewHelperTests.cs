@@ -6,7 +6,6 @@ using Template.MobileServer.Web.Components;
 
 public sealed class ViewHelperTests
 {
-    // 電池: 50% 以上 = Good、20% 以上 = Warning、未満 = Critical
     [Theory]
     [InlineData(1.0, TelemetryLevel.Good)]
     [InlineData(0.5, TelemetryLevel.Good)]
@@ -19,7 +18,6 @@ public sealed class ViewHelperTests
         Assert.Equal(expected, ViewHelper.BatteryLevel(ratio));
     }
 
-    // 無線 LAN: 段 (アイコン) と色の区切り
     [Theory]
     [InlineData(-50, TelemetryLevel.Good, 4)]
     [InlineData(-60, TelemetryLevel.Good, 3)]
@@ -36,7 +34,6 @@ public sealed class ViewHelperTests
         Assert.Equal(icons[bars - 1], ViewHelper.SignalIcon(dbm));
     }
 
-    // 所要時間: 1 ms 未満は µs、1 秒未満は ms、それ以上は秒
     [Theory]
     [InlineData(0, "0")]
     [InlineData(1_500, "1.5 µs")]
@@ -48,7 +45,6 @@ public sealed class ViewHelperTests
         Assert.Equal(expected, ViewHelper.FormatDuration(nanoseconds));
     }
 
-    // 経過時間: いちばん大きい単位で切り捨て
     [Theory]
     [InlineData(59, "59 秒前")]
     [InlineData(60, "1 分前")]

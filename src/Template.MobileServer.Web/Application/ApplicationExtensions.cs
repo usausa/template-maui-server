@@ -190,7 +190,7 @@ public static class ApplicationExtensions
         // CSP nonce
         builder.Services.AddScoped<CspNonce>();
 
-        // XForward (ASP.NET Core 8.0.17 / 9.0.6 以降、既知のネットワークとプロキシ以外からの X-Forwarded-* は無視される。既定はループバックだけ)
+        // XForward
         builder.Services.AddOptions<ForwardedHeadersOptions>().Configure<ForwardedHeadersSetting>(static (options, setting) =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -220,8 +220,7 @@ public static class ApplicationExtensions
             app.UseHsts();
         }
 
-        // Headers. The nonce admits the import map that Blazor renders inline, MudBlazor needs inline styles,
-        // dotnet watch / Browser Link load their script from another localhost port and connect back to it
+        // Headers
         var development = app.Environment.IsDevelopment();
         var scriptSources = development ? "'self' http://localhost:*" : "'self'";
         var connectSources = development ? "'self' http://localhost:* ws://localhost:* wss://localhost:*" : "'self'";
@@ -240,7 +239,7 @@ public static class ApplicationExtensions
 
     public static IHostApplicationBuilder ConfigureApi(this IHostApplicationBuilder builder)
     {
-        // JSON (camelCase。クライアントの Rester 既定と同じ)
+        // JSON
         builder.Services.ConfigureHttpJsonOptions(static options =>
         {
             options.SerializerOptions.PropertyNamingPolicy = NamingPolicy.JsonPropertyNaming;
@@ -345,7 +344,7 @@ public static class ApplicationExtensions
     {
         var jwtSetting = builder.Configuration.GetSection("Jwt").Get<JwtSetting>()!;
 
-        // モバイルAPI用の JWT Bearer のみ(管理画面は認証なし)
+        // JWT Bearer
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -721,10 +720,10 @@ public static class ApplicationExtensions
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
-            // [MEMO] Add yaml support
+            // YAML
             app.MapOpenApi("/openapi/{documentName}.yaml");
 
-            // NSwag UI (SwaggerUI / ReDoc) using MapOpenApi generated specification
+            // NSwag UI
             app.UseSwaggerUi(static options =>
             {
                 options.DocumentPath = "/openapi/v1.json";
@@ -746,7 +745,7 @@ public static class ApplicationExtensions
                 options.ContentSecurityFrameAncestorsPolicy = "'none'";
             });
 
-        // API (モバイル契約)
+        // API
         app.MapServerEndpoints();
         app.MapAccountEndpoints();
         app.MapSecretEndpoints();
@@ -756,21 +755,21 @@ public static class ApplicationExtensions
         app.MapStorageEndpoints();
         app.MapTestEndpoints();
 
-        // gRPC (チャット / サーバー情報、認証なし。アプリケーション用ポートのみ)
+        // gRPC
         var grpcPort = GetEndpointPort(app.Configuration, GrpcEndpointConfigurationKey);
         app.MapGrpcService<ChatHandler>().RequirePort(grpcPort);
         app.MapGrpcService<ServerInfoHandler>().RequirePort(grpcPort);
 
-        // OTLP (テレメトリの受信口、認証なし。OTEL 用ポートのみ)
+        // OTLP
         var otelPort = GetEndpointPort(app.Configuration, OtelEndpointConfigurationKey);
         app.MapGrpcService<OtlpTraceHandler>().RequirePort(otelPort);
         app.MapGrpcService<OtlpMetricsHandler>().RequirePort(otelPort);
         app.MapGrpcService<OtlpLogsHandler>().RequirePort(otelPort);
 
-        // OTLP/HTTP (テレメトリの受信口、認証なし。OTLP/HTTP 用ポートのみ)
+        // OTLP/HTTP
         app.MapOtlpHttpEndpoints(GetEndpointPort(app.Configuration, OtelHttpEndpointConfigurationKey));
 
-        // SignalR (端末の監視と通知、認証なし)
+        // SignalR
         app.MapHub<MonitorHub>(HubRoutes.Monitor);
         app.MapHub<PushHub>(HubRoutes.Push);
 
@@ -802,10 +801,10 @@ public static class ApplicationExtensions
         // Prepare notifier
         app.Services.GetRequiredService<Services.MonitorNotifier>();
 
-        // Prepare database (schema from the SQL file)
+        // Prepare database
         await app.Services.GetRequiredService<DatabaseService>().InitializeAsync(SchemaPath);
 
-        // Prepare the cache of the devices (the registrations and the telemetry of each device)
+        // Prepare device cache
         await app.Services.GetRequiredService<TelemetryDeviceRegistry>().LoadAsync(CancellationToken.None);
     }
 

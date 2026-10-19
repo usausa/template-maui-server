@@ -2,10 +2,8 @@ namespace Template.MobileServer.Web.Components.Telemetry;
 
 using System.Text.Json;
 
-// スパンのイベントの印 (位置はトレースの開始からの割合)
 public sealed record WaterfallEvent(double Position, string Name, bool IsException);
 
-// ウォーターフォールの行。位置と幅はトレースの長さに対する割合 (0〜1)
 public sealed class WaterfallRow
 {
     public required TelemetrySpanEntity Span { get; init; }
@@ -25,12 +23,10 @@ public sealed class WaterfallRow
     public bool IsError => Span.StatusCode == TelemetryStatusCode.Error;
 }
 
-// ウォーターフォールの行 (親子の木の順。兄弟は開始の順、親が届いていないスパンは最上位) と開閉
 public sealed class WaterfallModel
 {
     private readonly HashSet<string> collapsed = [with(StringComparer.Ordinal)];
 
-    // トレースの範囲 (UTC の Unix ナノ秒)
     public long Start { get; }
 
     public long End { get; }
@@ -39,10 +35,8 @@ public sealed class WaterfallModel
 
     public IReadOnlyList<WaterfallRow> Rows { get; }
 
-    // 閉じた行 (読み直しで引き継ぐ)
     public IReadOnlyCollection<string> CollapsedSpans => collapsed;
 
-    // 閉じた行の子孫を除く
     public IReadOnlyList<WaterfallRow> VisibleRows
     {
         get
@@ -101,7 +95,6 @@ public sealed class WaterfallModel
             Add(root, 0);
         }
 
-        // Spans in a parent cycle are not reachable from a root
         foreach (var span in Order(spans.Where(x => !visited.Contains(x.SpanId))))
         {
             Add(span, 0);
@@ -139,7 +132,6 @@ public sealed class WaterfallModel
 
     private double ToPosition(long time) => Math.Clamp((double)(time - Start) / Duration, 0, 1);
 
-    // 例外は exception のイベント
     private List<WaterfallEvent> ParseEvents(string? eventsJson)
     {
         if (String.IsNullOrEmpty(eventsJson))

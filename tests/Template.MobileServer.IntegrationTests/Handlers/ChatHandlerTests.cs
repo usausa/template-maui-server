@@ -9,7 +9,6 @@ using Template.MobileServer.Web.Handlers;
 
 public sealed class ChatHandlerTests : IClassFixture<ServerFixture>
 {
-    // サーバーは受け側のコードだけを生成するので、呼び出しの定義はここで組み立てる
     private static readonly Marshaller<ChatMessage> ChatMessageMarshaller = Marshallers.Create(static x => x.ToByteArray(), ChatMessage.Parser.ParseFrom);
 
     private static readonly Method<ChatMessage, ChatMessage> ConnectMethod = new(MethodType.DuplexStreaming, "chat.ChatRoom", "Connect", ChatMessageMarshaller, ChatMessageMarshaller);
@@ -21,7 +20,6 @@ public sealed class ChatHandlerTests : IClassFixture<ServerFixture>
         Fixture = fixture;
     }
 
-    // 発言は送り手にも届く (時刻はサーバーが付ける)
     [Fact]
     public async Task ConnectBroadcastsMessage()
     {

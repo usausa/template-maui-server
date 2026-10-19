@@ -10,11 +10,8 @@ using Template.MobileServer.Web.Components.Telemetry;
 using Template.MobileServer.Web.Services;
 using Template.MobileServer.Web.Telemetry;
 
-// テレメトリのサマリと端末の一覧・管理・通知の送信。端末とテレメトリはキャッシュ (TelemetryDeviceRegistry)、未達の通知の件数は data.db から読み、
-// バスと通知の送信の知らせと一定の間隔で読み直す
 public sealed partial class DashboardPage
 {
-    // 通知が無くても読み直す間隔 (途絶への変化と経過時間を進める)
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(10);
 
     private const int ErrorLimit = 10;
@@ -92,7 +89,6 @@ public sealed partial class DashboardPage
 
     private string StateSummary => $"受信中 {receivingCount}・途絶 {stoppedCount}・受信なし {noDataCount}";
 
-    // 状態の帯 (有効な端末の内訳)
     private string ReceivingWidth => ToStateRatio(receivingCount);
 
     private string StoppedWidth => ToStateRatio(stoppedCount);
@@ -198,14 +194,12 @@ public sealed partial class DashboardPage
         Load();
     }
 
-    // 直近のエラーの端末のログ (ERROR 以上、エラーの時刻を含む範囲)
     private void OpenLogs(TelemetryErrorEntry error)
     {
         var elapsed = TimeProvider.GetUtcNow() - ViewHelper.ToDateTimeOffset(error.TimeUnixNano);
         Navigation.NavigateTo(TelemetryLinks.Logs(error.DeviceId, TelemetryRange.Covering(elapsed), TelemetryLogLevel.Error));
     }
 
-    // 送信が続く端末は受信で登録し直される (止めるときは無効にする)
     private async Task DeleteAsync(TelemetryDeviceSummary summary)
     {
         var device = summary.Device;
@@ -226,7 +220,6 @@ public sealed partial class DashboardPage
         Load();
     }
 
-    // 端末へ通知を送る (接続していなければ次の接続で届く)
     private async Task SendAsync(TelemetryDeviceSummary summary)
     {
         if (await DialogService.ShowPushSendDialog($"{summary.Device.Name} へ通知") is not { } content)
@@ -247,7 +240,6 @@ public sealed partial class DashboardPage
         await LoadPendingAsync();
     }
 
-    // 登録済みで有効な全端末へ通知を送る
     private async Task SendAllAsync()
     {
         if (await DialogService.ShowPushSendDialog("全端末へ通知") is not { } content)
@@ -272,7 +264,6 @@ public sealed partial class DashboardPage
     // Load
     //--------------------------------------------------------------------------------
 
-    // 無効の端末はサマリと直近のエラーに含めない
     private void Load()
     {
         devices = Registry.Devices
@@ -284,7 +275,6 @@ public sealed partial class DashboardPage
         var enabledIds = enabled.Select(static x => x.Device.DeviceId).ToHashSet(StringComparer.Ordinal);
         errors = Registry.RecentErrors.Where(x => enabledIds.Contains(x.DeviceId)).Take(ErrorLimit).ToArray();
 
-        // The last minute is in progress
         var history = Registry.IngestHistory;
         ingestHistory = history.Select(static x => (double)x).ToArray();
         ingestRate = history.Count > 1 ? history[^2] : 0;

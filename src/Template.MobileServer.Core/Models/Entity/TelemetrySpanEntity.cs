@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Models.Entity;
 
-// スパン。ID は小文字の 16 進 (親が無ければ空文字)、イベントとリンクは JSON (無ければ null)
 [Name("Span")]
 public sealed class TelemetrySpanEntity
 {

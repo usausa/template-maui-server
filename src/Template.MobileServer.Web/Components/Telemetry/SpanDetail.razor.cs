@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Components;
 
 using MudBlazor;
 
-// スパンの詳細 (種類、状態とメッセージ、開始 (トレースの開始から)・所要時間、ID、属性、イベント (例外のスタックトレース)、リンク、Resource)
 public sealed partial class SpanDetail
 {
     private const string StackTraceKey = "exception.stacktrace";
@@ -23,7 +22,6 @@ public sealed partial class SpanDetail
     [EditorRequired]
     public TelemetrySpanEntity Span { get; set; } = default!;
 
-    // トレースの開始 (UTC の Unix ナノ秒)
     [Parameter]
     public long TraceStart { get; set; }
 
@@ -67,7 +65,6 @@ public sealed partial class SpanDetail
     // Helper
     //--------------------------------------------------------------------------------
 
-    // 例外のスタックトレースは属性の表から外して別に出す
     private List<SpanEventItem> ParseEvents(string? json)
     {
         if (String.IsNullOrEmpty(json))

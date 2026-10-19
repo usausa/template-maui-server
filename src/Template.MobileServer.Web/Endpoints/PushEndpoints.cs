@@ -8,7 +8,6 @@ using Template.MobileServer.Web.Services;
 
 public sealed class PushSendRequest
 {
-    // 省略で全端末
     [RegularExpression(DeviceIdFormat.Pattern)]
     public string? DeviceId { get; set; }
 
@@ -50,7 +49,6 @@ public static class PushEndpoints
     // Send
     //--------------------------------------------------------------------------------
 
-    // 宛先の端末 (省略で全端末) の登録済みで有効な端末へ送り、送った件数を返す。宛先の端末が無い (未登録か無効) なら 404
     private static async ValueTask<IResult> HandleSendAsync(
         PushNotifier notifier,
         PushSendRequest request)

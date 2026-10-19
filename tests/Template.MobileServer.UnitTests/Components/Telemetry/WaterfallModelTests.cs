@@ -15,7 +15,6 @@ public sealed class WaterfallModelTests
         CreateSpan("e", "x", "Orphan", 500, 600)
     ];
 
-    // 木の順: 親の次に子 (兄弟は開始の順)。親の届いていないスパンは最上位。位置と幅はトレースの長さに対する割合
     [Fact]
     public void RowsAreInTreeOrder()
     {
@@ -30,7 +29,6 @@ public sealed class WaterfallModelTests
         Assert.Equal(0.1, model.Rows[1].Width, 6);
     }
 
-    // 開閉: 閉じた行の子孫を隠し、読み直しでは閉じた行を引き継ぐ
     [Fact]
     public void ToggleHidesDescendants()
     {
@@ -51,7 +49,6 @@ public sealed class WaterfallModelTests
         Assert.Equal(["Root", "Child1", "Child2", "Orphan"], reloaded.VisibleRows.Select(static x => x.Span.Name));
     }
 
-    // イベント: 時刻の位置と例外の印
     [Fact]
     public void EventsHavePositionAndExceptionMark()
     {

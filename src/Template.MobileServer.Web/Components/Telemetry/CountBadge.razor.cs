@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Components;
 
 using MudBlazor;
 
-// 件数。1 以上は色付きのバッジ、0 は薄く出す
 public sealed partial class CountBadge
 {
     [Parameter]

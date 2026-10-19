@@ -3,7 +3,6 @@ namespace Template.MobileServer.Web.Application.Authentication;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
-// JWT の発行 (検証側の設定 JwtSetting と同じ値を使う)
 public sealed class JwtTokenProvider
 {
     private static readonly JsonWebTokenHandler Handler = new();

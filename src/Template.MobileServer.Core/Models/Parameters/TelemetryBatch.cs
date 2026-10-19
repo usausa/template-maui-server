@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Models.Parameters;
 
-// 1 回の Export の 1 端末分 (保存の単位)
 public sealed class TelemetryBatch
 {
     public required string DeviceId { get; init; }

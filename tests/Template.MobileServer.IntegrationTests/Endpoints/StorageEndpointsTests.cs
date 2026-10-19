@@ -11,7 +11,6 @@ public sealed class StorageEndpointsTests : IClassFixture<ServerFixture>
         Fixture = fixture;
     }
 
-    // アップロード・一覧・ダウンロード・フォルダーごとの削除
     [Fact]
     public async Task UploadListDownloadDelete()
     {

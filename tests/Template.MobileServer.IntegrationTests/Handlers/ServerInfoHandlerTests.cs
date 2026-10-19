@@ -9,7 +9,6 @@ using Template.MobileServer.Web.Handlers;
 
 public sealed class ServerInfoHandlerTests : IClassFixture<ServerFixture>
 {
-    // サーバーは受け側のコードだけを生成するので、呼び出しの定義はここで組み立てる
     private static readonly Method<ServerTimeRequest, ServerTimeReply> GetServerTimeMethod = new(
         MethodType.Unary,
         "info.ServerInfo",
@@ -24,7 +23,6 @@ public sealed class ServerInfoHandlerTests : IClassFixture<ServerFixture>
         Fixture = fixture;
     }
 
-    // サーバー時刻は Unix ミリ秒
     [Fact]
     public async Task GetServerTimeReturnsUnixMilliseconds()
     {
@@ -40,7 +38,6 @@ public sealed class ServerInfoHandlerTests : IClassFixture<ServerFixture>
         Assert.InRange(reply.Timestamp, before, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
     }
 
-    // gRPC のサービスはアプリケーション用のポートだけで受ける
     [Fact]
     public async Task GetServerTimeIsUnimplementedOnOtelPort()
     {

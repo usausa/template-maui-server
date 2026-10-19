@@ -5,7 +5,6 @@ using OpenTelemetry.Proto.Collector.Metrics.V1;
 using OpenTelemetry.Proto.Collector.Trace.V1;
 using OpenTelemetry.Proto.Resource.V1;
 
-// OTLP の受信 (gRPC と HTTP で共通)。リソースごとに端末を決め、登録を確かめて保存し、キャッシュの更新とバスへの通知を行う。保存しない項目は partial_success で返し、保存の失敗は例外のまま返す (呼び出し側が 503 / UNAVAILABLE にする)
 public sealed class OtlpReceiver
 {
     private const string InvalidDeviceMessage = "The resource has no valid device.id or app.installation.id.";
@@ -34,7 +33,6 @@ public sealed class OtlpReceiver
         Bus = bus;
     }
 
-    // Retryable failures of the storage
     public static bool IsStorageError(Exception ex) => ex is DbException or IOException;
 
     //--------------------------------------------------------------------------------
@@ -165,7 +163,6 @@ public sealed class OtlpReceiver
         return false;
     }
 
-    // 登録を確かめて保存し、キャッシュを更新して通知する。無効の端末は null
     private async ValueTask<TelemetrySaveResult?> SaveAsync(TelemetryBatch batch)
     {
         try
@@ -187,7 +184,6 @@ public sealed class OtlpReceiver
         }
     }
 
-    // 保存しない項目の数と理由 (理由は最初のもの)
     private sealed class Rejected
     {
         public long Count { get; private set; }

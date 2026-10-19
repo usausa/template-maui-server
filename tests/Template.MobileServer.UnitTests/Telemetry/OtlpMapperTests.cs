@@ -13,7 +13,6 @@ using Template.MobileServer.Web.Telemetry;
 
 public sealed class OtlpMapperTests
 {
-    // Resource: 端末の情報を読み、属性の順番が違っても同じハッシュになる (属性はキー順の JSON)
     [Fact]
     public void CreateBatchReadsDeviceInfoAndHashesResource()
     {
@@ -35,7 +34,6 @@ public sealed class OtlpMapperTests
         Assert.StartsWith("{\"app.installation.id\":\"installation-1\",\"device.model.identifier\"", batch1.Resource.AttributesJson, StringComparison.Ordinal);
     }
 
-    // スパン: ID は小文字の 16 進、状態・属性 (型を残す)・イベントを変換し、ID の長さが違うスパンは保存しない
     [Fact]
     public void AddSpansConvertsAndRejectsInvalidIds()
     {
@@ -73,7 +71,6 @@ public sealed class OtlpMapperTests
         Assert.Null(entity.LinksJson);
     }
 
-    // メトリクス: 属性の組み合わせごとに系列を分け、値を記録していない点は数えずに捨て、時刻の無い点は保存しない
     [Fact]
     public void AddMetricsGroupsPointsBySeries()
     {
@@ -135,7 +132,6 @@ public sealed class OtlpMapperTests
         Assert.Equal("{\"bounds\":[0.1,1],\"counts\":[0,2,0]}", point.Detail);
     }
 
-    // ログ: 時刻が無ければ観測時刻、文字列以外の本文は JSON、同じ内容は同じハッシュ。時刻の無いログは保存しない
     [Fact]
     public void AddLogsConvertsRecords()
     {

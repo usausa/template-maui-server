@@ -14,7 +14,6 @@ public sealed class PushRetentionWorkerTests : IDisposable
 
     public void Dispose() => storage.Dispose();
 
-    // 起動の直後: 保持期間を過ぎた通知を削除し、期間内の通知は残す
     [Fact]
     public async Task StartDeletesExpiredMessages()
     {

@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Models.Entity;
 
-// ログ。Hash は送り直しの重複を見分けるための内容のハッシュ (時刻と組で一意)
 [Name("Log")]
 public sealed class TelemetryLogEntity
 {

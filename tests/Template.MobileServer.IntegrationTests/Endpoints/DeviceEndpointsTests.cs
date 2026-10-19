@@ -11,7 +11,6 @@ public sealed class DeviceEndpointsTests : IClassFixture<ServerFixture>
         Fixture = fixture;
     }
 
-    // 未登録なら登録して 201、登録済みなら名前を更新して 200
     [Fact]
     public async Task RegisterCreatesThenUpdatesName()
     {
@@ -32,7 +31,6 @@ public sealed class DeviceEndpointsTests : IClassFixture<ServerFixture>
         Assert.True(response.IsEnabled);
     }
 
-    // 端末 ID の形式が違えば 400
     [Fact]
     public async Task InvalidDeviceIdReturnsBadRequest()
     {

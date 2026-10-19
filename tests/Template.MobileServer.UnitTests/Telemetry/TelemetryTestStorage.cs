@@ -14,7 +14,6 @@ using Template.MobileServer.Services;
 using Template.MobileServer.Web.Application.Context;
 using Template.MobileServer.Web.Telemetry;
 
-// 一時フォルダーに作る端末ごとの DB と、メモリ上の data.db (共有キャッシュ。接続を 1 つ開いたままにして生存させる)
 public sealed class TelemetryTestStorage : IDisposable
 {
     private readonly SqliteConnection keeper;
@@ -80,15 +79,12 @@ public sealed class TelemetryTestStorage : IDisposable
         Directory.Delete(Root, true);
     }
 
-    // data.db のスキーマ (Web の Assets/Data/Schema.sql。参照プロジェクトから出力先へコピーされる)
     public ValueTask PrepareDatabaseAsync() =>
         provider.GetRequiredService<DatabaseService>().InitializeAsync("Assets/Data/Schema.sql");
 
-    // 受信口と同じく、保存の前にサービスコンテキストを開始する
     public IDisposable BeginScope(DateTimeOffset now) =>
         provider.GetRequiredService<ApplicationServiceContextProvider>().Begin(() => new ServiceContext(now, "test"));
 
-    // data.db の保存形式の確認 (1 つの値を読む。SQL は呼び出し側の定数)
     public async ValueTask<object?> QueryDataValueAsync(Action<DbCommand> prepare)
     {
         await using var con = provider.GetRequiredService<IDbProvider>().CreateConnection();
@@ -98,7 +94,6 @@ public sealed class TelemetryTestStorage : IDisposable
         return await command.ExecuteScalarAsync(TestContext.Current.CancellationToken);
     }
 
-    // 保存形式の確認 (1 つの値を読む。SQL は呼び出し側の定数)
     public async ValueTask<object?> QueryValueAsync(string deviceId, Action<DbCommand> prepare)
     {
         await using var con = await DbProvider.OpenExistingAsync(deviceId, TestContext.Current.CancellationToken);

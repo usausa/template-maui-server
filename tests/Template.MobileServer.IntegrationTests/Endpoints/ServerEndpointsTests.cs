@@ -11,7 +11,6 @@ public sealed class ServerEndpointsTests : IClassFixture<ServerFixture>
         Fixture = fixture;
     }
 
-    // サーバー時刻 (API の日時は UTC)
     [Fact]
     public async Task TimeReturnsUtc()
     {

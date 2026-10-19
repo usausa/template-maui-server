@@ -4,7 +4,6 @@ using System.Text.Json;
 
 using Microsoft.AspNetCore.Components;
 
-// 属性の JSON (オブジェクト) をキーと値の表に。文字列はそのまま、それ以外は JSON のまま出す (値は折り返す)
 public sealed partial class AttributeTable
 {
     private List<AttributeItem> items = [];
@@ -16,7 +15,6 @@ public sealed partial class AttributeTable
     [Parameter]
     public string? Json { get; set; }
 
-    // 表に出さないキー (別に出すもの)
     [Parameter]
     public string? Exclude { get; set; }
 

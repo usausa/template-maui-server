@@ -9,7 +9,6 @@ public sealed class PipelineTests : IClassFixture<ServerFixture>
         Fixture = fixture;
     }
 
-    // 画面の未定義の URL は「ページが見つかりません」の 404 (Server ヘッダーは出さない)
     [Fact]
     public async Task UnknownPageReturnsNotFoundPage()
     {
@@ -26,7 +25,6 @@ public sealed class PipelineTests : IClassFixture<ServerFixture>
         Assert.False(response.Headers.Contains("Server"));
     }
 
-    // API の未定義の URL は ProblemDetails の 404
     [Fact]
     public async Task UnknownApiReturnsProblemDetails()
     {
@@ -41,7 +39,6 @@ public sealed class PipelineTests : IClassFixture<ServerFixture>
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
     }
 
-    // ヘルスチェック (全体と生存)
     [Fact]
     public async Task HealthChecksAreHealthy()
     {

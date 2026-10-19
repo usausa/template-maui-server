@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Web.Components.Telemetry;
 
-// テレメトリ画面の URL (相対) とタブのクエリの値
 public static class TelemetryLinks
 {
     public const string MetricsTab = "metrics";

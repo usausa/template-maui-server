@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Web.Workers;
 
-// 通知の保持期間の削除 (起動の直後と一定の間隔)。期限を過ぎた行は届いた / 届いていないにかかわらず削除する
 public sealed class PushRetentionWorker : BackgroundService
 {
     private ILogger<PushRetentionWorker> Log { get; }
@@ -52,7 +51,6 @@ public sealed class PushRetentionWorker : BackgroundService
         }
     }
 
-    // 失敗はログに出して次の間隔でやり直す
     private async Task DeleteExpiredAsync()
     {
         try

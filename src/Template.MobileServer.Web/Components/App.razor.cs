@@ -16,7 +16,6 @@ public sealed partial class App
     [Inject]
     public required CspNonce Nonce { get; set; }
 
-    // Static SSR for pages with [ExcludeFromInteractiveRouting]
     private IComponentRenderMode? PageRenderMode =>
         HttpContext.AcceptsInteractiveRouting() ? InteractiveServerWithoutPrerender : null;
 }

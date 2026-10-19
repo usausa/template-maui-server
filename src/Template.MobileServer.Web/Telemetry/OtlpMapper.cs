@@ -14,7 +14,6 @@ using OpenTelemetry.Proto.Metrics.V1;
 using OpenTelemetry.Proto.Resource.V1;
 using OpenTelemetry.Proto.Trace.V1;
 
-// OTLP → 保存用のまとまり。属性は型を残した JSON (系列と Resource はキー順)、ID は小文字の 16 進。Add~ は保存しない不正な項目の数を返す
 public static class OtlpMapper
 {
     private const string InstallationIdKey = "app.installation.id";
@@ -68,7 +67,6 @@ public static class OtlpMapper
     // Trace
     //--------------------------------------------------------------------------------
 
-    // ID の長さが違うスパンは保存しない
     public static int AddSpans(TelemetryBatch batch, IEnumerable<ScopeSpans> scopeSpans)
     {
         var rejected = 0;
@@ -128,7 +126,6 @@ public static class OtlpMapper
     // Metric
     //--------------------------------------------------------------------------------
 
-    // 時刻の無い点と値の無い数値の点は保存しない。値を記録していない点 (NO_RECORDED_VALUE) は数えずに捨てる
     public static int AddMetrics(TelemetryBatch batch, IEnumerable<ScopeMetrics> scopeMetrics)
     {
         var rejected = 0;
@@ -269,7 +266,6 @@ public static class OtlpMapper
     // Log
     //--------------------------------------------------------------------------------
 
-    // 時刻 (記録時刻も観測時刻も) の無いログは保存しない
     public static int AddLogs(TelemetryBatch batch, IEnumerable<ScopeLogs> scopeLogs)
     {
         var rejected = 0;
@@ -305,7 +301,6 @@ public static class OtlpMapper
         return rejected;
     }
 
-    // 送り直しで同じバイト列になる (時刻と組で重複を見分ける)
     private static long ToHash(IMessage message)
     {
         Span<byte> hash = stackalloc byte[SHA256.HashSizeInBytes];
@@ -313,7 +308,6 @@ public static class OtlpMapper
         return BinaryPrimitives.ReadInt64LittleEndian(hash);
     }
 
-    // 文字列はそのまま、それ以外は JSON
     private static string ToText(AnyValue? value) =>
         value?.ValueCase switch
         {
@@ -365,7 +359,6 @@ public static class OtlpMapper
             case AnyValue.ValueOneofCase.IntValue:
                 writer.WriteNumberValue(value.IntValue);
                 break;
-            // JSON has no NaN / Infinity
             case AnyValue.ValueOneofCase.DoubleValue when Double.IsFinite(value.DoubleValue):
                 writer.WriteNumberValue(value.DoubleValue);
                 break;

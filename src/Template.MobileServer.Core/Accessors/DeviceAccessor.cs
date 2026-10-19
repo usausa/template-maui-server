@@ -11,7 +11,6 @@ public sealed partial class DeviceAccessor
     [SelectSingle(typeof(DeviceEntity))]
     public partial ValueTask<DeviceEntity?> QueryAsync(string deviceId);
 
-    // 登録済みなら入れない (0 件)
     [Execute]
     public partial ValueTask<int> InsertAsync(string deviceId, string name, string? groupName, string? note, bool isEnabled, DateTime registeredAt);
 

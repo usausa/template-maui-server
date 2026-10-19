@@ -10,7 +10,6 @@ public sealed class SettingServiceTests : IDisposable
 
     public void Dispose() => storage.Dispose();
 
-    // 値は前後の空白を除いて保存し、更新日時は UTC の 7 桁の書式で保存して UTC として読む
     [Fact]
     public async Task UpdateStoresTrimmedValueAndUpdatedAtInUtc()
     {
@@ -32,7 +31,6 @@ public sealed class SettingServiceTests : IDisposable
         Assert.Equal("2026-10-14 09:00:00.0000000", text);
     }
 
-    // 空欄は行の削除
     [Fact]
     public async Task UpdateWithBlankDeletesRow()
     {

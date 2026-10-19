@@ -9,7 +9,6 @@ using Template.MobileServer.Web.Services;
 
 public sealed class ChatPageTests : MudBlazorTestBase
 {
-    // 送信: ページからの発言がChatService(gRPC配信と同じ経路)へ配信される
     [Fact]
     public void SendPublishesToChatService()
     {
@@ -28,11 +27,9 @@ public sealed class ChatPageTests : MudBlazorTestBase
         Assert.Equal("web", entry.User);
         Assert.Equal("Hello gRPC", entry.Text);
 
-        // 自分の発言が即時表示される
         cut.WaitForAssertion(() => Assert.Contains("Hello gRPC", cut.Markup, StringComparison.Ordinal));
     }
 
-    // 受信: ChatService経由の発言(gRPCクライアント側と同じ経路)がページに反映される
     [Fact]
     public void PublishedMessageIsRendered()
     {

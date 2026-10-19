@@ -9,7 +9,6 @@ public sealed class MetricCellTests : MudBlazorTestBase
 {
     private static readonly long Time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000;
 
-    // 電池: 残量の段階のアイコンだけを出し (色は良し悪し)、値はホバーで出す
     [Fact]
     public void BatteryShowsIconWithValueOnHover()
     {
@@ -25,7 +24,6 @@ public sealed class MetricCellTests : MudBlazorTestBase
         Assert.StartsWith("15% (", cut.Find(".metric-cell").GetAttribute("title"), StringComparison.Ordinal);
     }
 
-    // 無線 LAN: アイコンだけを出し、値はホバーで出す
     [Fact]
     public void SignalShowsIconWithValueOnHover()
     {
@@ -40,7 +38,6 @@ public sealed class MetricCellTests : MudBlazorTestBase
         Assert.StartsWith("-50 dBm (", cut.Find(".metric-cell").GetAttribute("title"), StringComparison.Ordinal);
     }
 
-    // アプリケーション固有値: 0〜100 の横棒 (良し悪しの色は付けない) と値
     [Fact]
     public void CustomValueShowsMeter()
     {
@@ -57,7 +54,6 @@ public sealed class MetricCellTests : MudBlazorTestBase
         Assert.StartsWith("42 (", cut.Find(".metric-cell").GetAttribute("title"), StringComparison.Ordinal);
     }
 
-    // 値が無いときは "-"
     [Fact]
     public void MissingValueShowsDash()
     {

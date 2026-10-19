@@ -9,7 +9,6 @@ public sealed class ApplicationServiceContextProviderTests
 
     private static readonly ServiceContext Inner = new(new DateTimeOffset(2026, 9, 22, 12, 0, 1, TimeSpan.Zero), "inner");
 
-    // 未開始は例外
     [Fact]
     public void CurrentThrowsWhenNotStarted()
     {
@@ -18,7 +17,6 @@ public sealed class ApplicationServiceContextProviderTests
         Assert.Throws<InvalidOperationException>(() => provider.Current);
     }
 
-    // スコープ内は同じ値、入れ子は外側へ戻る、await をまたいでも保持される
     [Fact]
     public async Task ScopeFlowsAndRestores()
     {
@@ -40,7 +38,6 @@ public sealed class ApplicationServiceContextProviderTests
         Assert.Throws<InvalidOperationException>(() => provider.Current);
     }
 
-    // 値は最初に読まれたときに 1 回だけ作られる (読まなければ作られない)
     [Fact]
     public void ContextIsCreatedLazilyAndOnce()
     {

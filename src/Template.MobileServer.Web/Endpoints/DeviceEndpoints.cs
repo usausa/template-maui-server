@@ -64,7 +64,6 @@ public static class DeviceEndpoints
     // Register
     //--------------------------------------------------------------------------------
 
-    // 端末からの登録。未登録なら登録して 201、登録済みなら名前を更新して 200 (グループ・メモ・有効は管理画面で変える)
     private static async ValueTask<IResult> HandleRegisterAsync(
         TelemetryDeviceRegistry registry,
         [RegularExpression(DeviceIdFormat.Pattern)] string deviceId,

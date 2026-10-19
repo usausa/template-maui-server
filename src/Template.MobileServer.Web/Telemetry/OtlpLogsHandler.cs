@@ -13,7 +13,6 @@ public sealed class OtlpLogsHandler : LogsService.LogsServiceBase
         Receiver = receiver;
     }
 
-    // 保存できなければ UNAVAILABLE (端末は送り直す)
     public override async Task<ExportLogsServiceResponse> Export(ExportLogsServiceRequest request, ServerCallContext context)
     {
         try

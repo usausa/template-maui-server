@@ -12,7 +12,6 @@ public sealed class MetricChartModelTests
 
     private const long Minute = 60 * Second;
 
-    // 読み込み: 既知の計器は名前と単位を整えて先に並べる。値はゲージ = 平均、単調な Delta = 1 分あたり、ヒストグラム = 平均
     [Fact]
     public void LoadBuildsChartsByKind()
     {
@@ -53,7 +52,6 @@ public sealed class MetricChartModelTests
         Assert.Equal(string.Empty, custom.Lines[0].Label);
     }
 
-    // アプリケーション固有値: 「値 番号」にして既知の計器の後に番号の順、ほかの計器はその後
     [Fact]
     public void LoadNamesCustomValuesByNumber()
     {
@@ -83,7 +81,6 @@ public sealed class MetricChartModelTests
         Assert.Equal(20, value2.GetValue(value2.Lines[0].Buckets[0])!.Value, 6);
     }
 
-    // 通知: 読み込み済みの時刻より後の点だけを束に足し、新しい系列は線とグラフを足す。範囲より前の点は足さない
     [Fact]
     public void AddMergesNewPoints()
     {
@@ -112,7 +109,6 @@ public sealed class MetricChartModelTests
         Assert.Equal(3, memory.GetValue(memory.Lines[0].Buckets[Minute])!.Value, 6);
     }
 
-    // 範囲: 範囲の始まりを含む束より前の束を消す
     [Fact]
     public void TrimRemovesBucketsBeforeRange()
     {

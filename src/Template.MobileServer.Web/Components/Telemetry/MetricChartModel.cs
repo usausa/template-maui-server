@@ -4,17 +4,13 @@ using System.Text.Json;
 
 public enum MetricValueMode
 {
-    // 平均 (ゲージ、Cumulative の合計、単調でない合計)
     Average,
 
-    // 1 分あたり (単調な Delta の合計。点の区間の長さで割る)
     Rate,
 
-    // 平均 = Sum / Count と回数 (ヒストグラム、指数ヒストグラム、サマリー)
     Distribution
 }
 
-// 時間の束の集計 (受信の通知の点を足せる形)
 public sealed class MetricBucket
 {
     private const long NanosecondsPerMinute = 60_000_000_000;
@@ -48,7 +44,6 @@ public sealed class MetricBucket
         }
     }
 
-    // 単位を変える前の値 (無ければ null)
     public double? GetValue(MetricValueMode mode) => mode switch
     {
         MetricValueMode.Rate => Duration > 0 ? TotalValue * NanosecondsPerMinute / Duration : null,
@@ -57,17 +52,14 @@ public sealed class MetricBucket
     };
 }
 
-// 属性の組み合わせ (系列) ごとの線。束は始まりの時刻 (UTC の Unix ナノ秒) の順
 public sealed class MetricLine
 {
     public long SeriesId { get; }
 
-    // 属性の値 (既知の計器で 1 本だけの線は空)
     public string Label { get; }
 
     public string Color { get; }
 
-    // 読み込んだ集計の最後の点の時刻 (これまでの通知の点は読み込み済みとして足さない)
     public long LoadedUntil { get; set; }
 
     public SortedDictionary<long, MetricBucket> Buckets { get; } = [];
@@ -80,7 +72,6 @@ public sealed class MetricLine
     }
 }
 
-// 計器ごとのグラフ。値は単位を変えた後 (Scale 倍)
 public sealed class MetricChart
 {
     private readonly List<MetricLine> lines = [];
@@ -95,10 +86,8 @@ public sealed class MetricChart
 
     public double Scale { get; }
 
-    // 並びの順 (既知の計器の順、アプリケーション固有値は既知の計器の後に番号の順、それ以外は最後)
     public long Order { get; }
 
-    // 属性の値の順
     public IReadOnlyList<MetricLine> Lines => lines;
 
     public MetricChart(string name, string title, string unit, MetricValueMode mode, double scale, long order)
@@ -122,12 +111,10 @@ public sealed class MetricChart
     }
 }
 
-// メトリクスのタブのグラフ。読み込んだ集計に受信の通知の点を足し、範囲から外れた束を消す。既知の計器は名前と単位を整えて先に並べる
 public sealed class MetricChartModel
 {
     private const double Mebibyte = 1024 * 1024;
 
-    // アプリケーション固有値の計器の名前 (後ろに番号)
     private const string CustomValuePrefix = "application.custom.value";
 
     private static readonly string[] Colors = ["#1E88E5", "#E53935", "#43A047", "#FB8C00", "#8E24AA", "#00ACC1", "#6D4C41", "#546E7A"];
@@ -150,7 +137,6 @@ public sealed class MetricChartModel
 
     private readonly List<MetricChart> charts = [];
 
-    // 束の長さ (ナノ秒。束ねないときは 1)
     public long Interval { get; }
 
     public IReadOnlyList<MetricChart> Charts => charts;
@@ -188,7 +174,6 @@ public sealed class MetricChartModel
         }
     }
 
-    // 受信の通知の点を足す (範囲より前の点と、読み込み済みの時刻までの点は足さない)。足したら true
     public bool Add(IEnumerable<TelemetryMetric> metrics, long since)
     {
         var added = false;
@@ -218,7 +203,6 @@ public sealed class MetricChartModel
         return added;
     }
 
-    // 範囲より前の束を消す
     public void Trim(long since)
     {
         var first = ToBucket(since);
@@ -262,7 +246,6 @@ public sealed class MetricChartModel
         }
         else
         {
-            // アプリケーション固有値は「値 番号」、それ以外は計器の名前
             var unit = mode == MetricValueMode.Rate ? $"{series.Unit} / 分" : series.Unit;
             chart = TryGetCustomValueNumber(series.Name, out var number)
                 ? new MetricChart(series.Name, $"値 {number}", unit, mode, 1, (long)KnownInstruments.Length + number)
@@ -274,7 +257,6 @@ public sealed class MetricChartModel
         return chart;
     }
 
-    // アプリケーション固有値 (application.custom.value1〜) の番号
     private static bool TryGetCustomValueNumber(string name, out int number)
     {
         number = 0;
@@ -290,7 +272,6 @@ public sealed class MetricChartModel
         _ => MetricValueMode.Average
     };
 
-    // 属性の値を空白でつなぐ (keys が null なら全部)
     private static string MakeLabel(string attributesJson, IReadOnlyList<string>? keys)
     {
         using var document = JsonDocument.Parse(attributesJson);
@@ -304,6 +285,5 @@ public sealed class MetricChartModel
     private static string FormatAttribute(JsonElement value) =>
         value.ValueKind == JsonValueKind.String ? value.GetString() ?? string.Empty : value.GetRawText();
 
-    // 既知の計器の名前・単位・倍率と、線の名前にする属性
     private sealed record KnownInstrument(string Name, string Title, string Unit, double Scale, string[] LabelKeys);
 }

@@ -31,7 +31,6 @@ public sealed class PushHubTests : IDisposable
 
     public void Dispose() => storage.Dispose();
 
-    // 接続: 端末 ID のグループに入れ、未達の通知を古い順に送る。応答した通知は未達から外れる
     [Fact]
     public async Task ConnectSendsPendingAndAcknowledgeRecordsDelivered()
     {
@@ -56,7 +55,6 @@ public sealed class PushHubTests : IDisposable
         Assert.Equal([second.Id], (await storage.PushService.QueryPendingListAsync(DeviceId, cancellationToken)).Select(static x => x.Id));
     }
 
-    // 端末 ID の形式が違えば切る
     [Theory]
     [InlineData("")]
     [InlineData("bad id")]
@@ -74,7 +72,6 @@ public sealed class PushHubTests : IDisposable
         Assert.Empty(received);
     }
 
-    // 接続の URL のクエリで端末 ID を渡す
     private PushHub CreateHub(string deviceId)
     {
         var httpContext = new DefaultHttpContext

@@ -68,7 +68,6 @@ public sealed partial class DataPage
 
     private Task SearchAsync()
     {
-        // Sync search condition to URL
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("name", String.IsNullOrEmpty(searchName) ? null : searchName));
         return grid.ReloadServerData();
     }

@@ -2,12 +2,10 @@ namespace Template.MobileServer.Web.Components.Telemetry;
 
 using Microsoft.AspNetCore.Components;
 
-// 軸の無い小さな折れ線。0 を下端、最大を上端にして要素の大きさに伸ばす (線の太さは CSS の vector-effect で保つ)
 public sealed partial class Sparkline
 {
     private const int Height = 100;
 
-    // 線が上下の端で切れないための余白
     private const double Padding = 5;
 
     private string viewBox = string.Empty;

@@ -20,7 +20,6 @@ using Template.MobileServer.Web.Services;
 
 public sealed class DashboardPageTests : MudBlazorTestBase
 {
-    // 表示: サマリは無効の端末を数えない (エラーは ERROR 以上なのでクラッシュを含む)。状態の帯は内訳の割合、無効の端末の行は薄く、固有値は 0〜100 の横棒、直近のエラーは本文の 1 行目
     [Fact]
     public async Task RenderShowsSummaryAndDevices()
     {
@@ -49,7 +48,6 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         Assert.DoesNotContain("at Main", cut.Markup, StringComparison.Ordinal);
     }
 
-    // 直近のエラー: サマリと同じく、無効の端末のエラーは出さない
     [Fact]
     public async Task RecentErrorsExcludeDisabledDevices()
     {
@@ -72,7 +70,6 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         Assert.Contains("直近 24 時間のエラーはありません。", cut.Markup, StringComparison.Ordinal);
     }
 
-    // 検索: 端末 ID・名前・グループの部分一致で行を絞る
     [Fact]
     public async Task SearchFiltersDevices()
     {
@@ -89,7 +86,6 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         Assert.Contains("Reception", row.TextContent, StringComparison.Ordinal);
     }
 
-    // 通知: 登録の変更をバスで受けて読み直す
     [Fact]
     public async Task DeviceChangedRefreshesPage()
     {
@@ -112,7 +108,6 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         }, TimeSpan.FromSeconds(5));
     }
 
-    // 直近のエラー: 行を選ぶと、その端末のログ (ERROR 以上、エラーの時刻を含む範囲) へ
     [Fact]
     public async Task ErrorRowOpensLogs()
     {
@@ -128,7 +123,6 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         Assert.EndsWith("telemetry/device-1?tab=logs&range=15m&level=error", Services.GetRequiredService<NavigationManager>().Uri, StringComparison.Ordinal);
     }
 
-    // 通知: 端末ごとの未達の件数を出し、応答の知らせで読み直す。無効の端末には送れない
     [Fact]
     public async Task PendingCountFollowsAcknowledge()
     {
@@ -157,7 +151,6 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         await cut.WaitForAssertionAsync(() => Assert.Equal("1", cut.Find("tr.device-row .pending-cell").TextContent.Trim()), TimeSpan.FromSeconds(5));
     }
 
-    // 受信中の端末 (電池 15%、固有値 1 = 42、エラーとクラッシュ 1 件ずつ) と、グループ付きの無効の端末 (テレメトリなし)
     private async Task PrepareAsync(TelemetryTestStorage storage)
     {
         await storage.PrepareDatabaseAsync();

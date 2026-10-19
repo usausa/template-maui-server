@@ -1,6 +1,5 @@
 namespace Template.MobileServer.Accessors;
 
-// 端末ごとのテレメトリの DB (端末ごとのファイルなので、接続とトランザクションは呼び出し側が持つ)
 [DataAccessor]
 [ExecuteConfig(typeof(DataProfile))]
 public sealed partial class TelemetryAccessor
@@ -20,7 +19,6 @@ public sealed partial class TelemetryAccessor
     // Resource
     //--------------------------------------------------------------------------------
 
-    // 保存済みの Id とハッシュ
     [Query]
     public partial ValueTask<List<TelemetryResourceEntity>> QueryResourceAllAsync(DbConnection con, CancellationToken cancellationToken);
 
@@ -44,15 +42,12 @@ public sealed partial class TelemetryAccessor
     [ExecuteScalar]
     public partial ValueTask<long> InsertMetricSeriesAsync(DbTransaction tx, string name, string scopeName, string unit, string kind, string temporality, bool isMonotonic, string attributesJson);
 
-    // 同じ系列・時刻の点 (送り直し) は入れない (0 件)
     [Execute]
     public partial ValueTask<int> InsertMetricPointAsync(DbTransaction tx, TelemetryMetricPointEntity entity);
 
-    // 計器の名前で絞った系列ごとの最後の点
     [Query]
     public partial ValueTask<List<TelemetryLatestValueView>> QueryLatestValueListAsync(DbConnection con, IEnumerable<string> names, CancellationToken cancellationToken);
 
-    // 時刻以降の点を系列ごと・interval (ナノ秒。1 なら点ごと) ごとに束ねる
     [Query]
     public partial ValueTask<List<TelemetryMetricBucketView>> QueryMetricBucketListAsync(DbConnection con, long since, long interval, CancellationToken cancellationToken);
 
@@ -60,11 +55,9 @@ public sealed partial class TelemetryAccessor
     // Trace
     //--------------------------------------------------------------------------------
 
-    // 同じ ID のスパン (送り直し) は入れない (0 件)
     [Execute]
     public partial ValueTask<int> InsertSpanAsync(DbTransaction tx, string traceId, string spanId, string parentSpanId, string name, string kind, long startTimeUnixNano, long endTimeUnixNano, string statusCode, string statusMessage, string scopeName, long resourceId, string attributesJson, string? eventsJson, string? linksJson);
 
-    // トレースの集計を、そのトレースのスパンから作り直す
     [Execute]
     public partial ValueTask<int> UpsertTraceAsync(DbTransaction tx, string traceId);
 
@@ -72,11 +65,9 @@ public sealed partial class TelemetryAccessor
     [SelectSingle(typeof(TelemetryTraceEntity))]
     public partial ValueTask<TelemetryTraceEntity?> QueryTraceAsync(DbTransaction tx, string traceId);
 
-    // 時刻以降に始まったトレース (新しい順)。エラーのあるものだけ、ルートスパンの名前 (LIKE のパターン) で絞る
     [Query]
     public partial ValueTask<List<TelemetryTraceEntity>> QueryTraceListAsync(DbConnection con, long since, bool errorOnly, string? name, int limit, CancellationToken cancellationToken);
 
-    // トレースのスパン (開始の順)
     [Query]
     public partial ValueTask<List<TelemetrySpanEntity>> QuerySpanListByTraceAsync(DbTransaction tx, string traceId, CancellationToken cancellationToken);
 
@@ -84,23 +75,18 @@ public sealed partial class TelemetryAccessor
     // Log
     //--------------------------------------------------------------------------------
 
-    // 同じ時刻・内容のログ (送り直し) は入れない (null)
     [ExecuteScalar]
     public partial ValueTask<long?> InsertLogAsync(DbTransaction tx, TelemetryLogEntity entity);
 
-    // 時刻以降のエラーとクラッシュを 1 時間ごとに数える
     [Query]
     public partial ValueTask<List<TelemetryLogSummaryView>> QueryLogSummaryAsync(DbConnection con, long since, CancellationToken cancellationToken);
 
-    // 重大度以上のログを新しい順に
     [Query]
     public partial ValueTask<List<TelemetryLogEntity>> QueryLogListBySeverityAsync(DbConnection con, int severity, int limit, CancellationToken cancellationToken);
 
-    // トレースのログ (時刻の順)
     [Query]
     public partial ValueTask<List<TelemetryLogEntity>> QueryLogListByTraceAsync(DbTransaction tx, string traceId, CancellationToken cancellationToken);
 
-    // 時刻以降・重大度以上のログを新しい順に。本文 (LIKE のパターン)・トレースで絞り、続きは時刻と Id の前から
     [Query]
     public partial ValueTask<List<TelemetryLogEntity>> QueryLogListAsync(DbConnection con, long since, int severity, string? body, string? traceId, long? beforeTime, long beforeId, int limit, CancellationToken cancellationToken);
 
@@ -111,7 +97,6 @@ public sealed partial class TelemetryAccessor
     [Execute]
     public partial ValueTask<int> DeleteLogsBeforeAsync(DbTransaction tx, long before);
 
-    // トレースの開始で判定し、トレースのスパンをまとめて削除する (トレースより先に消す)
     [Execute]
     public partial ValueTask<int> DeleteSpansBeforeAsync(DbTransaction tx, long before);
 
