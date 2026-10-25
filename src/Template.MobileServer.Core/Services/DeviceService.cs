@@ -27,29 +27,29 @@ public sealed class DeviceService
     public ValueTask<List<DeviceEntity>> QueryAllAsync(CancellationToken cancellationToken = default) =>
         DeviceAccessor.QueryAllAsync(cancellationToken);
 
-    public ValueTask<DeviceEntity?> QueryAsync(string deviceId) =>
-        DeviceAccessor.QueryAsync(deviceId);
+    public ValueTask<DeviceEntity?> QueryAsync(string terminalId) =>
+        DeviceAccessor.QueryAsync(terminalId);
 
     public async ValueTask<DataWriteStatus> InsertAsync(DeviceEntity entity)
     {
         var context = ContextProvider.Current;
 
         entity.RegisteredAt = context.Now.UtcDateTime;
-        var rows = await DeviceAccessor.InsertAsync(entity.DeviceId, entity.Name, entity.GroupName, entity.Note, entity.IsEnabled, entity.RegisteredAt);
+        var rows = await DeviceAccessor.InsertAsync(entity.TerminalId, entity.Name, entity.GroupName, entity.Note, entity.IsEnabled, entity.RegisteredAt);
         return rows > 0 ? DataWriteStatus.Success : DataWriteStatus.Duplicate;
     }
 
     public ValueTask<DeviceEntity?> UpdateAsync(DeviceEntity entity) =>
-        DeviceAccessor.UpdateAsync(entity.DeviceId, entity.Name, entity.GroupName, entity.Note, entity.IsEnabled);
+        DeviceAccessor.UpdateAsync(entity.TerminalId, entity.Name, entity.GroupName, entity.Note, entity.IsEnabled);
 
-    public ValueTask<DeviceEntity?> UpdateNameAsync(string deviceId, string name) =>
-        DeviceAccessor.UpdateNameAsync(deviceId, name);
+    public ValueTask<DeviceEntity?> UpdateNameAsync(string terminalId, string name) =>
+        DeviceAccessor.UpdateNameAsync(terminalId, name);
 
-    public ValueTask<DataWriteStatus> DeleteAsync(string deviceId) =>
+    public ValueTask<DataWriteStatus> DeleteAsync(string terminalId) =>
         Provider.UsingTxAsync(async (_, tx) =>
         {
-            await PushAccessor.DeleteByDeviceAsync(tx, deviceId);
-            var rows = await DeviceAccessor.DeleteAsync(tx, deviceId);
+            await PushAccessor.DeleteByDeviceAsync(tx, terminalId);
+            var rows = await DeviceAccessor.DeleteAsync(tx, terminalId);
             await tx.CommitAsync();
             return rows > 0 ? DataWriteStatus.Success : DataWriteStatus.NotFound;
         });

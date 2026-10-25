@@ -1,5 +1,11 @@
-INSERT INTO
-    Trace (TraceId, RootName, StartTimeUnixNano, EndTimeUnixNano, SpanCount, ErrorCount)
+INSERT INTO Trace (
+    TraceId,
+    RootName,
+    StartTimeUnixNano,
+    EndTimeUnixNano,
+    SpanCount,
+    ErrorCount
+)
 SELECT
     TraceId,
     COALESCE(MAX(CASE WHEN ParentSpanId = '' THEN Name END), (

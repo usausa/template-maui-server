@@ -97,7 +97,7 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         // Act
         using (storage.BeginScope(DateTimeOffset.Now))
         {
-            await storage.Registry.AddAsync(new DeviceEntity { DeviceId = "device-3", Name = "Added", IsEnabled = true });
+            await storage.Registry.AddAsync(new DeviceEntity { TerminalId = "device-3", Name = "Added", IsEnabled = true });
         }
 
         // Assert
@@ -159,7 +159,7 @@ public sealed class DashboardPageTests : MudBlazorTestBase
             var batch = CreateBatch();
             await storage.Registry.EnsureRegisteredAsync(batch.DeviceInfo);
             storage.Registry.Apply(await storage.Store.SaveAsync(batch));
-            await storage.Registry.AddAsync(new DeviceEntity { DeviceId = "device-2", Name = "Reception", GroupName = "1F", IsEnabled = false });
+            await storage.Registry.AddAsync(new DeviceEntity { TerminalId = "device-2", Name = "Reception", GroupName = "1F", IsEnabled = false });
         }
 
         Services.AddSingleton(storage.Registry);
@@ -173,11 +173,10 @@ public sealed class DashboardPageTests : MudBlazorTestBase
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000;
         var batch = new TelemetryBatch
         {
-            DeviceId = "device-1",
+            TerminalId = "device-1",
             DeviceInfo = new TelemetryDeviceInfoEntity
             {
-                DeviceId = "device-1",
-                InstallationId = "installation-1",
+                TerminalId = "device-1",
                 Manufacturer = "Google",
                 Model = "Pixel 9a",
                 OsName = "Android",

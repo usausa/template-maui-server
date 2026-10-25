@@ -140,7 +140,7 @@
                     <ItemTemplate>
                         <tr class="error-row" @onclick="() => OpenLogs(error)">
                             <td>@FormatTime(error.TimeUnixNano)</td>
-                            <td>@FindName(error.DeviceId)</td>
+                            <td>@FindName(error.TerminalId)</td>
                             <td><MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="@SeverityColor(error.SeverityNumber)">@FormatSeverity(error.SeverityNumber)</MudChip></td>
                             <td class="error-body">@error.Body</td>
                         </tr>

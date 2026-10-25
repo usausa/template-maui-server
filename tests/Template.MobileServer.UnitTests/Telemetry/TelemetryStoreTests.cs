@@ -6,7 +6,7 @@ using Template.MobileServer.Models.Parameters;
 
 public sealed class TelemetryStoreTests : IDisposable
 {
-    private const string DeviceId = "device-1";
+    private const string TerminalId = "device-1";
 
     private static readonly DateTimeOffset Now = new(2026, 9, 28, 12, 0, 0, TimeSpan.FromHours(9));
 
@@ -23,7 +23,7 @@ public sealed class TelemetryStoreTests : IDisposable
         // Act
         var first = await storage.Store.SaveAsync(CreateBatch(1_000));
         var second = await storage.Store.SaveAsync(CreateBatch(2_000));
-        var deleted = await storage.Store.DeleteDeviceAsync(DeviceId);
+        var deleted = await storage.Store.DeleteDeviceAsync(TerminalId);
         var third = await storage.Store.SaveAsync(CreateBatch(3_000));
 
         // Assert
@@ -35,18 +35,17 @@ public sealed class TelemetryStoreTests : IDisposable
         Assert.True(deleted);
         Assert.Single(third.AddedResources);
         Assert.Single(third.AddedSeries);
-        Assert.Equal(1L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM MetricPoint"));
+        Assert.Equal(1L, await storage.QueryValueAsync(TerminalId, static x => x.CommandText = "SELECT COUNT(*) FROM MetricPoint"));
     }
 
     private static TelemetryBatch CreateBatch(long time)
     {
         var batch = new TelemetryBatch
         {
-            DeviceId = DeviceId,
+            TerminalId = TerminalId,
             DeviceInfo = new TelemetryDeviceInfoEntity
             {
-                DeviceId = DeviceId,
-                InstallationId = "installation-1",
+                TerminalId = TerminalId,
                 Manufacturer = "Google",
                 Model = "Pixel 9a",
                 OsName = "Android",

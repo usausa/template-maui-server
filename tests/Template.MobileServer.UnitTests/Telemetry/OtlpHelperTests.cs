@@ -11,29 +11,29 @@ using Template.MobileServer.Web.Telemetry;
 public sealed class OtlpHelperTests
 {
     [Fact]
-    public void GetDeviceIdPrefersDeviceId()
+    public void GetTerminalIdReturnsInstallationId()
     {
         // Arrange
-        var resource = CreateResource(("device.id", "device-1"), ("app.installation.id", "installation-1"));
+        var resource = CreateResource(("device.id", "device-1"), ("app.installation.id", "terminal-1"));
 
         // Act
-        var result = resource.GetDeviceId();
+        var result = resource.GetTerminalId();
 
         // Assert
-        Assert.Equal("device-1", result);
+        Assert.Equal("terminal-1", result);
     }
 
     [Fact]
-    public void GetDeviceIdWithoutDeviceIdReturnsInstallationId()
+    public void GetTerminalIdWithoutInstallationIdReturnsEmpty()
     {
         // Arrange
-        var resource = CreateResource(("device.id", string.Empty), ("app.installation.id", "installation-1"));
+        var resource = CreateResource(("device.id", "device-1"));
 
         // Act
-        var result = resource.GetDeviceId();
+        var result = resource.GetTerminalId();
 
         // Assert
-        Assert.Equal("installation-1", result);
+        Assert.Equal(string.Empty, result);
     }
 
     [Fact]

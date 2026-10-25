@@ -32,7 +32,7 @@ public sealed class DeviceEndpointsTests : IClassFixture<ServerFixture>
     }
 
     [Fact]
-    public async Task InvalidDeviceIdReturnsBadRequest()
+    public async Task InvalidTerminalIdReturnsBadRequest()
     {
         // Arrange
         using var client = Fixture.CreateHttpClient();

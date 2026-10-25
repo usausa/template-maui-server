@@ -4,12 +4,12 @@
     </TitleContent>
     <DialogContent>
         <MudForm @ref="form" Model="model">
-            <MudTextField @bind-Value="model.DeviceId"
-                          For="@(() => model.DeviceId)"
+            <MudTextField @bind-Value="model.TerminalId"
+                          For="@(() => model.TerminalId)"
                           Validation="@Validator.ValidateValue"
                           Label="端末 ID"
                           HelperText="英数字・'-'・'_'"
-                          MaxLength="@Length.DeviceId"
+                          MaxLength="@Length.TerminalId"
                           Disabled="IsEdit"
                           Immediate="true" />
             <MudTextField @bind-Value="model.Name"

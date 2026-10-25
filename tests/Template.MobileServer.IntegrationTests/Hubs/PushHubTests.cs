@@ -19,14 +19,14 @@ public sealed class PushHubTests : IClassFixture<ServerFixture>
     {
         // Arrange
         using var client = Fixture.CreateHttpClient();
-        var deviceId = await RegisterDeviceAsync(client);
+        var terminalId = await RegisterDeviceAsync(client);
         var received = new TaskCompletionSource<PushMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
-        await using var connection = CreateConnection(deviceId);
+        await using var connection = CreateConnection(terminalId);
         using var subscription = connection.On<PushMessage>("Receive", x => received.TrySetResult(x));
         await connection.StartAsync(TestContext.Current.CancellationToken);
 
         // Act
-        using var sent = await client.PostAsJsonAsync(new Uri("api/push", UriKind.Relative), new PushSendRequest { DeviceId = deviceId, Title = "Title", Body = "Body" }, ServerFixture.Json, TestContext.Current.CancellationToken);
+        using var sent = await client.PostAsJsonAsync(new Uri("api/push", UriKind.Relative), new PushSendRequest { TerminalId = terminalId, Title = "Title", Body = "Body" }, ServerFixture.Json, TestContext.Current.CancellationToken);
         var message = await received.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
         await connection.InvokeAsync("Acknowledge", message.Id, TestContext.Current.CancellationToken);
 
@@ -44,10 +44,10 @@ public sealed class PushHubTests : IClassFixture<ServerFixture>
     {
         // Arrange
         using var client = Fixture.CreateHttpClient();
-        var deviceId = await RegisterDeviceAsync(client);
-        using var sent = await client.PostAsJsonAsync(new Uri("api/push", UriKind.Relative), new PushSendRequest { DeviceId = deviceId, Title = "Pending" }, ServerFixture.Json, TestContext.Current.CancellationToken);
+        var terminalId = await RegisterDeviceAsync(client);
+        using var sent = await client.PostAsJsonAsync(new Uri("api/push", UriKind.Relative), new PushSendRequest { TerminalId = terminalId, Title = "Pending" }, ServerFixture.Json, TestContext.Current.CancellationToken);
         var received = new TaskCompletionSource<PushMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
-        await using var connection = CreateConnection(deviceId);
+        await using var connection = CreateConnection(terminalId);
         using var subscription = connection.On<PushMessage>("Receive", x => received.TrySetResult(x));
 
         // Act
@@ -67,22 +67,22 @@ public sealed class PushHubTests : IClassFixture<ServerFixture>
         using var client = Fixture.CreateHttpClient();
 
         // Act
-        using var response = await client.PostAsJsonAsync(new Uri("api/push", UriKind.Relative), new PushSendRequest { DeviceId = $"it-{Guid.NewGuid():N}", Title = "Title" }, ServerFixture.Json, TestContext.Current.CancellationToken);
+        using var response = await client.PostAsJsonAsync(new Uri("api/push", UriKind.Relative), new PushSendRequest { TerminalId = $"it-{Guid.NewGuid():N}", Title = "Title" }, ServerFixture.Json, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    private HubConnection CreateConnection(string deviceId) =>
+    private HubConnection CreateConnection(string terminalId) =>
         new HubConnectionBuilder()
-            .WithUrl(new Uri(Fixture.HttpAddress, $"hubs/push?{PushHub.DeviceIdParameter}={deviceId}"))
+            .WithUrl(new Uri(Fixture.HttpAddress, $"hubs/push?{PushHub.TerminalIdParameter}={terminalId}"))
             .Build();
 
     private static async Task<string> RegisterDeviceAsync(HttpClient client)
     {
-        var deviceId = $"it-{Guid.NewGuid():N}";
-        using var response = await client.PutAsJsonAsync(new Uri($"api/device/{deviceId}", UriKind.Relative), new DeviceRegisterRequest { Name = "Pixel 9a" }, ServerFixture.Json, TestContext.Current.CancellationToken);
+        var terminalId = $"it-{Guid.NewGuid():N}";
+        using var response = await client.PutAsJsonAsync(new Uri($"api/device/{terminalId}", UriKind.Relative), new DeviceRegisterRequest { Name = "Pixel 9a" }, ServerFixture.Json, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        return deviceId;
+        return terminalId;
     }
 }

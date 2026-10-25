@@ -27,7 +27,6 @@ public sealed class OtlpMapperTests
         // Assert
         Assert.Equal("Pixel 9a", batch1.DeviceInfo.Model);
         Assert.Equal("16", batch1.DeviceInfo.OsVersion);
-        Assert.Equal("installation-1", batch1.DeviceInfo.InstallationId);
         Assert.Equal("Template.MobileApp", batch1.DeviceInfo.ServiceName);
         Assert.Equal("1.0", batch1.Resource.ServiceVersion);
         Assert.Equal(batch1.Resource.Hash, batch2.Resource.Hash);

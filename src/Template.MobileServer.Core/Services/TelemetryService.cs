@@ -5,7 +5,7 @@ using Template.MobileServer.Infrastructure.Telemetry;
 
 public sealed class TelemetrySaveResult
 {
-    public required string DeviceId { get; init; }
+    public required string TerminalId { get; init; }
 
     public required TelemetryDeviceInfoEntity DeviceInfo { get; init; }
 
@@ -59,9 +59,9 @@ public sealed class TelemetryService
     // Save
     //--------------------------------------------------------------------------------
 
-    public async ValueTask<TelemetryIdView> QueryIdsAsync(string deviceId, CancellationToken cancellationToken = default)
+    public async ValueTask<TelemetryIdView> QueryIdsAsync(string terminalId, CancellationToken cancellationToken = default)
     {
-        await using var con = await Provider.OpenExistingAsync(deviceId, cancellationToken);
+        await using var con = await Provider.OpenExistingAsync(terminalId, cancellationToken);
         if (con is null)
         {
             return new TelemetryIdView([], []);
@@ -80,11 +80,11 @@ public sealed class TelemetryService
         batch.DeviceInfo.LastReceivedAt = receivedAt;
         batch.Resource.FirstSeenAt = receivedAt;
 
-        await using var con = await Provider.OpenAsync(batch.DeviceId);
+        await using var con = await Provider.OpenAsync(batch.TerminalId);
 
         var result = new TelemetrySaveResult
         {
-            DeviceId = batch.DeviceId,
+            TerminalId = batch.TerminalId,
             DeviceInfo = batch.DeviceInfo,
             ReceivedAt = receivedAt
         };
@@ -175,15 +175,15 @@ public sealed class TelemetryService
     // Device
     //--------------------------------------------------------------------------------
 
-    public async ValueTask<TelemetryDeviceSummaryView?> QuerySummaryAsync(string deviceId, IEnumerable<string> metricNames, long since, int errorLimit, CancellationToken cancellationToken = default)
+    public async ValueTask<TelemetryDeviceSummaryView?> QuerySummaryAsync(string terminalId, IEnumerable<string> metricNames, long since, int errorLimit, CancellationToken cancellationToken = default)
     {
-        await using var con = await Provider.OpenExistingAsync(deviceId, cancellationToken);
+        await using var con = await Provider.OpenExistingAsync(terminalId, cancellationToken);
         if (con is null)
         {
             return null;
         }
 
-        var info = await TelemetryAccessor.QueryDeviceInfoAsync(con, deviceId);
+        var info = await TelemetryAccessor.QueryDeviceInfoAsync(con, terminalId);
         if (info is null)
         {
             return null;
@@ -200,9 +200,9 @@ public sealed class TelemetryService
     // Metric
     //--------------------------------------------------------------------------------
 
-    public async ValueTask<TelemetryMetricHistoryView> QueryMetricHistoryAsync(string deviceId, long since, long interval, CancellationToken cancellationToken = default)
+    public async ValueTask<TelemetryMetricHistoryView> QueryMetricHistoryAsync(string terminalId, long since, long interval, CancellationToken cancellationToken = default)
     {
-        await using var con = await Provider.OpenExistingAsync(deviceId, cancellationToken);
+        await using var con = await Provider.OpenExistingAsync(terminalId, cancellationToken);
         if (con is null)
         {
             return new TelemetryMetricHistoryView([], []);
@@ -217,9 +217,9 @@ public sealed class TelemetryService
     // Trace
     //--------------------------------------------------------------------------------
 
-    public async ValueTask<List<TelemetryTraceEntity>> QueryTraceListAsync(string deviceId, long since, bool errorOnly, string? name, int limit, CancellationToken cancellationToken = default)
+    public async ValueTask<List<TelemetryTraceEntity>> QueryTraceListAsync(string terminalId, long since, bool errorOnly, string? name, int limit, CancellationToken cancellationToken = default)
     {
-        await using var con = await Provider.OpenExistingAsync(deviceId, cancellationToken);
+        await using var con = await Provider.OpenExistingAsync(terminalId, cancellationToken);
         if (con is null)
         {
             return [];
@@ -228,9 +228,9 @@ public sealed class TelemetryService
         return await TelemetryAccessor.QueryTraceListAsync(con, since, errorOnly, Dialect.Match(name), limit, cancellationToken);
     }
 
-    public async ValueTask<TelemetryTraceDetailView?> QueryTraceDetailAsync(string deviceId, string traceId, CancellationToken cancellationToken = default)
+    public async ValueTask<TelemetryTraceDetailView?> QueryTraceDetailAsync(string terminalId, string traceId, CancellationToken cancellationToken = default)
     {
-        await using var con = await Provider.OpenExistingAsync(deviceId, cancellationToken);
+        await using var con = await Provider.OpenExistingAsync(terminalId, cancellationToken);
         if (con is null)
         {
             return null;
@@ -255,9 +255,9 @@ public sealed class TelemetryService
     // Log
     //--------------------------------------------------------------------------------
 
-    public async ValueTask<List<TelemetryLogEntity>> QueryLogListAsync(string deviceId, TelemetryLogQuery query, CancellationToken cancellationToken = default)
+    public async ValueTask<List<TelemetryLogEntity>> QueryLogListAsync(string terminalId, TelemetryLogQuery query, CancellationToken cancellationToken = default)
     {
-        await using var con = await Provider.OpenExistingAsync(deviceId, cancellationToken);
+        await using var con = await Provider.OpenExistingAsync(terminalId, cancellationToken);
         if (con is null)
         {
             return [];
@@ -266,9 +266,9 @@ public sealed class TelemetryService
         return await TelemetryAccessor.QueryLogListAsync(con, query.Since, query.Severity, Dialect.Match(query.Body), query.TraceId, query.BeforeTime, query.BeforeId, query.Limit, cancellationToken);
     }
 
-    public async ValueTask<TelemetryResourceEntity?> QueryResourceAsync(string deviceId, long id)
+    public async ValueTask<TelemetryResourceEntity?> QueryResourceAsync(string terminalId, long id)
     {
-        await using var con = await Provider.OpenExistingAsync(deviceId);
+        await using var con = await Provider.OpenExistingAsync(terminalId);
         return con is null ? null : await TelemetryAccessor.QueryResourceAsync(con, id);
     }
 
@@ -276,16 +276,16 @@ public sealed class TelemetryService
     // Retention
     //--------------------------------------------------------------------------------
 
-    public async ValueTask<TelemetryDeleteResult> DeleteExpiredAsync(string deviceId, long logBefore, long traceBefore, long metricBefore, long deviceBefore)
+    public async ValueTask<TelemetryDeleteResult> DeleteExpiredAsync(string terminalId, long logBefore, long traceBefore, long metricBefore, long deviceBefore)
     {
-        await using (var con = await Provider.OpenExistingAsync(deviceId))
+        await using (var con = await Provider.OpenExistingAsync(terminalId))
         {
             if (con is null)
             {
                 return new TelemetryDeleteResult(0, false);
             }
 
-            var info = await TelemetryAccessor.QueryDeviceInfoAsync(con, deviceId);
+            var info = await TelemetryAccessor.QueryDeviceInfoAsync(con, terminalId);
             if ((info is not null) && (info.LastReceivedAt >= deviceBefore))
             {
                 await using var tx = await con.BeginTransactionAsync();
@@ -298,7 +298,7 @@ public sealed class TelemetryService
             }
         }
 
-        Provider.Delete(deviceId);
+        Provider.Delete(terminalId);
         return new TelemetryDeleteResult(0, true);
     }
 }

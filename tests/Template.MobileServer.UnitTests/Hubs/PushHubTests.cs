@@ -17,7 +17,7 @@ public sealed class PushHubTests : IDisposable
 {
     private const string ConnectionId = "connection-1";
 
-    private const string DeviceId = "device-1";
+    private const string TerminalId = "device-1";
 
     private static readonly DateTimeOffset Now = new(2026, 9, 28, 12, 0, 0, TimeSpan.FromHours(9));
 
@@ -38,30 +38,30 @@ public sealed class PushHubTests : IDisposable
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(Now);
         var cancellationToken = TestContext.Current.CancellationToken;
-        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = DeviceId, Name = "Pixel 9a", IsEnabled = true });
-        var first = Assert.Single(await storage.PushService.InsertAsync(DeviceId, "1", "本文"));
-        var second = Assert.Single(await storage.PushService.InsertAsync(DeviceId, "2", "本文"));
-        using var hub = CreateHub(DeviceId);
+        await storage.DeviceService.InsertAsync(new DeviceEntity { TerminalId = TerminalId, Name = "Pixel 9a", IsEnabled = true });
+        var first = Assert.Single(await storage.PushService.InsertAsync(TerminalId, "1", "本文"));
+        var second = Assert.Single(await storage.PushService.InsertAsync(TerminalId, "2", "本文"));
+        using var hub = CreateHub(TerminalId);
 
         // Act / Assert: 接続
         await hub.OnConnectedAsync();
-        await groups.Received(1).AddToGroupAsync(ConnectionId, DeviceId, Arg.Any<CancellationToken>());
+        await groups.Received(1).AddToGroupAsync(ConnectionId, TerminalId, Arg.Any<CancellationToken>());
         Assert.Equal([first.Id, second.Id], received.Select(static x => x.Id));
         Assert.Equal(["1", "2"], received.Select(static x => x.Title));
         context.DidNotReceive().Abort();
 
         // Act / Assert: 応答
         await hub.Acknowledge(first.Id);
-        Assert.Equal([second.Id], (await storage.PushService.QueryPendingListAsync(DeviceId, cancellationToken)).Select(static x => x.Id));
+        Assert.Equal([second.Id], (await storage.PushService.QueryPendingListAsync(TerminalId, cancellationToken)).Select(static x => x.Id));
     }
 
     [Theory]
     [InlineData("")]
     [InlineData("bad id")]
-    public async Task ConnectRejectsInvalidDeviceId(string deviceId)
+    public async Task ConnectRejectsInvalidTerminalId(string terminalId)
     {
         // Arrange
-        using var hub = CreateHub(deviceId);
+        using var hub = CreateHub(terminalId);
 
         // Act
         await hub.OnConnectedAsync();
@@ -72,11 +72,11 @@ public sealed class PushHubTests : IDisposable
         Assert.Empty(received);
     }
 
-    private PushHub CreateHub(string deviceId)
+    private PushHub CreateHub(string terminalId)
     {
         var httpContext = new DefaultHttpContext
         {
-            Request = { QueryString = QueryString.Create(PushHub.DeviceIdParameter, deviceId) }
+            Request = { QueryString = QueryString.Create(PushHub.TerminalIdParameter, terminalId) }
         };
         var feature = Substitute.For<IHttpContextFeature>();
         feature.HttpContext.Returns(httpContext);

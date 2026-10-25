@@ -94,9 +94,9 @@ public sealed class TelemetryTestStorage : IDisposable
         return await command.ExecuteScalarAsync(TestContext.Current.CancellationToken);
     }
 
-    public async ValueTask<object?> QueryValueAsync(string deviceId, Action<DbCommand> prepare)
+    public async ValueTask<object?> QueryValueAsync(string terminalId, Action<DbCommand> prepare)
     {
-        await using var con = await DbProvider.OpenExistingAsync(deviceId, TestContext.Current.CancellationToken);
+        await using var con = await DbProvider.OpenExistingAsync(terminalId, TestContext.Current.CancellationToken);
         Assert.NotNull(con);
         await using var command = con.CreateCommand();
         prepare(command);

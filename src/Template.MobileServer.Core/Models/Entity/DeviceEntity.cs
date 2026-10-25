@@ -4,7 +4,7 @@ namespace Template.MobileServer.Models.Entity;
 public sealed class DeviceEntity
 {
     [Key]
-    public string DeviceId { get; set; } = default!;
+    public string TerminalId { get; set; } = default!;
 
     public string Name { get; set; } = default!;
 

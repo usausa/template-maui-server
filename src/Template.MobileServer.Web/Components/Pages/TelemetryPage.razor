@@ -1,4 +1,4 @@
-@page "/telemetry/{DeviceId?}"
+@page "/telemetry/{TerminalId?}"
 
 <PageTitle>Telemetry</PageTitle>
 
@@ -6,7 +6,7 @@
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Class="mb-4">
     <MudSelect T="string"
-               Value="DeviceId"
+               Value="TerminalId"
                ValueChanged="SelectDevice"
                ToStringFunc="FormatDeviceOption"
                Label="端末"
@@ -14,10 +14,10 @@
                Class="telemetry-device-select">
         <ListItem Items="devices" Context="device">
             <ItemTemplate>
-                <MudSelectItem T="string" Value="@device.Device.DeviceId">
+                <MudSelectItem T="string" Value="@device.Device.TerminalId">
                     <span class="device-option">
                         <MudIcon Icon="@Icons.Material.Filled.Circle" Size="Size.Small" Color="@OptionColor(device)" />
-                        <span>@FormatDeviceOption(device.Device.DeviceId)</span>
+                        <span>@FormatDeviceOption(device.Device.TerminalId)</span>
                         <Condition Value="IsDisabledDevice(device)">
                             <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning">無効</MudChip>
                         </Condition>

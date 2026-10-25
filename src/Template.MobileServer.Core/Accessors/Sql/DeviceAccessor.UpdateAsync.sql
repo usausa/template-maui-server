@@ -6,6 +6,6 @@ SET
     Note = /*@ note */NULL,
     IsEnabled = /*@ isEnabled */1
 WHERE
-    DeviceId = /*@ deviceId */''
+    TerminalId = /*@ terminalId */''
 RETURNING
     *

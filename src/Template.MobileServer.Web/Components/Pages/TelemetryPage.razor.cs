@@ -35,7 +35,7 @@ public sealed partial class TelemetryPage
 
     private TelemetryRange range = TelemetryRange.Default;
 
-    private string? loadedDeviceId;
+    private string? loadedTerminalId;
 
     private bool loading;
 
@@ -96,7 +96,7 @@ public sealed partial class TelemetryPage
     //--------------------------------------------------------------------------------
 
     [Parameter]
-    public string? DeviceId { get; set; }
+    public string? TerminalId { get; set; }
 
     [SupplyParameterFromQuery(Name = "tab")]
     public string? Tab { get; set; }
@@ -127,7 +127,7 @@ public sealed partial class TelemetryPage
 
     private bool HasDevice => summary is not null;
 
-    private string EmptyMessage => DeviceId is null ? "端末を選んでください。" : "端末が見つかりません。";
+    private string EmptyMessage => TerminalId is null ? "端末を選んでください。" : "端末が見つかりません。";
 
     private int ActiveTab => Math.Max(Array.IndexOf(Tabs, Tab), 0);
 
@@ -144,7 +144,7 @@ public sealed partial class TelemetryPage
     private string DeviceName => summary?.Device.Name ?? string.Empty;
 
     private string DeviceCaption =>
-        summary?.Device is { } device ? (device.GroupName is { Length: > 0 } group ? $"{device.DeviceId} / {group}" : device.DeviceId) : string.Empty;
+        summary?.Device is { } device ? (device.GroupName is { Length: > 0 } group ? $"{device.TerminalId} / {group}" : device.TerminalId) : string.Empty;
 
     private bool IsDisabled => summary is { Device.IsEnabled: false };
 
@@ -235,9 +235,9 @@ public sealed partial class TelemetryPage
         range = TelemetryRange.Find(RangeKey);
         level = TelemetryLogLevel.Find(LevelKey);
         LoadDevices();
-        if (DeviceId != loadedDeviceId)
+        if (TerminalId != loadedTerminalId)
         {
-            loadedDeviceId = DeviceId;
+            loadedTerminalId = TerminalId;
             ResetTabs();
         }
 
@@ -262,7 +262,7 @@ public sealed partial class TelemetryPage
 
     private void OnReceived(object? sender, TelemetryReceivedEventArgs e)
     {
-        if (e.Result.DeviceId == loadedDeviceId)
+        if (e.Result.TerminalId == loadedTerminalId)
         {
             received.Enqueue(e.Result);
             refreshTimer.Request();
@@ -298,7 +298,7 @@ public sealed partial class TelemetryPage
             logs.RemoveAll(x => x.TimeUnixNano < from);
             if (detailChanged && (summary is not null))
             {
-                await LoadTraceDetailAsync(summary.Device.DeviceId);
+                await LoadTraceDetailAsync(summary.Device.TerminalId);
             }
 
             StateHasChanged();
@@ -308,14 +308,14 @@ public sealed partial class TelemetryPage
     // Action
     //--------------------------------------------------------------------------------
 
-    private void SelectDevice(string? deviceId)
+    private void SelectDevice(string? terminalId)
     {
-        if ((deviceId is null) || (deviceId == DeviceId))
+        if ((terminalId is null) || (terminalId == TerminalId))
         {
             return;
         }
 
-        var uri = Navigation.ToAbsoluteUri(TelemetryLinks.Device(deviceId)).AbsoluteUri;
+        var uri = Navigation.ToAbsoluteUri(TelemetryLinks.Device(terminalId)).AbsoluteUri;
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(uri, new Dictionary<string, object?> { ["tab"] = Tab, ["range"] = RangeKey }));
     }
 
@@ -355,7 +355,7 @@ public sealed partial class TelemetryPage
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("trace", (string?)null), replace: true);
 
     private Task LoadMoreLogsAsync() =>
-        summary is null ? Task.CompletedTask : LoadLogsAsync(summary.Device.DeviceId, true);
+        summary is null ? Task.CompletedTask : LoadLogsAsync(summary.Device.TerminalId, true);
 
     private async Task ToggleLogAsync(TelemetryLogEntity log)
     {
@@ -366,7 +366,7 @@ public sealed partial class TelemetryPage
 
         expandedLogs.Add(log.Id);
         if ((summary is not null) && !logResources.ContainsKey(log.ResourceId) &&
-            (await TelemetryService.QueryResourceAsync(summary.Device.DeviceId, log.ResourceId) is { } resource))
+            (await TelemetryService.QueryResourceAsync(summary.Device.TerminalId, log.ResourceId) is { } resource))
         {
             logResources[resource.Id] = resource;
         }
@@ -380,9 +380,9 @@ public sealed partial class TelemetryPage
     {
         devices = Registry.Devices
             .OrderBy(static x => x.Device.Name, StringComparer.CurrentCulture)
-            .ThenBy(static x => x.Device.DeviceId, StringComparer.Ordinal)
+            .ThenBy(static x => x.Device.TerminalId, StringComparer.Ordinal)
             .ToArray();
-        summary = DeviceId is null ? null : Array.Find(devices, x => x.Device.DeviceId == DeviceId);
+        summary = TerminalId is null ? null : Array.Find(devices, x => x.Device.TerminalId == TerminalId);
     }
 
     private void ResetTabs()
@@ -411,46 +411,46 @@ public sealed partial class TelemetryPage
             return;
         }
 
-        var deviceId = summary.Device.DeviceId;
+        var terminalId = summary.Device.TerminalId;
         switch (ActiveTab)
         {
             case MetricsTab:
                 if (metricsKey != range.Key)
                 {
-                    await LoadMetricsAsync(deviceId);
+                    await LoadMetricsAsync(terminalId);
                 }
 
                 break;
             case TracesTab:
                 if (tracesKey != TracesKey)
                 {
-                    await LoadTracesAsync(deviceId);
+                    await LoadTracesAsync(terminalId);
                 }
 
                 if (detailTraceId != TraceId)
                 {
-                    await LoadTraceDetailAsync(deviceId);
+                    await LoadTraceDetailAsync(terminalId);
                 }
 
                 break;
             default:
                 if (logsKey != LogsKey)
                 {
-                    await LoadLogsAsync(deviceId, false);
+                    await LoadLogsAsync(terminalId, false);
                 }
 
                 break;
         }
     }
 
-    private async Task LoadMetricsAsync(string deviceId)
+    private async Task LoadMetricsAsync(string terminalId)
     {
         var version = ++metricsVersion;
         metricsKey = range.Key;
         metrics = null;
         loading = true;
         var interval = range.IntervalNanoseconds;
-        var history = await TelemetryService.QueryMetricHistoryAsync(deviceId, from / interval * interval, interval);
+        var history = await TelemetryService.QueryMetricHistoryAsync(terminalId, from / interval * interval, interval);
         if (version != metricsVersion)
         {
             return;
@@ -462,12 +462,12 @@ public sealed partial class TelemetryPage
         loading = false;
     }
 
-    private async Task LoadTracesAsync(string deviceId)
+    private async Task LoadTracesAsync(string terminalId)
     {
         var version = ++tracesVersion;
         tracesKey = TracesKey;
         loading = true;
-        var list = await TelemetryService.QueryTraceListAsync(deviceId, from, errorOnly, traceSearch, TraceLimit);
+        var list = await TelemetryService.QueryTraceListAsync(terminalId, from, errorOnly, traceSearch, TraceLimit);
         if (version != tracesVersion)
         {
             return;
@@ -477,7 +477,7 @@ public sealed partial class TelemetryPage
         loading = false;
     }
 
-    private async Task LoadTraceDetailAsync(string deviceId)
+    private async Task LoadTraceDetailAsync(string terminalId)
     {
         var version = ++detailVersion;
         var reload = detailTraceId == TraceId;
@@ -490,7 +490,7 @@ public sealed partial class TelemetryPage
             return;
         }
 
-        var detail = await TelemetryService.QueryTraceDetailAsync(deviceId, TraceId);
+        var detail = await TelemetryService.QueryTraceDetailAsync(terminalId, TraceId);
         if (version != detailVersion)
         {
             return;
@@ -504,14 +504,14 @@ public sealed partial class TelemetryPage
         }
     }
 
-    private async Task LoadLogsAsync(string deviceId, bool more)
+    private async Task LoadLogsAsync(string terminalId, bool more)
     {
         var version = ++logsVersion;
         logsKey = LogsKey;
         loading = true;
         var last = more && (logs.Count > 0) ? logs[^1] : null;
         var list = await TelemetryService.QueryLogListAsync(
-            deviceId,
+            terminalId,
             new TelemetryLogQuery
             {
                 Since = from,
@@ -614,8 +614,8 @@ public sealed partial class TelemetryPage
     // Format
     //--------------------------------------------------------------------------------
 
-    private string? FormatDeviceOption(string? deviceId) =>
-        Array.Find(devices, x => x.Device.DeviceId == deviceId) is { } device ? $"{device.Device.Name} ({device.Device.DeviceId})" : deviceId;
+    private string? FormatDeviceOption(string? terminalId) =>
+        Array.Find(devices, x => x.Device.TerminalId == terminalId) is { } device ? $"{device.Device.Name} ({device.Device.TerminalId})" : terminalId;
 
     private Color OptionColor(TelemetryDeviceSummary device) => ViewHelper.StateColor(Registry.GetState(device));
 

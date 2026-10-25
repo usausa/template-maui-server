@@ -15,23 +15,23 @@ CREATE TABLE IF NOT EXISTS Setting (
 );
 
 CREATE TABLE IF NOT EXISTS Device (
-    DeviceId      TEXT     NOT NULL,
+    TerminalId    TEXT     NOT NULL,
     Name          TEXT     NOT NULL,
     GroupName     TEXT,
     Note          TEXT,
     IsEnabled     INTEGER  NOT NULL,
     RegisteredAt  TEXT     NOT NULL,
-    PRIMARY KEY (DeviceId)
+    PRIMARY KEY (TerminalId)
 );
 
 CREATE TABLE IF NOT EXISTS PushMessage (
     Id           INTEGER  NOT NULL,
-    DeviceId     TEXT     NOT NULL,
+    TerminalId   TEXT     NOT NULL,
     Title        TEXT     NOT NULL,
     Body         TEXT     NOT NULL,
     CreatedAt    TEXT     NOT NULL,
     DeliveredAt  TEXT,
     PRIMARY KEY (Id AUTOINCREMENT)
 );
-CREATE INDEX IF NOT EXISTS IX_PushMessage_DeviceId ON PushMessage (DeviceId) WHERE DeliveredAt IS NULL;
+CREATE INDEX IF NOT EXISTS IX_PushMessage_TerminalId ON PushMessage (TerminalId) WHERE DeliveredAt IS NULL;
 CREATE INDEX IF NOT EXISTS IX_PushMessage_CreatedAt ON PushMessage (CreatedAt);

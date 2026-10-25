@@ -12,11 +12,11 @@ public sealed class TelemetryReceivedEventArgs : EventArgs
 
 public sealed class TelemetryDeviceChangedEventArgs : EventArgs
 {
-    public string DeviceId { get; }
+    public string TerminalId { get; }
 
-    public TelemetryDeviceChangedEventArgs(string deviceId)
+    public TelemetryDeviceChangedEventArgs(string terminalId)
     {
-        DeviceId = deviceId;
+        TerminalId = terminalId;
     }
 }
 
@@ -36,8 +36,8 @@ public sealed class TelemetryBus
     public void PublishReceived(TelemetrySaveResult result) =>
         Invoke(Received, new TelemetryReceivedEventArgs(result));
 
-    public void PublishDeviceChanged(string deviceId) =>
-        Invoke(DeviceChanged, new TelemetryDeviceChangedEventArgs(deviceId));
+    public void PublishDeviceChanged(string terminalId) =>
+        Invoke(DeviceChanged, new TelemetryDeviceChangedEventArgs(terminalId));
 
     private void Invoke<T>(EventHandler<T>? handlers, T args)
         where T : EventArgs

@@ -7,7 +7,7 @@ using Template.MobileServer.Services;
 
 public sealed class TelemetryDeviceRegistryTests : IDisposable
 {
-    private const string DeviceId = "device-1";
+    private const string TerminalId = "device-1";
 
     private readonly TelemetryTestStorage storage = new();
 
@@ -20,14 +20,14 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(DateTimeOffset.Now);
         var changed = new List<string>();
-        storage.Bus.DeviceChanged += (_, e) => changed.Add(e.DeviceId);
+        storage.Bus.DeviceChanged += (_, e) => changed.Add(e.TerminalId);
 
         // Act / Assert: 登録
         Assert.True(await storage.Registry.EnsureRegisteredAsync(CreateInfo()));
-        var device = await storage.DeviceService.QueryAsync(DeviceId);
+        var device = await storage.DeviceService.QueryAsync(TerminalId);
         Assert.NotNull(device);
         Assert.Equal("Pixel 9a", device.Name);
-        Assert.Equal([DeviceId], changed);
+        Assert.Equal([TerminalId], changed);
 
         // Act / Assert: 無効にする
         device.IsEnabled = false;
@@ -102,7 +102,7 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         Assert.Equal(42, summary.CustomValue1?.Value);
         Assert.Equal(2, summary.ErrorCount);
         Assert.Equal(1, summary.CrashCount);
-        Assert.NotNull(await storage.DeviceService.QueryAsync(DeviceId));
+        Assert.NotNull(await storage.DeviceService.QueryAsync(TerminalId));
     }
 
     [Fact]
@@ -115,13 +115,13 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         await storage.Store.SaveAsync(CreateBatch());
 
         // Act
-        var status = await storage.Registry.DeleteAsync(DeviceId);
+        var status = await storage.Registry.DeleteAsync(TerminalId);
 
         // Assert
         Assert.Equal(DataWriteStatus.Success, status);
         Assert.Empty(storage.Registry.Devices);
-        Assert.Null(await storage.DeviceService.QueryAsync(DeviceId));
-        Assert.False(File.Exists(Path.Combine(storage.Root, DeviceId + ".db")));
+        Assert.Null(await storage.DeviceService.QueryAsync(TerminalId));
+        Assert.False(File.Exists(Path.Combine(storage.Root, TerminalId + ".db")));
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         using var scope = storage.BeginScope(DateTimeOffset.Now);
 
         // Act / Assert: 登録
-        var (device, created) = await storage.Registry.RegisterAsync(DeviceId, "受付");
+        var (device, created) = await storage.Registry.RegisterAsync(TerminalId, "受付");
         Assert.True(created);
         Assert.True(device.IsEnabled);
         Assert.Equal("受付", device.Name);
@@ -141,7 +141,7 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         device.GroupName = "1F";
         device.IsEnabled = false;
         await storage.Registry.UpdateAsync(device);
-        (device, created) = await storage.Registry.RegisterAsync(DeviceId, "入口");
+        (device, created) = await storage.Registry.RegisterAsync(TerminalId, "入口");
         Assert.False(created);
         Assert.Equal("入口", device.Name);
         Assert.Equal("1F", device.GroupName);
@@ -152,8 +152,7 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
     private static TelemetryDeviceInfoEntity CreateInfo() =>
         new()
         {
-            DeviceId = DeviceId,
-            InstallationId = "installation-1",
+            TerminalId = TerminalId,
             Manufacturer = "Google",
             Model = "Pixel 9a",
             OsName = "Android",
@@ -167,7 +166,7 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000;
         var batch = new TelemetryBatch
         {
-            DeviceId = DeviceId,
+            TerminalId = TerminalId,
             DeviceInfo = CreateInfo(),
             Resource = new TelemetryResourceEntity { Hash = "hash-1", ServiceInstanceId = "instance-1", ServiceVersion = "1.0", AttributesJson = "{}" }
         };

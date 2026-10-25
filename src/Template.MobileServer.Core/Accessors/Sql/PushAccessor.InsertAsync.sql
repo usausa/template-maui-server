@@ -1,15 +1,19 @@
-INSERT INTO
-    PushMessage (DeviceId, Title, Body, CreatedAt)
+INSERT INTO PushMessage (
+    TerminalId,
+    Title,
+    Body,
+    CreatedAt
+)
 SELECT
-    DeviceId, /*@ title */'', /*@ body */'', /*@ createdAt */''
+    TerminalId, /*@ title */'', /*@ body */'', /*@ createdAt */''
 FROM
     Device
 WHERE
     IsEnabled = 1
-/*% if (deviceId != null) { */
-    AND DeviceId = /*@ deviceId */''
+/*% if (terminalId != null) { */
+    AND TerminalId = /*@ terminalId */''
 /*% } */
 ORDER BY
-    DeviceId
+    TerminalId
 RETURNING
     *

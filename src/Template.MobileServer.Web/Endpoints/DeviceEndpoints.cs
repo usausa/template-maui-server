@@ -18,7 +18,7 @@ public sealed class DeviceRegisterRequest
 
 public sealed class DeviceRegisterResponse
 {
-    public string DeviceId { get; set; } = default!;
+    public string TerminalId { get; set; } = default!;
 
     public string Name { get; set; } = default!;
 
@@ -53,7 +53,7 @@ public static class DeviceEndpoints
     {
         var group = app.MapApiGroup(ApiRoutes.Device);
 
-        group.MapPut("/{deviceId}", HandleRegisterAsync)
+        group.MapPut("/{terminalId}", HandleRegisterAsync)
             .WithName("DeviceRegister")
             .Produces<DeviceRegisterResponse>()
             .Produces<DeviceRegisterResponse>(StatusCodes.Status201Created)
@@ -66,13 +66,13 @@ public static class DeviceEndpoints
 
     private static async ValueTask<IResult> HandleRegisterAsync(
         TelemetryDeviceRegistry registry,
-        [RegularExpression(DeviceIdFormat.Pattern)] string deviceId,
+        [RegularExpression(TerminalIdFormat.Pattern)] string terminalId,
         DeviceRegisterRequest request)
     {
-        var (device, created) = await registry.RegisterAsync(deviceId, request.Name.Trim());
+        var (device, created) = await registry.RegisterAsync(terminalId, request.Name.Trim());
         var response = device.ToRegisterResponse();
         return created
-            ? TypedResults.Created($"{ApiRoutes.Device}/{deviceId}", response)
+            ? TypedResults.Created($"{ApiRoutes.Device}/{terminalId}", response)
             : TypedResults.Ok(response);
     }
 }

@@ -115,5 +115,5 @@ public sealed partial class NotificationPage
         device.Battery is { } battery && (battery >= 0) ? $"{ViewHelper.FormatPercent(battery)} {device.BatteryState}" : string.Empty;
 
     private static string FormatTarget(DeviceEntry device) =>
-        device.Model is { Length: > 0 } model ? $"{device.DeviceId ?? device.ConnectionId} ({model})" : device.DeviceId ?? device.ConnectionId;
+        device.Model is { Length: > 0 } model ? $"{device.TerminalId ?? device.ConnectionId} ({model})" : device.TerminalId ?? device.ConnectionId;
 }

@@ -13,7 +13,7 @@ public sealed class TelemetryBusTests
         var bus = new TelemetryBus(NullLogger<TelemetryBus>.Instance);
         var received = new List<string>();
         bus.DeviceChanged += static (_, _) => throw new InvalidOperationException("failed");
-        bus.DeviceChanged += (_, e) => received.Add(e.DeviceId);
+        bus.DeviceChanged += (_, e) => received.Add(e.TerminalId);
 
         // Act
         bus.PublishDeviceChanged("device-1");

@@ -34,13 +34,13 @@ public sealed class TelemetryStore : IDisposable
 
     public async ValueTask<TelemetrySaveResult> SaveAsync(TelemetryBatch batch)
     {
-        var entry = GetEntry(batch.DeviceId);
+        var entry = GetEntry(batch.TerminalId);
         await entry.Lock.WaitAsync();
         try
         {
             if (!entry.Loaded)
             {
-                var saved = await TelemetryService.QueryIdsAsync(batch.DeviceId);
+                var saved = await TelemetryService.QueryIdsAsync(batch.TerminalId);
                 entry.Add(saved.Resources, saved.Series);
                 entry.Loaded = true;
             }
@@ -55,14 +55,14 @@ public sealed class TelemetryStore : IDisposable
         }
     }
 
-    public async ValueTask<bool> DeleteDeviceAsync(string deviceId)
+    public async ValueTask<bool> DeleteDeviceAsync(string terminalId)
     {
-        var entry = GetEntry(deviceId);
+        var entry = GetEntry(terminalId);
         await entry.Lock.WaitAsync();
         try
         {
             entry.Clear();
-            return Provider.Delete(deviceId);
+            return Provider.Delete(terminalId);
         }
         finally
         {
@@ -70,13 +70,13 @@ public sealed class TelemetryStore : IDisposable
         }
     }
 
-    public async ValueTask<TelemetryDeleteResult> DeleteExpiredAsync(string deviceId, long logBefore, long traceBefore, long metricBefore, long deviceBefore)
+    public async ValueTask<TelemetryDeleteResult> DeleteExpiredAsync(string terminalId, long logBefore, long traceBefore, long metricBefore, long deviceBefore)
     {
-        var entry = GetEntry(deviceId);
+        var entry = GetEntry(terminalId);
         await entry.Lock.WaitAsync();
         try
         {
-            var result = await TelemetryService.DeleteExpiredAsync(deviceId, logBefore, traceBefore, metricBefore, deviceBefore);
+            var result = await TelemetryService.DeleteExpiredAsync(terminalId, logBefore, traceBefore, metricBefore, deviceBefore);
             if (result.FileDeleted)
             {
                 entry.Clear();
@@ -90,7 +90,7 @@ public sealed class TelemetryStore : IDisposable
         }
     }
 
-    private Entry GetEntry(string deviceId) => entries.GetOrAdd(deviceId, static _ => new Entry());
+    private Entry GetEntry(string terminalId) => entries.GetOrAdd(terminalId, static _ => new Entry());
 
     private sealed class Entry : IDisposable
     {

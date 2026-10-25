@@ -197,18 +197,18 @@ public sealed partial class DashboardPage
     private void OpenLogs(TelemetryErrorEntry error)
     {
         var elapsed = TimeProvider.GetUtcNow() - ViewHelper.ToDateTimeOffset(error.TimeUnixNano);
-        Navigation.NavigateTo(TelemetryLinks.Logs(error.DeviceId, TelemetryRange.Covering(elapsed), TelemetryLogLevel.Error));
+        Navigation.NavigateTo(TelemetryLinks.Logs(error.TerminalId, TelemetryRange.Covering(elapsed), TelemetryLogLevel.Error));
     }
 
     private async Task DeleteAsync(TelemetryDeviceSummary summary)
     {
         var device = summary.Device;
-        if (!await DialogService.ShowConfirm("端末の削除", $"{device.Name} ({device.DeviceId}) の登録とテレメトリを削除してよろしいですか？送信を続けている端末は、次の受信で登録し直されます。"))
+        if (!await DialogService.ShowConfirm("端末の削除", $"{device.Name} ({device.TerminalId}) の登録とテレメトリを削除してよろしいですか？送信を続けている端末は、次の受信で登録し直されます。"))
         {
             return;
         }
 
-        if (await Registry.DeleteAsync(device.DeviceId) == DataWriteStatus.Success)
+        if (await Registry.DeleteAsync(device.TerminalId) == DataWriteStatus.Success)
         {
             Snackbar.AddSuccess("削除しました。");
         }
@@ -227,7 +227,7 @@ public sealed partial class DashboardPage
             return;
         }
 
-        var messages = await Notifier.SendAsync(summary.Device.DeviceId, content.Title, content.Body);
+        var messages = await Notifier.SendAsync(summary.Device.TerminalId, content.Title, content.Body);
         if (messages.Count > 0)
         {
             Snackbar.AddSuccess("送信しました。");
@@ -268,12 +268,12 @@ public sealed partial class DashboardPage
     {
         devices = Registry.Devices
             .OrderBy(static x => x.Device.Name, StringComparer.CurrentCulture)
-            .ThenBy(static x => x.Device.DeviceId, StringComparer.Ordinal)
+            .ThenBy(static x => x.Device.TerminalId, StringComparer.Ordinal)
             .ToArray();
-        names = devices.ToDictionary(static x => x.Device.DeviceId, static x => x.Device.Name, StringComparer.Ordinal);
+        names = devices.ToDictionary(static x => x.Device.TerminalId, static x => x.Device.Name, StringComparer.Ordinal);
         var enabled = devices.Where(static x => x.Device.IsEnabled).ToArray();
-        var enabledIds = enabled.Select(static x => x.Device.DeviceId).ToHashSet(StringComparer.Ordinal);
-        errors = Registry.RecentErrors.Where(x => enabledIds.Contains(x.DeviceId)).Take(ErrorLimit).ToArray();
+        var enabledIds = enabled.Select(static x => x.Device.TerminalId).ToHashSet(StringComparer.Ordinal);
+        errors = Registry.RecentErrors.Where(x => enabledIds.Contains(x.TerminalId)).Take(ErrorLimit).ToArray();
 
         var history = Registry.IngestHistory;
         ingestHistory = history.Select(static x => (double)x).ToArray();
@@ -292,11 +292,11 @@ public sealed partial class DashboardPage
     private async Task LoadPendingAsync()
     {
         var summary = await PushService.QueryPendingSummaryAsync();
-        pending = summary.ToDictionary(static x => x.DeviceId, static x => x.Count, StringComparer.Ordinal);
+        pending = summary.ToDictionary(static x => x.TerminalId, static x => x.Count, StringComparer.Ordinal);
     }
 
     private static bool IsMatch(TelemetryDeviceSummary device, string text) =>
-        device.Device.DeviceId.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+        device.Device.TerminalId.Contains(text, StringComparison.OrdinalIgnoreCase) ||
         device.Device.Name.Contains(text, StringComparison.OrdinalIgnoreCase) ||
         (device.Device.GroupName?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false);
 
@@ -310,13 +310,13 @@ public sealed partial class DashboardPage
 
     private Variant StateVariant(TelemetryDeviceSummary device) => ViewHelper.StateVariant(Registry.GetState(device));
 
-    private static string TelemetryLink(TelemetryDeviceSummary device) => TelemetryLinks.Device(device.Device.DeviceId);
+    private static string TelemetryLink(TelemetryDeviceSummary device) => TelemetryLinks.Device(device.Device.TerminalId);
 
     private static string RowClass(TelemetryDeviceSummary device) =>
         device.Device.IsEnabled ? "device-row" : "device-row device-disabled";
 
     private static string FormatCaption(TelemetryDeviceSummary device) =>
-        device.Device.GroupName is { Length: > 0 } group ? $"{device.Device.DeviceId} / {group}" : device.Device.DeviceId;
+        device.Device.GroupName is { Length: > 0 } group ? $"{device.Device.TerminalId} / {group}" : device.Device.TerminalId;
 
     private static string FormatModel(TelemetryDeviceSummary device) => device.Info?.Model ?? string.Empty;
 
@@ -329,9 +329,9 @@ public sealed partial class DashboardPage
     private static string FormatLastReceivedTime(TelemetryDeviceSummary device) =>
         device.Info is { } info ? ViewHelper.FormatTime(info.LastReceivedAt) : string.Empty;
 
-    private string FindName(string deviceId) => names.GetValueOrDefault(deviceId, deviceId);
+    private string FindName(string terminalId) => names.GetValueOrDefault(terminalId, terminalId);
 
-    private int PendingCount(TelemetryDeviceSummary device) => pending.GetValueOrDefault(device.Device.DeviceId);
+    private int PendingCount(TelemetryDeviceSummary device) => pending.GetValueOrDefault(device.Device.TerminalId);
 
     private string ToStateRatio(int count)
     {

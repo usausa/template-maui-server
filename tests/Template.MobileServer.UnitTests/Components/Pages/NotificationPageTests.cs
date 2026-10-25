@@ -35,7 +35,7 @@ public sealed class NotificationPageTests : MudBlazorTestBase
         Assert.Equal(["端末 ID", "機種", "OS", "電池", "ネットワーク", "最終受信", string.Empty], cut.FindAll(".devices-table th").Select(static x => x.TextContent.Trim()));
 
         // Act
-        registry.Update("c1", new DeviceStatusMessage { DeviceId = "device-1", Model = "Pixel 9a", Platform = "Android 16", Battery = 0.5, BatteryState = "Charging", Network = "WiFi" }, Now);
+        registry.Update("c1", new DeviceStatusMessage { TerminalId = "device-1", Model = "Pixel 9a", Platform = "Android 16", Battery = 0.5, BatteryState = "Charging", Network = "WiFi" }, Now);
 
         // Assert
         cut.WaitForAssertion(() => Assert.Contains("Pixel 9a", cut.Markup, StringComparison.Ordinal));
@@ -49,7 +49,7 @@ public sealed class NotificationPageTests : MudBlazorTestBase
         // Arrange
         var registry = new DeviceRegistry();
         registry.Register("c1", Now);
-        registry.Update("c1", new DeviceStatusMessage { DeviceId = "device-1", Model = "Pixel 9a", Platform = "Android 16", Battery = battery, BatteryState = state, Network = "WiFi" }, Now);
+        registry.Update("c1", new DeviceStatusMessage { TerminalId = "device-1", Model = "Pixel 9a", Platform = "Android 16", Battery = battery, BatteryState = state, Network = "WiFi" }, Now);
         Services.AddSingleton(registry);
         using var notifier = CreateNotifier(out _);
         Services.AddSingleton(notifier);

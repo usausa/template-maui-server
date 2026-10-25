@@ -8,7 +8,7 @@ public sealed record DeviceEntry(
     string ConnectionId,
     DateTimeOffset ConnectedAt,
     DateTimeOffset LastReceivedAt,
-    string? DeviceId,
+    string? TerminalId,
     string? Model,
     string? Platform,
     double? Battery,
@@ -48,7 +48,7 @@ public sealed class DeviceRegistry
         entries[connectionId] = entry with
         {
             LastReceivedAt = now,
-            DeviceId = status.DeviceId,
+            TerminalId = status.TerminalId,
             Model = status.Model,
             Platform = status.Platform,
             Battery = status.Battery,

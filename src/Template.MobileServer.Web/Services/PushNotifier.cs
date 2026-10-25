@@ -24,15 +24,15 @@ public sealed class PushNotifier
         PushService = pushService;
     }
 
-    public async ValueTask<List<PushMessageEntity>> SendAsync(string? deviceId, string title, string body)
+    public async ValueTask<List<PushMessageEntity>> SendAsync(string? terminalId, string title, string body)
     {
-        var messages = await PushService.InsertAsync(deviceId, title, body);
+        var messages = await PushService.InsertAsync(terminalId, title, body);
         foreach (var message in messages)
         {
-            await Hub.Clients.Group(message.DeviceId).Receive(message.ToPushMessage());
+            await Hub.Clients.Group(message.TerminalId).Receive(message.ToPushMessage());
         }
 
-        Log.InfoPushSent(deviceId ?? "*", messages.Count);
+        Log.InfoPushSent(terminalId ?? "*", messages.Count);
 
         if (messages.Count > 0)
         {
@@ -42,9 +42,9 @@ public sealed class PushNotifier
         return messages;
     }
 
-    public async ValueTask<bool> AcknowledgeAsync(string deviceId, long id)
+    public async ValueTask<bool> AcknowledgeAsync(string terminalId, long id)
     {
-        var delivered = await PushService.UpdateDeliveredAsync(deviceId, id);
+        var delivered = await PushService.UpdateDeliveredAsync(terminalId, id);
         if (delivered)
         {
             Changed?.Invoke(this, EventArgs.Empty);

@@ -9,18 +9,18 @@ public sealed partial class DeviceAccessor
 
     [QueryFirst]
     [SelectSingle(typeof(DeviceEntity))]
-    public partial ValueTask<DeviceEntity?> QueryAsync(string deviceId);
+    public partial ValueTask<DeviceEntity?> QueryAsync(string terminalId);
 
     [Execute]
-    public partial ValueTask<int> InsertAsync(string deviceId, string name, string? groupName, string? note, bool isEnabled, DateTime registeredAt);
+    public partial ValueTask<int> InsertAsync(string terminalId, string name, string? groupName, string? note, bool isEnabled, DateTime registeredAt);
 
     [QueryFirst]
-    public partial ValueTask<DeviceEntity?> UpdateAsync(string deviceId, string name, string? groupName, string? note, bool isEnabled);
+    public partial ValueTask<DeviceEntity?> UpdateAsync(string terminalId, string name, string? groupName, string? note, bool isEnabled);
 
     [QueryFirst]
-    public partial ValueTask<DeviceEntity?> UpdateNameAsync(string deviceId, string name);
+    public partial ValueTask<DeviceEntity?> UpdateNameAsync(string terminalId, string name);
 
     [Execute]
     [Delete(typeof(DeviceEntity))]
-    public partial ValueTask<int> DeleteAsync(DbTransaction tx, string deviceId);
+    public partial ValueTask<int> DeleteAsync(DbTransaction tx, string terminalId);
 }

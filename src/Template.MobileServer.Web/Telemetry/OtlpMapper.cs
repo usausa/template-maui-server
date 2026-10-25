@@ -16,7 +16,6 @@ using OpenTelemetry.Proto.Trace.V1;
 
 public static class OtlpMapper
 {
-    private const string InstallationIdKey = "app.installation.id";
     private const string ServiceVersionKey = "service.version";
     private const string ServiceInstanceIdKey = "service.instance.id";
     private const string ManufacturerKey = "device.manufacturer";
@@ -36,16 +35,15 @@ public static class OtlpMapper
     // Resource
     //--------------------------------------------------------------------------------
 
-    public static TelemetryBatch CreateBatch(string deviceId, Resource? resource)
+    public static TelemetryBatch CreateBatch(string terminalId, Resource? resource)
     {
         var json = ToJson(resource?.Attributes.OrderBy(static x => x.Key, StringComparer.Ordinal) ?? Enumerable.Empty<KeyValue>());
         return new TelemetryBatch
         {
-            DeviceId = deviceId,
+            TerminalId = terminalId,
             DeviceInfo = new TelemetryDeviceInfoEntity
             {
-                DeviceId = deviceId,
-                InstallationId = resource.GetString(InstallationIdKey),
+                TerminalId = terminalId,
                 Manufacturer = resource.GetString(ManufacturerKey),
                 Model = resource.GetString(ModelKey),
                 OsName = resource.GetString(OsNameKey),

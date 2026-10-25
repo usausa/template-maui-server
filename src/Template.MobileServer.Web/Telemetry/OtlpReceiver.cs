@@ -7,7 +7,7 @@ using OpenTelemetry.Proto.Resource.V1;
 
 public sealed class OtlpReceiver
 {
-    private const string InvalidDeviceMessage = "The resource has no valid device.id or app.installation.id.";
+    private const string InvalidDeviceMessage = "The resource has no valid app.installation.id.";
 
     private const string DisabledDeviceMessage = "The device is disabled.";
 
@@ -45,24 +45,24 @@ public sealed class OtlpReceiver
         foreach (var resourceSpans in request.ResourceSpans)
         {
             var count = resourceSpans.ScopeSpans.Sum(static x => x.Spans.Count);
-            if (!TryGetDeviceId(resourceSpans.Resource, count, rejected, out var deviceId))
+            if (!TryGetTerminalId(resourceSpans.Resource, count, rejected, out var terminalId))
             {
                 continue;
             }
 
-            var batch = OtlpMapper.CreateBatch(deviceId, resourceSpans.Resource);
+            var batch = OtlpMapper.CreateBatch(terminalId, resourceSpans.Resource);
             var invalid = OtlpMapper.AddSpans(batch, resourceSpans.ScopeSpans);
 
             var result = await SaveAsync(batch);
             if (result is null)
             {
-                Log.DebugTelemetryDisabled(batch.DeviceInfo.ServiceName, deviceId, count);
+                Log.DebugTelemetryDisabled(batch.DeviceInfo.ServiceName, terminalId, count);
                 rejected.Add(count, DisabledDeviceMessage);
                 continue;
             }
 
             rejected.AddInvalid(invalid);
-            Log.DebugTracesReceived(batch.DeviceInfo.ServiceName, deviceId, count, result.Spans.Count);
+            Log.DebugTracesReceived(batch.DeviceInfo.ServiceName, terminalId, count, result.Spans.Count);
         }
 
         return new ExportTraceServiceResponse
@@ -81,18 +81,18 @@ public sealed class OtlpReceiver
         foreach (var resourceMetrics in request.ResourceMetrics)
         {
             var count = resourceMetrics.ScopeMetrics.Sum(static x => x.Metrics.Sum(static y => y.GetPointCount()));
-            if (!TryGetDeviceId(resourceMetrics.Resource, count, rejected, out var deviceId))
+            if (!TryGetTerminalId(resourceMetrics.Resource, count, rejected, out var terminalId))
             {
                 continue;
             }
 
-            var batch = OtlpMapper.CreateBatch(deviceId, resourceMetrics.Resource);
+            var batch = OtlpMapper.CreateBatch(terminalId, resourceMetrics.Resource);
             var invalid = OtlpMapper.AddMetrics(batch, resourceMetrics.ScopeMetrics);
 
             var result = await SaveAsync(batch);
             if (result is null)
             {
-                Log.DebugTelemetryDisabled(batch.DeviceInfo.ServiceName, deviceId, count);
+                Log.DebugTelemetryDisabled(batch.DeviceInfo.ServiceName, terminalId, count);
                 rejected.Add(count, DisabledDeviceMessage);
                 continue;
             }
@@ -100,7 +100,7 @@ public sealed class OtlpReceiver
             rejected.AddInvalid(invalid);
             if (Log.IsEnabled(LogLevel.Debug))
             {
-                Log.DebugMetricsReceived(batch.DeviceInfo.ServiceName, deviceId, count, result.Metrics.Sum(static x => x.Points.Count));
+                Log.DebugMetricsReceived(batch.DeviceInfo.ServiceName, terminalId, count, result.Metrics.Sum(static x => x.Points.Count));
             }
         }
 
@@ -120,24 +120,24 @@ public sealed class OtlpReceiver
         foreach (var resourceLogs in request.ResourceLogs)
         {
             var count = resourceLogs.ScopeLogs.Sum(static x => x.LogRecords.Count);
-            if (!TryGetDeviceId(resourceLogs.Resource, count, rejected, out var deviceId))
+            if (!TryGetTerminalId(resourceLogs.Resource, count, rejected, out var terminalId))
             {
                 continue;
             }
 
-            var batch = OtlpMapper.CreateBatch(deviceId, resourceLogs.Resource);
+            var batch = OtlpMapper.CreateBatch(terminalId, resourceLogs.Resource);
             var invalid = OtlpMapper.AddLogs(batch, resourceLogs.ScopeLogs);
 
             var result = await SaveAsync(batch);
             if (result is null)
             {
-                Log.DebugTelemetryDisabled(batch.DeviceInfo.ServiceName, deviceId, count);
+                Log.DebugTelemetryDisabled(batch.DeviceInfo.ServiceName, terminalId, count);
                 rejected.Add(count, DisabledDeviceMessage);
                 continue;
             }
 
             rejected.AddInvalid(invalid);
-            Log.DebugLogsReceived(batch.DeviceInfo.ServiceName, deviceId, count, result.Logs.Count);
+            Log.DebugLogsReceived(batch.DeviceInfo.ServiceName, terminalId, count, result.Logs.Count);
         }
 
         return new ExportLogsServiceResponse
@@ -150,15 +150,15 @@ public sealed class OtlpReceiver
     // Helper
     //--------------------------------------------------------------------------------
 
-    private bool TryGetDeviceId(Resource? resource, int count, Rejected rejected, out string deviceId)
+    private bool TryGetTerminalId(Resource? resource, int count, Rejected rejected, out string terminalId)
     {
-        deviceId = resource.GetDeviceId();
-        if (DeviceIdFormat.IsValid(deviceId))
+        terminalId = resource.GetTerminalId();
+        if (TerminalIdFormat.IsValid(terminalId))
         {
             return true;
         }
 
-        Log.WarnTelemetryRejected(resource.GetServiceName(), deviceId, count);
+        Log.WarnTelemetryRejected(resource.GetServiceName(), terminalId, count);
         rejected.Add(count, InvalidDeviceMessage);
         return false;
     }
@@ -179,7 +179,7 @@ public sealed class OtlpReceiver
         }
         catch (Exception ex) when (IsStorageError(ex))
         {
-            Log.ErrorTelemetrySaveFailed(batch.DeviceId, ex);
+            Log.ErrorTelemetrySaveFailed(batch.TerminalId, ex);
             throw;
         }
     }

@@ -33,19 +33,19 @@ public sealed class SqliteTelemetryDbProvider : ITelemetryDbProvider
         Directory.Exists(Option.Root)
             ? Directory.EnumerateFiles(Option.Root, "*" + Extension)
                 .Select(static x => Path.GetFileNameWithoutExtension(x))
-                .Where(static x => DeviceIdFormat.IsValid(x))
+                .Where(static x => TerminalIdFormat.IsValid(x))
                 .ToList()
             : [];
 
-    public ValueTask<DbConnection> OpenAsync(string deviceId, CancellationToken cancellationToken = default) =>
-        OpenAsync(deviceId, SqliteOpenMode.ReadWriteCreate, cancellationToken);
+    public ValueTask<DbConnection> OpenAsync(string terminalId, CancellationToken cancellationToken = default) =>
+        OpenAsync(terminalId, SqliteOpenMode.ReadWriteCreate, cancellationToken);
 
-    public async ValueTask<DbConnection?> OpenExistingAsync(string deviceId, CancellationToken cancellationToken = default) =>
-        File.Exists(GetPath(deviceId)) ? await OpenAsync(deviceId, SqliteOpenMode.ReadWrite, cancellationToken) : null;
+    public async ValueTask<DbConnection?> OpenExistingAsync(string terminalId, CancellationToken cancellationToken = default) =>
+        File.Exists(GetPath(terminalId)) ? await OpenAsync(terminalId, SqliteOpenMode.ReadWrite, cancellationToken) : null;
 
-    public bool Delete(string deviceId)
+    public bool Delete(string terminalId)
     {
-        var path = GetPath(deviceId);
+        var path = GetPath(terminalId);
 
         foreach (var mode in (ReadOnlySpan<SqliteOpenMode>)[SqliteOpenMode.ReadWriteCreate, SqliteOpenMode.ReadWrite])
         {
@@ -53,7 +53,7 @@ public sealed class SqliteTelemetryDbProvider : ITelemetryDbProvider
             SqliteConnection.ClearPool(con);
         }
 
-        prepared.TryRemove(deviceId, out _);
+        prepared.TryRemove(terminalId, out _);
 
         var exists = File.Exists(path);
         File.Delete(path);
@@ -66,21 +66,21 @@ public sealed class SqliteTelemetryDbProvider : ITelemetryDbProvider
     // Helper
     //--------------------------------------------------------------------------------
 
-    private async ValueTask<DbConnection> OpenAsync(string deviceId, SqliteOpenMode mode, CancellationToken cancellationToken)
+    private async ValueTask<DbConnection> OpenAsync(string terminalId, SqliteOpenMode mode, CancellationToken cancellationToken)
     {
-        var con = new SqliteConnection(MakeConnectionString(GetPath(deviceId), mode));
+        var con = new SqliteConnection(MakeConnectionString(GetPath(terminalId), mode));
         try
         {
             await con.OpenAsync(cancellationToken);
 
-            if (!prepared.ContainsKey(deviceId))
+            if (!prepared.ContainsKey(terminalId))
             {
                 if (await GenericAccessor.QueryUserVersionAsync(con) == 0)
                 {
                     await GenericAccessor.ExecuteSchemaAsync(con, schema.Value);
                 }
 
-                prepared[deviceId] = true;
+                prepared[terminalId] = true;
             }
 
             await GenericAccessor.ExecuteTelemetryPragmaAsync(con, Option.CacheSize);
@@ -94,14 +94,14 @@ public sealed class SqliteTelemetryDbProvider : ITelemetryDbProvider
         }
     }
 
-    private string GetPath(string deviceId)
+    private string GetPath(string terminalId)
     {
-        if (!DeviceIdFormat.IsValid(deviceId))
+        if (!TerminalIdFormat.IsValid(terminalId))
         {
-            throw new ArgumentException("Invalid device id.", nameof(deviceId));
+            throw new ArgumentException("Invalid terminal id.", nameof(terminalId));
         }
 
-        return Path.Combine(Option.Root, deviceId + Extension);
+        return Path.Combine(Option.Root, terminalId + Extension);
     }
 
     private static string MakeConnectionString(string path, SqliteOpenMode mode) =>

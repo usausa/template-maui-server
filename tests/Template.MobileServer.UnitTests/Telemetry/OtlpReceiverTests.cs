@@ -21,7 +21,7 @@ using Template.MobileServer.Web.Telemetry;
 
 public sealed class OtlpReceiverTests : IDisposable
 {
-    private const string DeviceId = "device-1";
+    private const string TerminalId = "device-1";
 
     private static readonly DateTimeOffset Now = new(2026, 9, 27, 12, 0, 0, TimeSpan.FromHours(9));
 
@@ -55,7 +55,7 @@ public sealed class OtlpReceiverTests : IDisposable
 
         // Assert
         Assert.Equal(1, response.PartialSuccess.RejectedSpans);
-        Assert.Equal(2L, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT COUNT(*) FROM Span"));
+        Assert.Equal(2L, await storage.QueryValueAsync(TerminalId, static x => x.CommandText = "SELECT COUNT(*) FROM Span"));
         Assert.Contains("Telemetry rejected. service=[], device=[], items=[1]", GetMessages(logger));
     }
 
@@ -92,7 +92,7 @@ public sealed class OtlpReceiverTests : IDisposable
 
         // Assert
         Assert.Equal(1, response.PartialSuccess.RejectedDataPoints);
-        Assert.Equal(1024d, await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT Value FROM MetricPoint"));
+        Assert.Equal(1024d, await storage.QueryValueAsync(TerminalId, static x => x.CommandText = "SELECT Value FROM MetricPoint"));
     }
 
     [Fact]
@@ -121,8 +121,8 @@ public sealed class OtlpReceiverTests : IDisposable
 
         // Assert
         Assert.Null(response.PartialSuccess);
-        Assert.Equal("warning", await storage.QueryValueAsync(DeviceId, static x => x.CommandText = "SELECT Body FROM Log"));
-        var device = await storage.DeviceService.QueryAsync(DeviceId);
+        Assert.Equal("warning", await storage.QueryValueAsync(TerminalId, static x => x.CommandText = "SELECT Body FROM Log"));
+        var device = await storage.DeviceService.QueryAsync(TerminalId);
         Assert.NotNull(device);
         Assert.True(device.IsEnabled);
         Assert.Single(Assert.Single(received).Logs);
@@ -134,7 +134,7 @@ public sealed class OtlpReceiverTests : IDisposable
         // Arrange
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(Now);
-        await storage.Registry.AddAsync(new DeviceEntity { DeviceId = DeviceId, Name = "disabled", IsEnabled = false });
+        await storage.Registry.AddAsync(new DeviceEntity { TerminalId = TerminalId, Name = "disabled", IsEnabled = false });
         var receiver = new OtlpReceiver(CreateLogger<OtlpReceiver>(), storage.Store, storage.Registry, storage.Bus);
         var request = new ExportLogsServiceRequest
         {
@@ -154,7 +154,7 @@ public sealed class OtlpReceiverTests : IDisposable
         // Assert
         Assert.Equal(1, response.PartialSuccess.RejectedLogRecords);
         Assert.Equal("The device is disabled.", response.PartialSuccess.ErrorMessage);
-        Assert.False(File.Exists(Path.Combine(storage.Root, DeviceId + ".db")));
+        Assert.False(File.Exists(Path.Combine(storage.Root, TerminalId + ".db")));
     }
 
     [Fact]
@@ -162,7 +162,7 @@ public sealed class OtlpReceiverTests : IDisposable
     {
         // Arrange: the database file cannot be opened
         await storage.PrepareDatabaseAsync();
-        Directory.CreateDirectory(Path.Combine(storage.Root, DeviceId + ".db"));
+        Directory.CreateDirectory(Path.Combine(storage.Root, TerminalId + ".db"));
         var logger = CreateLogger<OtlpReceiver>();
         var receiver = new OtlpReceiver(logger, storage.Store, storage.Registry, storage.Bus);
         var request = new ExportTraceServiceRequest
@@ -198,7 +198,7 @@ public sealed class OtlpReceiverTests : IDisposable
             Attributes =
             {
                 new KeyValue { Key = "service.name", Value = new AnyValue { StringValue = "Template.MobileApp" } },
-                new KeyValue { Key = "device.id", Value = new AnyValue { StringValue = DeviceId } }
+                new KeyValue { Key = "app.installation.id", Value = new AnyValue { StringValue = TerminalId } }
             }
         };
 

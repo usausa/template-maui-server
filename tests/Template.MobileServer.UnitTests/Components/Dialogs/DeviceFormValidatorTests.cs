@@ -10,7 +10,7 @@ public sealed class DeviceFormValidatorTests
     {
         // Arrange
         var validator = new DeviceEditDialog.DeviceFormValidator();
-        var form = new DeviceEditDialog.DeviceForm { DeviceId = "4db55dc544d5fec3", Name = "Pixel 9a" };
+        var form = new DeviceEditDialog.DeviceForm { TerminalId = "4db55dc544d5fec3", Name = "Pixel 9a" };
 
         // Act
         var result = validator.Validate(form);
@@ -23,25 +23,25 @@ public sealed class DeviceFormValidatorTests
     [InlineData("")]
     [InlineData("device 1")]
     [InlineData("../data")]
-    public void ValidateInvalidDeviceIdReturnsInvalid(string deviceId)
+    public void ValidateInvalidTerminalIdReturnsInvalid(string terminalId)
     {
         // Arrange
         var validator = new DeviceEditDialog.DeviceFormValidator();
-        var form = new DeviceEditDialog.DeviceForm { DeviceId = deviceId, Name = "Pixel 9a" };
+        var form = new DeviceEditDialog.DeviceForm { TerminalId = terminalId, Name = "Pixel 9a" };
 
         // Act
         var result = validator.Validate(form);
 
         // Assert
-        Assert.Equal(nameof(DeviceEditDialog.DeviceForm.DeviceId), Assert.Single(result.Errors).PropertyName);
+        Assert.Equal(nameof(DeviceEditDialog.DeviceForm.TerminalId), Assert.Single(result.Errors).PropertyName);
     }
 
     [Fact]
-    public void ValidateTooLongDeviceIdReturnsInvalid()
+    public void ValidateTooLongTerminalIdReturnsInvalid()
     {
         // Arrange
         var validator = new DeviceEditDialog.DeviceFormValidator();
-        var form = new DeviceEditDialog.DeviceForm { DeviceId = new string('a', Length.DeviceId + 1), Name = "Pixel 9a" };
+        var form = new DeviceEditDialog.DeviceForm { TerminalId = new string('a', Length.TerminalId + 1), Name = "Pixel 9a" };
 
         // Act
         var result = validator.Validate(form);
@@ -55,7 +55,7 @@ public sealed class DeviceFormValidatorTests
     {
         // Arrange
         var validator = new DeviceEditDialog.DeviceFormValidator();
-        var form = new DeviceEditDialog.DeviceForm { DeviceId = "device-1", Name = " " };
+        var form = new DeviceEditDialog.DeviceForm { TerminalId = "device-1", Name = " " };
 
         // Act
         var result = validator.Validate(form);
@@ -71,7 +71,7 @@ public sealed class DeviceFormValidatorTests
         var validator = new DeviceEditDialog.DeviceFormValidator();
         var form = new DeviceEditDialog.DeviceForm
         {
-            DeviceId = "device-1",
+            TerminalId = "device-1",
             Name = "Pixel 9a",
             GroupName = new string('a', Length.Name + 1),
             Note = new string('a', Length.Note + 1)

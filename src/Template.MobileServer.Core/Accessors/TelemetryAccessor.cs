@@ -13,7 +13,7 @@ public sealed partial class TelemetryAccessor
 
     [QueryFirst]
     [SelectSingle(typeof(TelemetryDeviceInfoEntity))]
-    public partial ValueTask<TelemetryDeviceInfoEntity?> QueryDeviceInfoAsync(DbConnection con, string deviceId);
+    public partial ValueTask<TelemetryDeviceInfoEntity?> QueryDeviceInfoAsync(DbConnection con, string terminalId);
 
     //--------------------------------------------------------------------------------
     // Resource

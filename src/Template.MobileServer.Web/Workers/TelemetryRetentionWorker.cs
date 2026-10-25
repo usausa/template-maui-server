@@ -67,19 +67,19 @@ public sealed class TelemetryRetentionWorker : BackgroundService
         var metricBefore = ToUnixNano(now.AddDays(-Options.MetricDays));
         var deviceBefore = ToUnixNano(now.AddDays(-Options.DeviceDays));
 
-        foreach (var deviceId in Store.EnumerateDevices())
+        foreach (var terminalId in Store.EnumerateDevices())
         {
             try
             {
-                var result = await Store.DeleteExpiredAsync(deviceId, logBefore, traceBefore, metricBefore, deviceBefore);
+                var result = await Store.DeleteExpiredAsync(terminalId, logBefore, traceBefore, metricBefore, deviceBefore);
                 if (result.FileDeleted)
                 {
-                    Registry.ClearTelemetry(deviceId);
-                    Log.InfoTelemetryFileDeleted(deviceId);
+                    Registry.ClearTelemetry(terminalId);
+                    Log.InfoTelemetryFileDeleted(terminalId);
                 }
                 else if (result.Rows > 0)
                 {
-                    Log.InfoTelemetryExpired(deviceId, result.Rows);
+                    Log.InfoTelemetryExpired(terminalId, result.Rows);
                 }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)

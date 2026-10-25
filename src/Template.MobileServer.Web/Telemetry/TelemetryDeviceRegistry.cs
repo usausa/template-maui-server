@@ -80,7 +80,7 @@ public sealed class TelemetryDeviceRegistry
             var hour = CurrentHour();
             lock (sync)
             {
-                return entries.Values.OrderBy(static x => x.Device.DeviceId, StringComparer.Ordinal).Select(x => x.ToSummary(hour)).ToArray();
+                return entries.Values.OrderBy(static x => x.Device.TerminalId, StringComparer.Ordinal).Select(x => x.ToSummary(hour)).ToArray();
             }
         }
     }
@@ -119,12 +119,12 @@ public sealed class TelemetryDeviceRegistry
         }
     }
 
-    public TelemetryDeviceSummary? Find(string deviceId)
+    public TelemetryDeviceSummary? Find(string terminalId)
     {
         var hour = CurrentHour();
         lock (sync)
         {
-            return entries.TryGetValue(deviceId, out var entry) ? entry.ToSummary(hour) : null;
+            return entries.TryGetValue(terminalId, out var entry) ? entry.ToSummary(hour) : null;
         }
     }
 
@@ -151,19 +151,19 @@ public sealed class TelemetryDeviceRegistry
         using var scope = ContextProvider.Begin(() => new ServiceContext(TimeProvider.GetLocalNow(), SystemUserId));
 
         var since = (CurrentHour() - CountHours + 1) * NanosecondsPerHour;
-        var registered = (await DeviceService.QueryAllAsync(cancellationToken)).ToDictionary(static x => x.DeviceId, StringComparer.Ordinal);
+        var registered = (await DeviceService.QueryAllAsync(cancellationToken)).ToDictionary(static x => x.TerminalId, StringComparer.Ordinal);
         var loaded = new List<Entry>();
         var recent = new List<TelemetryErrorEntry>();
-        foreach (var deviceId in Store.EnumerateDevices())
+        foreach (var terminalId in Store.EnumerateDevices())
         {
             TelemetryDeviceSummaryView? summary;
             try
             {
-                summary = await TelemetryService.QuerySummaryAsync(deviceId, LatestNames, since, ErrorLimit, cancellationToken);
+                summary = await TelemetryService.QuerySummaryAsync(terminalId, LatestNames, since, ErrorLimit, cancellationToken);
             }
             catch (Exception ex) when (OtlpReceiver.IsStorageError(ex))
             {
-                Log.ErrorTelemetryLoadFailed(deviceId, ex);
+                Log.ErrorTelemetryLoadFailed(terminalId, ex);
                 continue;
             }
 
@@ -172,11 +172,11 @@ public sealed class TelemetryDeviceRegistry
                 continue;
             }
 
-            if (!registered.Remove(deviceId, out var device))
+            if (!registered.Remove(terminalId, out var device))
             {
                 device = CreateDevice(summary.DeviceInfo);
                 await DeviceService.InsertAsync(device);
-                Log.InfoDeviceRegistered(device.DeviceId, device.Name);
+                Log.InfoDeviceRegistered(device.TerminalId, device.Name);
             }
 
             var entry = new Entry(device) { Info = summary.DeviceInfo };
@@ -193,7 +193,7 @@ public sealed class TelemetryDeviceRegistry
                 entry.Counts[count.Hour] = (count.ErrorCount, count.CrashCount);
             }
 
-            recent.AddRange(summary.RecentErrors.Select(x => CreateError(deviceId, x)));
+            recent.AddRange(summary.RecentErrors.Select(x => CreateError(terminalId, x)));
             loaded.Add(entry);
         }
 
@@ -202,12 +202,12 @@ public sealed class TelemetryDeviceRegistry
             entries.Clear();
             foreach (var entry in loaded)
             {
-                entries[entry.Device.DeviceId] = entry;
+                entries[entry.Device.TerminalId] = entry;
             }
 
             foreach (var device in registered.Values)
             {
-                entries[device.DeviceId] = new Entry(device);
+                entries[device.TerminalId] = new Entry(device);
             }
 
             errors.Clear();
@@ -223,7 +223,7 @@ public sealed class TelemetryDeviceRegistry
     {
         lock (sync)
         {
-            if (entries.TryGetValue(info.DeviceId, out var entry))
+            if (entries.TryGetValue(info.TerminalId, out var entry))
             {
                 return entry.Device.IsEnabled;
             }
@@ -232,26 +232,26 @@ public sealed class TelemetryDeviceRegistry
         var device = CreateDevice(info);
         if (await DeviceService.InsertAsync(device) == DataWriteStatus.Success)
         {
-            Log.InfoDeviceRegistered(device.DeviceId, device.Name);
+            Log.InfoDeviceRegistered(device.TerminalId, device.Name);
         }
         else
         {
-            device = await DeviceService.QueryAsync(info.DeviceId) ?? device;
+            device = await DeviceService.QueryAsync(info.TerminalId) ?? device;
         }
 
         bool enabled;
         lock (sync)
         {
-            if (!entries.TryGetValue(device.DeviceId, out var entry))
+            if (!entries.TryGetValue(device.TerminalId, out var entry))
             {
                 entry = new Entry(device);
-                entries[device.DeviceId] = entry;
+                entries[device.TerminalId] = entry;
             }
 
             enabled = entry.Device.IsEnabled;
         }
 
-        Bus.PublishDeviceChanged(device.DeviceId);
+        Bus.PublishDeviceChanged(device.TerminalId);
         return enabled;
     }
 
@@ -261,7 +261,7 @@ public sealed class TelemetryDeviceRegistry
         var minute = CurrentMinute();
         lock (sync)
         {
-            if (!entries.TryGetValue(result.DeviceId, out var entry))
+            if (!entries.TryGetValue(result.TerminalId, out var entry))
             {
                 return;
             }
@@ -289,7 +289,7 @@ public sealed class TelemetryDeviceRegistry
             foreach (var logEntity in result.Logs.Where(static x => x.SeverityNumber >= TelemetrySeverity.Error))
             {
                 entry.AddError(logEntity.TimeUnixNano / NanosecondsPerHour, logEntity.SeverityNumber >= TelemetrySeverity.Fatal);
-                AddRecentError(CreateError(result.DeviceId, logEntity));
+                AddRecentError(CreateError(result.TerminalId, logEntity));
             }
 
             entry.RemoveCounts(hour - CountHours);
@@ -309,41 +309,41 @@ public sealed class TelemetryDeviceRegistry
         {
             lock (sync)
             {
-                entries[device.DeviceId] = new Entry(device);
+                entries[device.TerminalId] = new Entry(device);
             }
 
-            Bus.PublishDeviceChanged(device.DeviceId);
+            Bus.PublishDeviceChanged(device.TerminalId);
         }
 
         return status;
     }
 
-    public async ValueTask<(DeviceEntity Device, bool Created)> RegisterAsync(string deviceId, string name)
+    public async ValueTask<(DeviceEntity Device, bool Created)> RegisterAsync(string terminalId, string name)
     {
-        var device = new DeviceEntity { DeviceId = deviceId, Name = name, IsEnabled = true };
+        var device = new DeviceEntity { TerminalId = terminalId, Name = name, IsEnabled = true };
         var created = await DeviceService.InsertAsync(device) == DataWriteStatus.Success;
         if (created)
         {
-            Log.InfoDeviceRegistered(device.DeviceId, device.Name);
+            Log.InfoDeviceRegistered(device.TerminalId, device.Name);
         }
         else
         {
-            device = await DeviceService.UpdateNameAsync(deviceId, name) ?? device;
+            device = await DeviceService.UpdateNameAsync(terminalId, name) ?? device;
         }
 
         lock (sync)
         {
-            if (entries.TryGetValue(device.DeviceId, out var entry))
+            if (entries.TryGetValue(device.TerminalId, out var entry))
             {
                 entry.Device = device;
             }
             else
             {
-                entries[device.DeviceId] = new Entry(device);
+                entries[device.TerminalId] = new Entry(device);
             }
         }
 
-        Bus.PublishDeviceChanged(device.DeviceId);
+        Bus.PublishDeviceChanged(device.TerminalId);
         return (device, created);
     }
 
@@ -357,49 +357,49 @@ public sealed class TelemetryDeviceRegistry
 
         lock (sync)
         {
-            if (entries.TryGetValue(updated.DeviceId, out var entry))
+            if (entries.TryGetValue(updated.TerminalId, out var entry))
             {
                 entry.Device = updated;
             }
             else
             {
-                entries[updated.DeviceId] = new Entry(updated);
+                entries[updated.TerminalId] = new Entry(updated);
             }
         }
 
-        Bus.PublishDeviceChanged(updated.DeviceId);
+        Bus.PublishDeviceChanged(updated.TerminalId);
         return DataWriteStatus.Success;
     }
 
-    public async ValueTask<DataWriteStatus> DeleteAsync(string deviceId)
+    public async ValueTask<DataWriteStatus> DeleteAsync(string terminalId)
     {
-        await Store.DeleteDeviceAsync(deviceId);
-        var status = await DeviceService.DeleteAsync(deviceId);
+        await Store.DeleteDeviceAsync(terminalId);
+        var status = await DeviceService.DeleteAsync(terminalId);
 
         lock (sync)
         {
-            entries.Remove(deviceId);
-            errors.RemoveAll(x => x.DeviceId == deviceId);
+            entries.Remove(terminalId);
+            errors.RemoveAll(x => x.TerminalId == terminalId);
         }
 
-        Bus.PublishDeviceChanged(deviceId);
+        Bus.PublishDeviceChanged(terminalId);
         return status;
     }
 
-    public void ClearTelemetry(string deviceId)
+    public void ClearTelemetry(string terminalId)
     {
         lock (sync)
         {
-            if (!entries.TryGetValue(deviceId, out var entry))
+            if (!entries.TryGetValue(terminalId, out var entry))
             {
                 return;
             }
 
-            entries[deviceId] = new Entry(entry.Device);
-            errors.RemoveAll(x => x.DeviceId == deviceId);
+            entries[terminalId] = new Entry(entry.Device);
+            errors.RemoveAll(x => x.TerminalId == terminalId);
         }
 
-        Bus.PublishDeviceChanged(deviceId);
+        Bus.PublishDeviceChanged(terminalId);
     }
 
     //--------------------------------------------------------------------------------
@@ -413,16 +413,16 @@ public sealed class TelemetryDeviceRegistry
     private static DeviceEntity CreateDevice(TelemetryDeviceInfoEntity info) =>
         new()
         {
-            DeviceId = info.DeviceId,
-            Name = info.Model.Length > 0 ? info.Model : info.DeviceId,
+            TerminalId = info.TerminalId,
+            Name = info.Model.Length > 0 ? info.Model : info.TerminalId,
             IsEnabled = true
         };
 
-    private static TelemetryErrorEntry CreateError(string deviceId, TelemetryLogEntity entity)
+    private static TelemetryErrorEntry CreateError(string terminalId, TelemetryLogEntity entity)
     {
         var body = entity.Body;
         var index = body.IndexOfAny(['\r', '\n']);
-        return new TelemetryErrorEntry(deviceId, entity.TimeUnixNano, entity.SeverityNumber, index >= 0 ? body[..index] : body);
+        return new TelemetryErrorEntry(terminalId, entity.TimeUnixNano, entity.SeverityNumber, index >= 0 ? body[..index] : body);
     }
 
     private void AddRecentError(TelemetryErrorEntry error)

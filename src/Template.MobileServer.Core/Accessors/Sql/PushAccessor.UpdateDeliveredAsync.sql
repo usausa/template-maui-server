@@ -4,5 +4,5 @@ SET
     DeliveredAt = /*@ deliveredAt */''
 WHERE
     Id = /*@ id */0
-    AND DeviceId = /*@ deviceId */''
+    AND TerminalId = /*@ terminalId */''
     AND DeliveredAt IS NULL

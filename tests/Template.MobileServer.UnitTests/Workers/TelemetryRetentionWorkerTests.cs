@@ -9,7 +9,7 @@ using Template.MobileServer.Web.Workers;
 
 public sealed class TelemetryRetentionWorkerTests : IDisposable
 {
-    private const string DeviceId = "device-1";
+    private const string TerminalId = "device-1";
 
     private readonly TelemetryTestStorage storage = new();
 
@@ -26,7 +26,7 @@ public sealed class TelemetryRetentionWorkerTests : IDisposable
             storage.Registry.Apply(await storage.Store.SaveAsync(CreateBatch()));
         }
 
-        var path = Path.Combine(storage.Root, DeviceId + ".db");
+        var path = Path.Combine(storage.Root, TerminalId + ".db");
         Assert.True(File.Exists(path));
         using var worker = new TelemetryRetentionWorker(NullLogger<TelemetryRetentionWorker>.Instance, TimeProvider.System, new TelemetryRetentionWorkerOption(), storage.Store, storage.Registry);
 
@@ -43,14 +43,13 @@ public sealed class TelemetryRetentionWorkerTests : IDisposable
         Assert.False(File.Exists(path));
         var summary = Assert.Single(storage.Registry.Devices);
         Assert.Null(summary.Info);
-        Assert.NotNull(await storage.DeviceService.QueryAsync(DeviceId));
+        Assert.NotNull(await storage.DeviceService.QueryAsync(TerminalId));
     }
 
     private static TelemetryDeviceInfoEntity CreateInfo() =>
         new()
         {
-            DeviceId = DeviceId,
-            InstallationId = "installation-1",
+            TerminalId = TerminalId,
             Manufacturer = "Google",
             Model = "Pixel 9a",
             OsName = "Android",
@@ -62,7 +61,7 @@ public sealed class TelemetryRetentionWorkerTests : IDisposable
     private static TelemetryBatch CreateBatch() =>
         new()
         {
-            DeviceId = DeviceId,
+            TerminalId = TerminalId,
             DeviceInfo = CreateInfo(),
             Resource = new TelemetryResourceEntity { Hash = "hash-1", ServiceInstanceId = "instance-1", ServiceVersion = "1.0", AttributesJson = "{}" }
         };

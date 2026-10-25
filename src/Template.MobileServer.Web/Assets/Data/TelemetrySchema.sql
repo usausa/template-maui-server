@@ -1,8 +1,7 @@
 PRAGMA journal_mode = WAL;
 
 CREATE TABLE IF NOT EXISTS DeviceInfo (
-    DeviceId              TEXT     NOT NULL,
-    InstallationId        TEXT     NOT NULL,
+    TerminalId            TEXT     NOT NULL,
     Manufacturer          TEXT     NOT NULL,
     Model                 TEXT     NOT NULL,
     OsName                TEXT     NOT NULL,
@@ -11,7 +10,7 @@ CREATE TABLE IF NOT EXISTS DeviceInfo (
     ServiceVersion        TEXT     NOT NULL,
     FirstReceivedAt       INTEGER  NOT NULL,
     LastReceivedAt        INTEGER  NOT NULL,
-    PRIMARY KEY (DeviceId)
+    PRIMARY KEY (TerminalId)
 );
 
 CREATE TABLE IF NOT EXISTS Resource (

@@ -43,9 +43,9 @@ public interface IPushClient
 
 public sealed class PushHub : Hub<IPushClient>
 {
-    public const string DeviceIdParameter = "deviceId";
+    public const string TerminalIdParameter = "terminalId";
 
-    private const string DeviceIdKey = "DeviceId";
+    private const string TerminalIdKey = "TerminalId";
 
     private ILogger<PushHub> Log { get; }
 
@@ -65,24 +65,24 @@ public sealed class PushHub : Hub<IPushClient>
 
     public override async Task OnConnectedAsync()
     {
-        var deviceId = Context.GetHttpContext()?.Request.Query[DeviceIdParameter].ToString();
-        if (!DeviceIdFormat.IsValid(deviceId))
+        var terminalId = Context.GetHttpContext()?.Request.Query[TerminalIdParameter].ToString();
+        if (!TerminalIdFormat.IsValid(terminalId))
         {
-            Log.WarnPushRejected(Context.ConnectionId, deviceId);
+            Log.WarnPushRejected(Context.ConnectionId, terminalId);
             Context.Abort();
             return;
         }
 
-        Context.Items[DeviceIdKey] = deviceId;
+        Context.Items[TerminalIdKey] = terminalId;
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, deviceId, Context.ConnectionAborted);
-        var messages = await PushService.QueryPendingListAsync(deviceId, Context.ConnectionAborted);
+        await Groups.AddToGroupAsync(Context.ConnectionId, terminalId, Context.ConnectionAborted);
+        var messages = await PushService.QueryPendingListAsync(terminalId, Context.ConnectionAborted);
         foreach (var message in messages)
         {
             await Clients.Caller.Receive(message.ToPushMessage());
         }
 
-        Log.InfoPushConnected(Context.ConnectionId, deviceId, messages.Count);
+        Log.InfoPushConnected(Context.ConnectionId, terminalId, messages.Count);
 
         await base.OnConnectedAsync();
     }
@@ -91,7 +91,7 @@ public sealed class PushHub : Hub<IPushClient>
     {
         if (Log.IsEnabled(LogLevel.Information))
         {
-            Log.InfoPushDisconnected(Context.ConnectionId, GetDeviceId(), exception);
+            Log.InfoPushDisconnected(Context.ConnectionId, GetTerminalId(), exception);
         }
 
         return base.OnDisconnectedAsync(exception);
@@ -99,12 +99,12 @@ public sealed class PushHub : Hub<IPushClient>
 
     public async Task Acknowledge(long id)
     {
-        if (GetDeviceId() is { } deviceId)
+        if (GetTerminalId() is { } terminalId)
         {
-            await Notifier.AcknowledgeAsync(deviceId, id);
+            await Notifier.AcknowledgeAsync(terminalId, id);
         }
     }
 
-    private string? GetDeviceId() =>
-        Context.Items.TryGetValue(DeviceIdKey, out var value) ? value as string : null;
+    private string? GetTerminalId() =>
+        Context.Items.TryGetValue(TerminalIdKey, out var value) ? value as string : null;
 }

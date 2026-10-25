@@ -19,8 +19,8 @@ public sealed class DeviceServiceTests : IDisposable
         using var scope = storage.BeginScope(Now);
 
         // Act
-        var first = await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "Pixel 9a", IsEnabled = true });
-        var second = await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "other", IsEnabled = true });
+        var first = await storage.DeviceService.InsertAsync(new DeviceEntity { TerminalId = "device-1", Name = "Pixel 9a", IsEnabled = true });
+        var second = await storage.DeviceService.InsertAsync(new DeviceEntity { TerminalId = "device-1", Name = "other", IsEnabled = true });
 
         // Assert
         Assert.Equal(DataWriteStatus.Success, first);
@@ -37,15 +37,15 @@ public sealed class DeviceServiceTests : IDisposable
         // Arrange
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(Now);
-        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "Pixel 9a", IsEnabled = true });
+        await storage.DeviceService.InsertAsync(new DeviceEntity { TerminalId = "device-1", Name = "Pixel 9a", IsEnabled = true });
 
         // Act / Assert: 更新
-        var updated = await storage.DeviceService.UpdateAsync(new DeviceEntity { DeviceId = "device-1", Name = "受付", GroupName = "1F", Note = "memo", IsEnabled = false });
+        var updated = await storage.DeviceService.UpdateAsync(new DeviceEntity { TerminalId = "device-1", Name = "受付", GroupName = "1F", Note = "memo", IsEnabled = false });
         Assert.NotNull(updated);
         Assert.Equal("受付", updated.Name);
         Assert.Equal("1F", updated.GroupName);
         Assert.False(updated.IsEnabled);
-        Assert.Null(await storage.DeviceService.UpdateAsync(new DeviceEntity { DeviceId = "unknown", Name = "x" }));
+        Assert.Null(await storage.DeviceService.UpdateAsync(new DeviceEntity { TerminalId = "unknown", Name = "x" }));
 
         // Act / Assert: 削除
         Assert.Equal(DataWriteStatus.Success, await storage.DeviceService.DeleteAsync("device-1"));
@@ -58,7 +58,7 @@ public sealed class DeviceServiceTests : IDisposable
         // Arrange
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(Now);
-        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "Pixel 9a", IsEnabled = true });
+        await storage.DeviceService.InsertAsync(new DeviceEntity { TerminalId = "device-1", Name = "Pixel 9a", IsEnabled = true });
         await storage.PushService.InsertAsync("device-1", "件名", "本文");
 
         // Act

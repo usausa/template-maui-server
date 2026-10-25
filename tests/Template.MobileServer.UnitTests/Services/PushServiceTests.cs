@@ -25,7 +25,7 @@ public sealed class PushServiceTests : IDisposable
         var single = await storage.PushService.InsertAsync("device-1", "件名", "本文");
 
         // Assert
-        Assert.Equal(["device-1", "device-3"], all.Select(static x => x.DeviceId).Order(StringComparer.Ordinal));
+        Assert.Equal(["device-1", "device-3"], all.Select(static x => x.TerminalId).Order(StringComparer.Ordinal));
         Assert.Empty(disabled);
         Assert.Empty(unknown);
         var message = Assert.Single(single);
@@ -89,6 +89,6 @@ public sealed class PushServiceTests : IDisposable
         await InsertDeviceAsync("device-3", true);
     }
 
-    private ValueTask<DataWriteStatus> InsertDeviceAsync(string deviceId, bool enabled) =>
-        storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = deviceId, Name = deviceId, IsEnabled = enabled });
+    private ValueTask<DataWriteStatus> InsertDeviceAsync(string terminalId, bool enabled) =>
+        storage.DeviceService.InsertAsync(new DeviceEntity { TerminalId = terminalId, Name = terminalId, IsEnabled = enabled });
 }

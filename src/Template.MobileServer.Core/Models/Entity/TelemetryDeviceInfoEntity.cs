@@ -4,9 +4,7 @@ namespace Template.MobileServer.Models.Entity;
 public sealed class TelemetryDeviceInfoEntity
 {
     [Key]
-    public string DeviceId { get; set; } = default!;
-
-    public string InstallationId { get; set; } = default!;
+    public string TerminalId { get; set; } = default!;
 
     public string Manufacturer { get; set; } = default!;
 

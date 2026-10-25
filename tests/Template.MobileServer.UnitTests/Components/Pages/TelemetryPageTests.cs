@@ -15,7 +15,7 @@ using Template.MobileServer.Web.Components.Pages;
 
 public sealed class TelemetryPageTests : MudBlazorTestBase
 {
-    private const string DeviceId = "device-1";
+    private const string TerminalId = "device-1";
 
     private static readonly string TraceId = new('a', 32);
 
@@ -27,7 +27,7 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         await PrepareAsync(storage);
 
         // Act
-        var cut = Render<TelemetryPage>(parameters => parameters.Add(static x => x.DeviceId, DeviceId));
+        var cut = Render<TelemetryPage>(parameters => parameters.Add(static x => x.TerminalId, TerminalId));
 
         // Assert
         await cut.WaitForAssertionAsync(() => Assert.Equal(["CPU", "メモリ"], cut.FindAll(".chart-title").Select(static x => x.TextContent)));
@@ -43,7 +43,7 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         await PrepareAsync(storage);
 
         // Act
-        var cut = Render<TelemetryPage>(parameters => parameters.Add(static x => x.DeviceId, "unknown"));
+        var cut = Render<TelemetryPage>(parameters => parameters.Add(static x => x.TerminalId, "unknown"));
 
         // Assert
         Assert.Contains("端末が見つかりません。", cut.Markup, StringComparison.Ordinal);
@@ -56,7 +56,7 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         // Arrange
         using var storage = new TelemetryTestStorage();
         await PrepareAsync(storage);
-        var cut = Render<TelemetryPage>(parameters => parameters.Add(static x => x.DeviceId, DeviceId));
+        var cut = Render<TelemetryPage>(parameters => parameters.Add(static x => x.TerminalId, TerminalId));
         await cut.WaitForAssertionAsync(() => Assert.Contains("20%", cut.Find(".chart-legend").TextContent, StringComparison.Ordinal));
 
         // Act
@@ -79,8 +79,8 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         await PrepareAsync(storage);
 
         // Act
-        Services.GetRequiredService<NavigationManager>().NavigateTo($"telemetry/{DeviceId}?tab=traces&trace={TraceId}");
-        var cut = Render<TelemetryPage>(parameters => parameters.Add(static x => x.DeviceId, DeviceId));
+        Services.GetRequiredService<NavigationManager>().NavigateTo($"telemetry/{TerminalId}?tab=traces&trace={TraceId}");
+        var cut = Render<TelemetryPage>(parameters => parameters.Add(static x => x.TerminalId, TerminalId));
 
         // Assert
         await cut.WaitForAssertionAsync(() => Assert.Equal(2, cut.FindAll(".waterfall-row:not(.waterfall-head)").Count));
@@ -96,8 +96,8 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         await PrepareAsync(storage);
 
         // Act
-        Services.GetRequiredService<NavigationManager>().NavigateTo($"telemetry/{DeviceId}?tab=logs&level=error");
-        var cut = Render<TelemetryPage>(parameters => parameters.Add(static x => x.DeviceId, DeviceId));
+        Services.GetRequiredService<NavigationManager>().NavigateTo($"telemetry/{TerminalId}?tab=logs&level=error");
+        var cut = Render<TelemetryPage>(parameters => parameters.Add(static x => x.TerminalId, TerminalId));
         await cut.WaitForAssertionAsync(() => Assert.Single(cut.FindAll("tr.log-row")));
         await cut.Find("tr.log-row").ClickAsync(new MouseEventArgs());
 
@@ -140,11 +140,10 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000;
         var batch = new TelemetryBatch
         {
-            DeviceId = DeviceId,
+            TerminalId = TerminalId,
             DeviceInfo = new TelemetryDeviceInfoEntity
             {
-                DeviceId = DeviceId,
-                InstallationId = "installation-1",
+                TerminalId = TerminalId,
                 Manufacturer = "Google",
                 Model = "Pixel 9a",
                 OsName = "Android",

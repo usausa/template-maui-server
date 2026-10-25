@@ -8,8 +8,8 @@ using Template.MobileServer.Web.Services;
 
 public sealed class PushSendRequest
 {
-    [RegularExpression(DeviceIdFormat.Pattern)]
-    public string? DeviceId { get; set; }
+    [RegularExpression(TerminalIdFormat.Pattern)]
+    public string? TerminalId { get; set; }
 
     [Required]
     [MaxLength(Length.Title)]
@@ -53,8 +53,8 @@ public static class PushEndpoints
         PushNotifier notifier,
         PushSendRequest request)
     {
-        var messages = await notifier.SendAsync(request.DeviceId, request.Title.Trim(), request.Body?.Trim() ?? string.Empty);
-        return (request.DeviceId is not null) && (messages.Count == 0)
+        var messages = await notifier.SendAsync(request.TerminalId, request.Title.Trim(), request.Body?.Trim() ?? string.Empty);
+        return (request.TerminalId is not null) && (messages.Count == 0)
             ? TypedResults.NotFound()
             : TypedResults.Ok(new PushSendResponse { Count = messages.Count });
     }

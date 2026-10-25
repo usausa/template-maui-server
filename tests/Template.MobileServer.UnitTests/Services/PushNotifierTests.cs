@@ -24,8 +24,8 @@ public sealed class PushNotifierTests : IDisposable
         // Arrange
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(Now);
-        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "1", IsEnabled = true });
-        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-2", Name = "2", IsEnabled = true });
+        await storage.DeviceService.InsertAsync(new DeviceEntity { TerminalId = "device-1", Name = "1", IsEnabled = true });
+        await storage.DeviceService.InsertAsync(new DeviceEntity { TerminalId = "device-2", Name = "2", IsEnabled = true });
         var received = new List<(string Group, PushMessage Message)>();
         var clients = Substitute.For<IHubClients<IPushClient>>();
         clients.Group(Arg.Any<string>()).Returns(x =>
@@ -46,7 +46,7 @@ public sealed class PushNotifierTests : IDisposable
         // Assert
         Assert.Equal(2, all.Count);
         Assert.Empty(unknown);
-        Assert.Equal(all.Select(static x => (x.DeviceId, x.Id)), received.Select(static x => (x.Group, x.Message.Id)));
+        Assert.Equal(all.Select(static x => (x.TerminalId, x.Id)), received.Select(static x => (x.Group, x.Message.Id)));
         Assert.All(received, static x => Assert.Equal("件名", x.Message.Title));
     }
 
@@ -56,7 +56,7 @@ public sealed class PushNotifierTests : IDisposable
         // Arrange
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(Now);
-        await storage.DeviceService.InsertAsync(new DeviceEntity { DeviceId = "device-1", Name = "1", IsEnabled = true });
+        await storage.DeviceService.InsertAsync(new DeviceEntity { TerminalId = "device-1", Name = "1", IsEnabled = true });
         var notifier = new PushNotifier(NullLogger<PushNotifier>.Instance, Substitute.For<IHubContext<PushHub, IPushClient>>(), storage.PushService);
         var changed = 0;
         notifier.Changed += (_, _) => changed++;

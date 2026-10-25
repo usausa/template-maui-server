@@ -3,7 +3,7 @@ SELECT
 FROM
     PushMessage
 WHERE
-    DeviceId = /*@ deviceId */''
+    TerminalId = /*@ terminalId */''
     AND DeliveredAt IS NULL
 ORDER BY
     Id

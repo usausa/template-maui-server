@@ -22,7 +22,7 @@ public sealed record TelemetryDeviceSummary(
     int CrashCount);
 
 public sealed record TelemetryErrorEntry(
-    string DeviceId,
+    string TerminalId,
     long TimeUnixNano,
     int SeverityNumber,
     string Body);

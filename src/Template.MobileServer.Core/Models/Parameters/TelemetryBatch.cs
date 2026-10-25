@@ -2,7 +2,7 @@ namespace Template.MobileServer.Models.Parameters;
 
 public sealed class TelemetryBatch
 {
-    public required string DeviceId { get; init; }
+    public required string TerminalId { get; init; }
 
     public required TelemetryDeviceInfoEntity DeviceInfo { get; init; }
 

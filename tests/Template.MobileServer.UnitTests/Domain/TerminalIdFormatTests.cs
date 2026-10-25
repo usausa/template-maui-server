@@ -2,7 +2,7 @@ namespace Template.MobileServer.Domain;
 
 using System.Text.RegularExpressions;
 
-public sealed partial class DeviceIdFormatTests
+public sealed partial class TerminalIdFormatTests
 {
     [Theory]
     [InlineData("4db55dc544d5fec3", true)]
@@ -15,7 +15,7 @@ public sealed partial class DeviceIdFormatTests
     public void IsValidMatchesPattern(string value, bool expected)
     {
         // Act / Assert
-        Assert.Equal(expected, DeviceIdFormat.IsValid(value));
+        Assert.Equal(expected, TerminalIdFormat.IsValid(value));
         Assert.Equal(expected, PatternRegex().IsMatch(value));
     }
 
@@ -23,11 +23,11 @@ public sealed partial class DeviceIdFormatTests
     public void IsValidChecksLength()
     {
         // Act / Assert
-        Assert.True(DeviceIdFormat.IsValid(new string('a', 64)));
-        Assert.False(DeviceIdFormat.IsValid(new string('a', 65)));
+        Assert.True(TerminalIdFormat.IsValid(new string('a', 64)));
+        Assert.False(TerminalIdFormat.IsValid(new string('a', 65)));
         Assert.DoesNotMatch(PatternRegex(), new string('a', 65));
     }
 
-    [GeneratedRegex(DeviceIdFormat.Pattern)]
+    [GeneratedRegex(TerminalIdFormat.Pattern)]
     private static partial Regex PatternRegex();
 }

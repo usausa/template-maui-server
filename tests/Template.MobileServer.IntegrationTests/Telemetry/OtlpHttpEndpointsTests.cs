@@ -21,7 +21,7 @@ public sealed class OtlpHttpEndpointsTests : IClassFixture<ServerFixture>
     }
 
     [Fact]
-    public async Task LogsWithDeviceIdAreAccepted()
+    public async Task LogsWithTerminalIdAreAccepted()
     {
         // Arrange
         using var client = Fixture.CreateOtelHttpClient();
@@ -37,7 +37,7 @@ public sealed class OtlpHttpEndpointsTests : IClassFixture<ServerFixture>
     }
 
     [Fact]
-    public async Task LogsWithoutDeviceIdAreRejected()
+    public async Task LogsWithoutTerminalIdAreRejected()
     {
         // Arrange
         using var client = Fixture.CreateOtelHttpClient();
@@ -67,13 +67,13 @@ public sealed class OtlpHttpEndpointsTests : IClassFixture<ServerFixture>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    private static ExportLogsServiceRequest CreateLogsRequest(string? deviceId)
+    private static ExportLogsServiceRequest CreateLogsRequest(string? terminalId)
     {
         var resource = new Resource();
         resource.Attributes.Add(new KeyValue { Key = "service.name", Value = new AnyValue { StringValue = "Template.MobileApp" } });
-        if (deviceId is not null)
+        if (terminalId is not null)
         {
-            resource.Attributes.Add(new KeyValue { Key = "device.id", Value = new AnyValue { StringValue = deviceId } });
+            resource.Attributes.Add(new KeyValue { Key = "app.installation.id", Value = new AnyValue { StringValue = terminalId } });
         }
 
         var scopeLogs = new ScopeLogs();

@@ -24,7 +24,7 @@ public sealed class DeviceRegistryTests
         var entry = Assert.Single(registry.Entries);
         Assert.Equal("c1", entry.ConnectionId);
         Assert.Equal(Now, entry.ConnectedAt);
-        Assert.Null(entry.DeviceId);
+        Assert.Null(entry.TerminalId);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public sealed class DeviceRegistryTests
         registry.Register("c1", Now);
         var status = new DeviceStatusMessage
         {
-            DeviceId = "device-1",
+            TerminalId = "device-1",
             Model = "Pixel 9a",
             Platform = "Android 16",
             Battery = 0.75,
@@ -49,7 +49,7 @@ public sealed class DeviceRegistryTests
         // Assert
         Assert.True(updated);
         var entry = Assert.Single(registry.Entries);
-        Assert.Equal("device-1", entry.DeviceId);
+        Assert.Equal("device-1", entry.TerminalId);
         Assert.Equal("Pixel 9a", entry.Model);
         Assert.Equal(0.75, entry.Battery);
         Assert.Equal(Now.AddSeconds(10), entry.LastReceivedAt);

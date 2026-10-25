@@ -63,7 +63,7 @@ public sealed partial class DeviceEditDialog
     private static DeviceEntity ToEntity(DeviceForm form) =>
         new()
         {
-            DeviceId = form.DeviceId,
+            TerminalId = form.TerminalId,
             Name = form.Name.Trim(),
             GroupName = String.IsNullOrWhiteSpace(form.GroupName) ? null : form.GroupName.Trim(),
             Note = String.IsNullOrWhiteSpace(form.Note) ? null : form.Note.Trim(),
@@ -76,7 +76,7 @@ public sealed partial class DeviceEditDialog
 
     internal sealed class DeviceForm
     {
-        public string DeviceId { get; set; } = string.Empty;
+        public string TerminalId { get; set; } = string.Empty;
 
         public string Name { get; set; } = string.Empty;
 
@@ -91,11 +91,11 @@ public sealed partial class DeviceEditDialog
     {
         public DeviceFormValidator()
         {
-            RuleFor(static x => x.DeviceId)
+            RuleFor(static x => x.TerminalId)
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("端末 ID を入力してください。")
-                .MaximumLength(Length.DeviceId).WithMessage($"端末 ID は{Length.DeviceId}文字以内で入力してください。")
-                .Must(DeviceIdFormat.IsValid).WithMessage("端末 ID は英数字・'-'・'_' で入力してください。");
+                .MaximumLength(Length.TerminalId).WithMessage($"端末 ID は{Length.TerminalId}文字以内で入力してください。")
+                .Must(TerminalIdFormat.IsValid).WithMessage("端末 ID は英数字・'-'・'_' で入力してください。");
             RuleFor(static x => x.Name)
                 .NotEmpty().WithMessage("名前を入力してください。")
                 .MaximumLength(Length.Name).WithMessage($"名前は{Length.Name}文字以内で入力してください。");

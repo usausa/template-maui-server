@@ -10,7 +10,6 @@ using OpenTelemetry.Proto.Resource.V1;
 public static class OtlpHelper
 {
     private const string ServiceNameKey = "service.name";
-    private const string DeviceIdKey = "device.id";
     private const string InstallationIdKey = "app.installation.id";
 
     //--------------------------------------------------------------------------------
@@ -20,8 +19,8 @@ public static class OtlpHelper
     public static string GetServiceName(this Resource? resource) =>
         FindString(resource, ServiceNameKey) ?? string.Empty;
 
-    public static string GetDeviceId(this Resource? resource) =>
-        FindString(resource, DeviceIdKey) ?? FindString(resource, InstallationIdKey) ?? string.Empty;
+    public static string GetTerminalId(this Resource? resource) =>
+        FindString(resource, InstallationIdKey) ?? string.Empty;
 
     public static string GetString(this Resource? resource, string key) =>
         FindString(resource, key) ?? string.Empty;

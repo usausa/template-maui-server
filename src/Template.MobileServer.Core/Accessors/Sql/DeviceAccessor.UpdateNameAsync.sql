@@ -3,6 +3,6 @@ UPDATE
 SET
     Name = /*@ name */''
 WHERE
-    DeviceId = /*@ deviceId */''
+    TerminalId = /*@ terminalId */''
 RETURNING
     *

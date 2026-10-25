@@ -4,9 +4,9 @@ public interface ITelemetryDbProvider
 {
     IReadOnlyList<string> EnumerateDevices();
 
-    ValueTask<DbConnection> OpenAsync(string deviceId, CancellationToken cancellationToken = default);
+    ValueTask<DbConnection> OpenAsync(string terminalId, CancellationToken cancellationToken = default);
 
-    ValueTask<DbConnection?> OpenExistingAsync(string deviceId, CancellationToken cancellationToken = default);
+    ValueTask<DbConnection?> OpenExistingAsync(string terminalId, CancellationToken cancellationToken = default);
 
-    bool Delete(string deviceId);
+    bool Delete(string terminalId);
 }
