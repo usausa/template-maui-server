@@ -112,12 +112,10 @@ public sealed partial class FilesPage
             if (await Storage.DirectoryExistsAsync(currentPath))
             {
                 var list = await Storage.ListEntriesAsync(currentPath);
-#pragma warning disable IDE0028
                 entries = list
                     .OrderByDescending(static x => x.IsDirectory)
                     .ThenBy(static x => x.Name, StringComparer.OrdinalIgnoreCase)
                     .ToList();
-#pragma warning restore IDE0028
             }
             else
             {
