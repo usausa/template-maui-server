@@ -23,9 +23,17 @@ public sealed class DeviceRegistry
 
     public event EventHandler? Changed;
 
+    //--------------------------------------------------------------------------------
+    // Query
+    //--------------------------------------------------------------------------------
+
     public int Count => entries.Count;
 
     public IReadOnlyList<DeviceEntry> Entries => entries.Values.OrderBy(static x => x.ConnectedAt).ToArray();
+
+    //--------------------------------------------------------------------------------
+    // Write
+    //--------------------------------------------------------------------------------
 
     public void Register(string connectionId, DateTimeOffset now, Action? abort = null)
     {
@@ -71,6 +79,10 @@ public sealed class DeviceRegistry
         Changed?.Invoke(this, EventArgs.Empty);
         return true;
     }
+
+    //--------------------------------------------------------------------------------
+    // Connection
+    //--------------------------------------------------------------------------------
 
     public bool Disconnect(string connectionId)
     {

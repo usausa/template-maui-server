@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Domain;
+namespace Template.MobileServer.Domain.Formats;
 
 using System.Text.RegularExpressions;
 

@@ -1,8 +1,8 @@
 namespace Template.MobileServer.Services;
 
 using Template.MobileServer.Accessors;
-using Template.MobileServer.Models;
 using Template.MobileServer.Models.Entity;
+using Template.MobileServer.Models.Results;
 
 public sealed class DataService
 {
@@ -21,6 +21,10 @@ public sealed class DataService
         DataAccessor = dataAccessor;
         ContextProvider = contextProvider;
     }
+
+    //--------------------------------------------------------------------------------
+    // Query
+    //--------------------------------------------------------------------------------
 
     public ValueTask<int> CountAsync(string? name, CancellationToken cancellationToken = default) =>
         DataAccessor.CountAsync(Dialect.Match(name), cancellationToken);
@@ -46,6 +50,10 @@ public sealed class DataService
     public ValueTask<DataEntity?> QueryAsync(long id) =>
         DataAccessor.QueryAsync(id);
 
+    //--------------------------------------------------------------------------------
+    // Write
+    //--------------------------------------------------------------------------------
+
     public async ValueTask<DataWriteStatus> InsertAsync(DataEntity entity)
     {
         var context = ContextProvider.Current;
@@ -62,11 +70,11 @@ public sealed class DataService
         }
     }
 
-    public async ValueTask<DataWriteStatus> UpdateAsync(long id, string name, int value)
+    public async ValueTask<DataWriteStatus> UpdateAsync(DataEntity entity)
     {
         try
         {
-            var rows = await DataAccessor.UpdateAsync(id, name, value);
+            var rows = await DataAccessor.UpdateAsync(entity);
             return rows > 0 ? DataWriteStatus.Success : DataWriteStatus.NotFound;
         }
         catch (DbException ex) when (Dialect.IsDuplicate(ex))

@@ -7,13 +7,13 @@ INSERT INTO MetricSeries (
     IsMonotonic,
     AttributesJson
 ) VALUES (
-    /*@ name */'',
-    /*@ scopeName */'',
-    /*@ unit */'',
-    /*@ kind */'Gauge',
-    /*@ temporality */'Unspecified',
-    /*@ isMonotonic */0,
-    /*@ attributesJson */''
+    /*@ entity.Name */'',
+    /*@ entity.ScopeName */'',
+    /*@ entity.Unit */'',
+    /*@ entity.Kind */'Gauge',
+    /*@ entity.Temporality */'Unspecified',
+    /*@ entity.IsMonotonic */0,
+    /*@ entity.AttributesJson */''
 )
 RETURNING
     Id

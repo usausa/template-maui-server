@@ -16,6 +16,10 @@ public sealed class DatabaseService
         GenericAccessor = genericAccessor;
     }
 
+    //--------------------------------------------------------------------------------
+    // Initialize
+    //--------------------------------------------------------------------------------
+
     public async ValueTask InitializeAsync(string schemaPath)
     {
         var schema = await File.ReadAllTextAsync(schemaPath);

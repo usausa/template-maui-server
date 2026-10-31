@@ -1,6 +1,6 @@
-namespace Template.MobileServer.Models.Views;
+namespace Template.MobileServer.Models.Results;
 
-public sealed record TelemetryDeviceSummaryView(
+public sealed record TelemetryDeviceSummaryResult(
     TelemetryDeviceInfoEntity DeviceInfo,
     IReadOnlyList<TelemetryLatestValueView> LatestValues,
     IReadOnlyList<TelemetryLogSummaryView> LogSummary,

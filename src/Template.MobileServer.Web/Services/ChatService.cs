@@ -20,6 +20,10 @@ public sealed class ChatService
 
     public event EventHandler<ChatEntryEventArgs>? Received;
 
+    //--------------------------------------------------------------------------------
+    // Query
+    //--------------------------------------------------------------------------------
+
     public IReadOnlyList<ChatEntry> History
     {
         get
@@ -30,6 +34,10 @@ public sealed class ChatService
             }
         }
     }
+
+    //--------------------------------------------------------------------------------
+    // Write
+    //--------------------------------------------------------------------------------
 
     public void Publish(string user, string text, DateTimeOffset timestamp)
     {

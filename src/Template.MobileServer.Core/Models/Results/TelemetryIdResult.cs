@@ -1,5 +1,5 @@
-namespace Template.MobileServer.Models.Views;
+namespace Template.MobileServer.Models.Results;
 
-public sealed record TelemetryIdView(
+public sealed record TelemetryIdResult(
     IReadOnlyList<TelemetryResourceEntity> Resources,
     IReadOnlyList<TelemetryMetricSeriesEntity> Series);

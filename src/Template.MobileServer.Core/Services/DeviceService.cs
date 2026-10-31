@@ -24,11 +24,19 @@ public sealed class DeviceService
         ContextProvider = contextProvider;
     }
 
+    //--------------------------------------------------------------------------------
+    // Query
+    //--------------------------------------------------------------------------------
+
     public ValueTask<List<DeviceEntity>> QueryAllAsync(CancellationToken cancellationToken = default) =>
         DeviceAccessor.QueryAllAsync(cancellationToken);
 
     public ValueTask<DeviceEntity?> QueryAsync(string terminalId) =>
         DeviceAccessor.QueryAsync(terminalId);
+
+    //--------------------------------------------------------------------------------
+    // Write
+    //--------------------------------------------------------------------------------
 
     public async ValueTask<DataWriteStatus> InsertAsync(DeviceEntity entity)
     {
@@ -40,7 +48,7 @@ public sealed class DeviceService
     }
 
     public ValueTask<DeviceEntity?> UpdateAsync(DeviceEntity entity) =>
-        DeviceAccessor.UpdateAsync(entity.TerminalId, entity.Name, entity.GroupName, entity.Note, entity.IsEnabled);
+        DeviceAccessor.UpdateAsync(entity);
 
     public ValueTask<DeviceEntity?> UpdateNameAsync(string terminalId, string name) =>
         DeviceAccessor.UpdateNameAsync(terminalId, name);

@@ -4,8 +4,9 @@ namespace Template.MobileServer.Accessors;
 [ExecuteConfig(typeof(DataProfile))]
 public sealed partial class PushAccessor
 {
-    [Query]
-    public partial ValueTask<List<PushMessageEntity>> InsertAsync(string? terminalId, string title, string body, DateTime createdAt);
+    //--------------------------------------------------------------------------------
+    // Query
+    //--------------------------------------------------------------------------------
 
     [Query]
     public partial ValueTask<List<PushMessageEntity>> QueryPendingListAsync(string terminalId, CancellationToken cancellationToken);
@@ -13,12 +14,23 @@ public sealed partial class PushAccessor
     [Query]
     public partial ValueTask<List<PushPendingSummaryView>> QueryPendingSummaryAsync(CancellationToken cancellationToken);
 
+    //--------------------------------------------------------------------------------
+    // Write
+    //--------------------------------------------------------------------------------
+
+    [Query]
+    public partial ValueTask<List<PushMessageEntity>> InsertAsync(string? terminalId, string title, string body, DateTime createdAt);
+
     [Execute]
     public partial ValueTask<int> UpdateDeliveredAsync(long id, string terminalId, DateTime deliveredAt);
 
     [Execute]
-    public partial ValueTask<int> DeleteBeforeAsync(DateTime before);
+    public partial ValueTask<int> DeleteByDeviceAsync(DbTransaction tx, string terminalId);
+
+    //--------------------------------------------------------------------------------
+    // Retention
+    //--------------------------------------------------------------------------------
 
     [Execute]
-    public partial ValueTask<int> DeleteByDeviceAsync(DbTransaction tx, string terminalId);
+    public partial ValueTask<int> DeleteBeforeAsync(DateTime before);
 }

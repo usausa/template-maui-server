@@ -2,7 +2,7 @@ namespace Template.MobileServer.Components.Telemetry;
 
 using Bunit;
 
-using Template.MobileServer.Domain;
+using Template.MobileServer.Domain.Consts;
 using Template.MobileServer.Models.Entity;
 using Template.MobileServer.Web.Components.Telemetry;
 

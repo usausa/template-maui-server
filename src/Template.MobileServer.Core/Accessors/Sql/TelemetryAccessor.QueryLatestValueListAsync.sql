@@ -1,18 +1,18 @@
 SELECT
-    s.Name,
-    s.AttributesJson,
-    p.TimeUnixNano,
-    p.Value
+    T.Name,
+    T.AttributesJson,
+    T1.TimeUnixNano,
+    T1.Value
 FROM
-    MetricSeries s
-    JOIN MetricPoint p ON p.SeriesId = s.Id
+    MetricSeries T
+    JOIN MetricPoint T1 ON T1.SeriesId = T.Id
 WHERE
-    s.Name IN /*@ names */('')
-    AND p.TimeUnixNano = (
+    T.Name IN /*@ names */('')
+    AND T1.TimeUnixNano = (
         SELECT
             MAX(TimeUnixNano)
         FROM
             MetricPoint
         WHERE
-            SeriesId = s.Id
+            SeriesId = T.Id
     )

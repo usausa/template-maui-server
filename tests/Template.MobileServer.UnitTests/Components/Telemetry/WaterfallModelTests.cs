@@ -1,6 +1,6 @@
 namespace Template.MobileServer.Components.Telemetry;
 
-using Template.MobileServer.Domain;
+using Template.MobileServer.Domain.Consts;
 using Template.MobileServer.Models.Entity;
 using Template.MobileServer.Web.Components.Telemetry;
 
@@ -35,15 +35,15 @@ public sealed class WaterfallModelTests
         // Arrange
         var model = new WaterfallModel(Spans);
 
-        // Act / Assert: 子を閉じる
+        // Act / Assert
         model.Toggle("c");
         Assert.Equal(["Root", "Child1", "Child2", "Orphan"], model.VisibleRows.Select(static x => x.Span.Name));
 
-        // Act / Assert: 親も閉じる
+        // Act / Assert
         model.Toggle("a");
         Assert.Equal(["Root", "Orphan"], model.VisibleRows.Select(static x => x.Span.Name));
 
-        // Act / Assert: 読み直し
+        // Act / Assert
         var reloaded = new WaterfallModel(Spans, model.CollapsedSpans);
         reloaded.Toggle("a");
         Assert.Equal(["Root", "Child1", "Child2", "Orphan"], reloaded.VisibleRows.Select(static x => x.Span.Name));

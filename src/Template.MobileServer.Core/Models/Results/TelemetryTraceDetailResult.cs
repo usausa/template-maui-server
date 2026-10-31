@@ -1,6 +1,6 @@
-namespace Template.MobileServer.Models.Views;
+namespace Template.MobileServer.Models.Results;
 
-public sealed record TelemetryTraceDetailView(
+public sealed record TelemetryTraceDetailResult(
     TelemetryTraceEntity Trace,
     IReadOnlyList<TelemetrySpanEntity> Spans,
     IReadOnlyList<TelemetryLogEntity> Logs,

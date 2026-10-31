@@ -17,8 +17,16 @@ public sealed class SettingService
         ContextProvider = contextProvider;
     }
 
+    //--------------------------------------------------------------------------------
+    // Query
+    //--------------------------------------------------------------------------------
+
     public ValueTask<List<SettingEntity>> QueryAllAsync(CancellationToken cancellationToken = default) =>
         SettingAccessor.QueryAllAsync(cancellationToken);
+
+    //--------------------------------------------------------------------------------
+    // Write
+    //--------------------------------------------------------------------------------
 
     public ValueTask<int> UpdateAsync(string key, string? value)
     {

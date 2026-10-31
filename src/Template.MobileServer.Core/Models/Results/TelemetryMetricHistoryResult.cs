@@ -1,5 +1,5 @@
-namespace Template.MobileServer.Models.Views;
+namespace Template.MobileServer.Models.Results;
 
-public sealed record TelemetryMetricHistoryView(
+public sealed record TelemetryMetricHistoryResult(
     IReadOnlyList<TelemetryMetricSeriesEntity> Series,
     IReadOnlyList<TelemetryMetricBucketView> Buckets);

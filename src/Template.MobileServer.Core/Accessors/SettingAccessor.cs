@@ -4,8 +4,16 @@ namespace Template.MobileServer.Accessors;
 [ExecuteConfig(typeof(DataProfile))]
 public sealed partial class SettingAccessor
 {
+    //--------------------------------------------------------------------------------
+    // Query
+    //--------------------------------------------------------------------------------
+
     [Query]
     public partial ValueTask<List<SettingEntity>> QueryAllAsync(CancellationToken cancellationToken);
+
+    //--------------------------------------------------------------------------------
+    // Write
+    //--------------------------------------------------------------------------------
 
     [Execute]
     public partial ValueTask<int> UpsertAsync(string key, string value, DateTime updatedAt);

@@ -14,19 +14,19 @@ INSERT INTO Span (
     EventsJson,
     LinksJson
 ) VALUES (
-    /*@ traceId */'',
-    /*@ spanId */'',
-    /*@ parentSpanId */'',
-    /*@ name */'',
-    /*@ kind */'Internal',
-    /*@ startTimeUnixNano */0,
-    /*@ endTimeUnixNano */0,
-    /*@ statusCode */'Unset',
-    /*@ statusMessage */'',
-    /*@ scopeName */'',
-    /*@ resourceId */0,
-    /*@ attributesJson */'',
-    /*@ eventsJson */NULL,
-    /*@ linksJson */NULL
+    /*@ entity.TraceId */'',
+    /*@ entity.SpanId */'',
+    /*@ entity.ParentSpanId */'',
+    /*@ entity.Name */'',
+    /*@ entity.Kind */'Internal',
+    /*@ entity.StartTimeUnixNano */0,
+    /*@ entity.EndTimeUnixNano */0,
+    /*@ entity.StatusCode */'Unset',
+    /*@ entity.StatusMessage */'',
+    /*@ entity.ScopeName */'',
+    /*@ entity.ResourceId */0,
+    /*@ entity.AttributesJson */'',
+    /*@ entity.EventsJson */NULL,
+    /*@ entity.LinksJson */NULL
 )
 ON CONFLICT (TraceId, SpanId) DO NOTHING

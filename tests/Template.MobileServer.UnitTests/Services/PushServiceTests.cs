@@ -45,10 +45,10 @@ public sealed class PushServiceTests : IDisposable
         var first = Assert.Single(await storage.PushService.InsertAsync("device-1", "1", string.Empty));
         var second = Assert.Single(await storage.PushService.InsertAsync("device-1", "2", string.Empty));
 
-        // Act / Assert: 未達は古い順
+        // Act / Assert
         Assert.Equal([first.Id, second.Id], (await storage.PushService.QueryPendingListAsync("device-1", cancellationToken)).Select(static x => x.Id));
 
-        // Act / Assert: 応答
+        // Act / Assert
         Assert.False(await storage.PushService.UpdateDeliveredAsync("device-3", first.Id));
         Assert.True(await storage.PushService.UpdateDeliveredAsync("device-1", first.Id));
         Assert.False(await storage.PushService.UpdateDeliveredAsync("device-1", first.Id));

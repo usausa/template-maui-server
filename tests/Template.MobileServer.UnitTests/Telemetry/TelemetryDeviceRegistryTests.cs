@@ -1,6 +1,6 @@
 namespace Template.MobileServer.Telemetry;
 
-using Template.MobileServer.Domain;
+using Template.MobileServer.Domain.Consts;
 using Template.MobileServer.Models.Entity;
 using Template.MobileServer.Models.Parameters;
 using Template.MobileServer.Services;
@@ -22,14 +22,14 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         var changed = new List<string>();
         storage.Bus.DeviceChanged += (_, e) => changed.Add(e.TerminalId);
 
-        // Act / Assert: 登録
+        // Act / Assert
         Assert.True(await storage.Registry.EnsureRegisteredAsync(CreateInfo()));
         var device = await storage.DeviceService.QueryAsync(TerminalId);
         Assert.NotNull(device);
         Assert.Equal("Pixel 9a", device.Name);
         Assert.Equal([TerminalId], changed);
 
-        // Act / Assert: 無効にする
+        // Act / Assert
         device.IsEnabled = false;
         Assert.Equal(DataWriteStatus.Success, await storage.Registry.UpdateAsync(device));
         Assert.False(await storage.Registry.EnsureRegisteredAsync(CreateInfo()));
@@ -131,13 +131,13 @@ public sealed class TelemetryDeviceRegistryTests : IDisposable
         await storage.PrepareDatabaseAsync();
         using var scope = storage.BeginScope(DateTimeOffset.Now);
 
-        // Act / Assert: 登録
+        // Act / Assert
         var (device, created) = await storage.Registry.RegisterAsync(TerminalId, "受付");
         Assert.True(created);
         Assert.True(device.IsEnabled);
         Assert.Equal("受付", device.Name);
 
-        // Act / Assert: 管理画面でグループを付けて無効にした後、端末から名前を変える
+        // Act / Assert
         device.GroupName = "1F";
         device.IsEnabled = false;
         await storage.Registry.UpdateAsync(device);

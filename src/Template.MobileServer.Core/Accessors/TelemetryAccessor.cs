@@ -40,7 +40,7 @@ public sealed partial class TelemetryAccessor
     public partial ValueTask<List<TelemetryMetricSeriesEntity>> QueryMetricSeriesAllAsync(DbConnection con, CancellationToken cancellationToken);
 
     [ExecuteScalar]
-    public partial ValueTask<long> InsertMetricSeriesAsync(DbTransaction tx, string name, string scopeName, string unit, string kind, string temporality, bool isMonotonic, string attributesJson);
+    public partial ValueTask<long> InsertMetricSeriesAsync(DbTransaction tx, TelemetryMetricSeriesEntity entity);
 
     [Execute]
     public partial ValueTask<int> InsertMetricPointAsync(DbTransaction tx, TelemetryMetricPointEntity entity);
@@ -56,7 +56,7 @@ public sealed partial class TelemetryAccessor
     //--------------------------------------------------------------------------------
 
     [Execute]
-    public partial ValueTask<int> InsertSpanAsync(DbTransaction tx, string traceId, string spanId, string parentSpanId, string name, string kind, long startTimeUnixNano, long endTimeUnixNano, string statusCode, string statusMessage, string scopeName, long resourceId, string attributesJson, string? eventsJson, string? linksJson);
+    public partial ValueTask<int> InsertSpanAsync(DbTransaction tx, TelemetrySpanEntity entity);
 
     [Execute]
     public partial ValueTask<int> UpsertTraceAsync(DbTransaction tx, string traceId);

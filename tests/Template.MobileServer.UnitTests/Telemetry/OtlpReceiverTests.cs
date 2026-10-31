@@ -160,7 +160,7 @@ public sealed class OtlpReceiverTests : IDisposable
     [Fact]
     public async Task ReceiveThrowsStorageError()
     {
-        // Arrange: the database file cannot be opened
+        // Arrange
         await storage.PrepareDatabaseAsync();
         Directory.CreateDirectory(Path.Combine(storage.Root, TerminalId + ".db"));
         var logger = CreateLogger<OtlpReceiver>();

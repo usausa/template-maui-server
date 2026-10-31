@@ -9,9 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Smart.Data;
 
 using Template.MobileServer.Accessors;
-using Template.MobileServer.Infrastructure.Telemetry;
+using Template.MobileServer.Infrastructure.Data;
 using Template.MobileServer.Services;
 using Template.MobileServer.Web.Application.Context;
+using Template.MobileServer.Web.Infrastructure.Data;
 using Template.MobileServer.Web.Telemetry;
 
 public sealed class TelemetryTestStorage : IDisposable
@@ -38,7 +39,7 @@ public sealed class TelemetryTestStorage : IDisposable
 
     public TelemetryDeviceRegistry Registry => provider.GetRequiredService<TelemetryDeviceRegistry>();
 
-    public ITelemetryDbProvider DbProvider => provider.GetRequiredService<ITelemetryDbProvider>();
+    public IShardDbProvider DbProvider => provider.GetRequiredService<IShardDbProvider>();
 
     public TelemetryTestStorage()
     {
@@ -55,8 +56,7 @@ public sealed class TelemetryTestStorage : IDisposable
         services.AddSingleton<IDbProvider>(new DelegateDbProvider(() => new SqliteConnection(connectionString)));
         services.AddSingleton<IDialect>(new DelegateDialect(static _ => false, static x => Regex.Replace(x, @"[%_\\]", @"\$0")));
         services.AddDataAccessors(typeof(TelemetryAccessor).Assembly);
-        services.AddSingleton(new TelemetryStorageOption { Root = Root });
-        services.AddSingleton<ITelemetryDbProvider, SqliteTelemetryDbProvider>();
+        services.AddSingleton<IShardDbProvider>(new SqliteShardDbProvider(new SqliteShardDbProviderOption { Root = Root, CacheSize = 256 }));
         services.AddSingleton<ApplicationServiceContextProvider>();
         services.AddSingleton<ServiceContextProvider>(static p => p.GetRequiredService<ApplicationServiceContextProvider>());
         services.AddSingleton<DatabaseService>();

@@ -1,11 +1,11 @@
 UPDATE
     Device
 SET
-    Name = /*@ name */'',
-    GroupName = /*@ groupName */NULL,
-    Note = /*@ note */NULL,
-    IsEnabled = /*@ isEnabled */1
+    Name = /*@ entity.Name */'',
+    GroupName = /*@ entity.GroupName */NULL,
+    Note = /*@ entity.Note */NULL,
+    IsEnabled = /*@ entity.IsEnabled */1
 WHERE
-    TerminalId = /*@ terminalId */''
+    TerminalId = /*@ entity.TerminalId */''
 RETURNING
     *

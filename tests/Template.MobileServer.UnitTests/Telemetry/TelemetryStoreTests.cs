@@ -1,6 +1,6 @@
 namespace Template.MobileServer.Telemetry;
 
-using Template.MobileServer.Domain;
+using Template.MobileServer.Domain.Consts;
 using Template.MobileServer.Models.Entity;
 using Template.MobileServer.Models.Parameters;
 

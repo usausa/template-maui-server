@@ -1,7 +1,7 @@
 UPDATE
     Data
 SET
-    Name = /*@ name */'',
-    Value = /*@ value */0
+    Name = /*@ entity.Name */'',
+    Value = /*@ entity.Value */0
 WHERE
-    Id = /*@ id */0
+    Id = /*@ entity.Id */0

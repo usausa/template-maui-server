@@ -1,8 +1,9 @@
 namespace Template.MobileServer.Components.Telemetry;
 
-using Template.MobileServer.Domain;
+using Template.MobileServer.Domain.Consts;
 using Template.MobileServer.Models.Entity;
 using Template.MobileServer.Models.Parameters;
+using Template.MobileServer.Models.Results;
 using Template.MobileServer.Models.Views;
 using Template.MobileServer.Web.Components.Telemetry;
 
@@ -17,7 +18,7 @@ public sealed class MetricChartModelTests
     {
         // Arrange
         var model = new MetricChartModel(Minute);
-        var history = new TelemetryMetricHistoryView(
+        var history = new TelemetryMetricHistoryResult(
             [
                 CreateSeries(1, "custom.metric", TelemetryMetricKind.Gauge, "{item}"),
                 CreateSeries(2, "process.cpu.utilization", TelemetryMetricKind.Gauge, "1"),
@@ -57,7 +58,7 @@ public sealed class MetricChartModelTests
     {
         // Arrange
         var model = new MetricChartModel(Minute);
-        var history = new TelemetryMetricHistoryView(
+        var history = new TelemetryMetricHistoryResult(
             [
                 CreateSeries(1, "application.custom.value10", TelemetryMetricKind.Gauge, string.Empty),
                 CreateSeries(2, "custom.metric", TelemetryMetricKind.Gauge, "{item}"),
@@ -87,7 +88,7 @@ public sealed class MetricChartModelTests
         // Arrange
         var cpu = CreateSeries(1, "process.cpu.utilization", TelemetryMetricKind.Gauge, "1");
         var model = new MetricChartModel(Minute);
-        model.Load(new TelemetryMetricHistoryView([cpu], [new TelemetryMetricBucketView(1, 0, 1, 1, 0.2, 0, null, null, null, 10 * Second)]));
+        model.Load(new TelemetryMetricHistoryResult([cpu], [new TelemetryMetricBucketView(1, 0, 1, 1, 0.2, 0, null, null, null, 10 * Second)]));
 
         // Act
         var added = model.Add(
@@ -114,7 +115,7 @@ public sealed class MetricChartModelTests
     {
         // Arrange
         var model = new MetricChartModel(Minute);
-        model.Load(new TelemetryMetricHistoryView(
+        model.Load(new TelemetryMetricHistoryResult(
             [CreateSeries(1, "process.cpu.utilization", TelemetryMetricKind.Gauge, "1")],
             [
                 new TelemetryMetricBucketView(1, 0, 1, 1, 0.1, 0, null, null, null, 0),

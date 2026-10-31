@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Domain;
+namespace Template.MobileServer.Domain.Consts;
 
 public static class TelemetrySeverity
 {

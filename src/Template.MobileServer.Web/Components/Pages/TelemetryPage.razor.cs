@@ -67,7 +67,7 @@ public sealed partial class TelemetryPage
 
     private int detailVersion;
 
-    private TelemetryTraceDetailView? traceDetail;
+    private TelemetryTraceDetailResult? traceDetail;
 
     private WaterfallModel? waterfall;
 

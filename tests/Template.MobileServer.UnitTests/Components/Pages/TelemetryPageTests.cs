@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
-using Template.MobileServer.Domain;
+using Template.MobileServer.Domain.Consts;
 
 using Template.MobileServer.Models.Entity;
 using Template.MobileServer.Models.Parameters;
@@ -104,7 +104,7 @@ public sealed class TelemetryPageTests : MudBlazorTestBase
         // Assert
         await cut.WaitForAssertionAsync(() => Assert.Contains("at Main", cut.Find(".stack-trace").TextContent, StringComparison.Ordinal));
 
-        // Act: 受信
+        // Act
         using (storage.BeginScope(DateTimeOffset.Now))
         {
             var batch = CreateBatch(0.3);

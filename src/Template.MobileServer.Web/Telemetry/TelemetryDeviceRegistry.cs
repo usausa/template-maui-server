@@ -156,7 +156,7 @@ public sealed class TelemetryDeviceRegistry
         var recent = new List<TelemetryErrorEntry>();
         foreach (var terminalId in Store.EnumerateDevices())
         {
-            TelemetryDeviceSummaryView? summary;
+            TelemetryDeviceSummaryResult? summary;
             try
             {
                 summary = await TelemetryService.QuerySummaryAsync(terminalId, LatestNames, since, ErrorLimit, cancellationToken);

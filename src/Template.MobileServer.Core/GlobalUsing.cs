@@ -34,8 +34,10 @@ global using Smart.Text;
 
 // ReSharper disable MissingBlankLines
 global using Template.MobileServer.Domain;
-global using Template.MobileServer.Models;
+global using Template.MobileServer.Domain.Consts;
+global using Template.MobileServer.Domain.Formats;
 global using Template.MobileServer.Models.Entity;
 global using Template.MobileServer.Models.Parameters;
+global using Template.MobileServer.Models.Results;
 global using Template.MobileServer.Models.Views;
 global using KeyAttribute = Smart.Data.Accessor.Attributes.KeyAttribute;

@@ -34,6 +34,10 @@ public sealed class MonitorNotifier : IDisposable
         Bus.Received -= OnReceived;
     }
 
+    //--------------------------------------------------------------------------------
+    // Notify
+    //--------------------------------------------------------------------------------
+
     public Task NotifyAllAsync(string title, string body) =>
         Hub.Clients.All.Notify(CreateNotification(title, body));
 
@@ -46,6 +50,10 @@ public sealed class MonitorNotifier : IDisposable
         Body = body,
         SentAt = TimeProvider.GetLocalNow()
     };
+
+    //--------------------------------------------------------------------------------
+    // Relay
+    //--------------------------------------------------------------------------------
 
     private void OnReceived(object? sender, NotificationEventArgs e)
     {

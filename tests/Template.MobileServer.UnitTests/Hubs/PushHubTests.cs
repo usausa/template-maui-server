@@ -43,14 +43,14 @@ public sealed class PushHubTests : IDisposable
         var second = Assert.Single(await storage.PushService.InsertAsync(TerminalId, "2", "本文"));
         using var hub = CreateHub(TerminalId);
 
-        // Act / Assert: 接続
+        // Act / Assert
         await hub.OnConnectedAsync();
         await groups.Received(1).AddToGroupAsync(ConnectionId, TerminalId, Arg.Any<CancellationToken>());
         Assert.Equal([first.Id, second.Id], received.Select(static x => x.Id));
         Assert.Equal(["1", "2"], received.Select(static x => x.Title));
         context.DidNotReceive().Abort();
 
-        // Act / Assert: 応答
+        // Act / Assert
         await hub.Acknowledge(first.Id);
         Assert.Equal([second.Id], (await storage.PushService.QueryPendingListAsync(TerminalId, cancellationToken)).Select(static x => x.Id));
     }

@@ -103,7 +103,7 @@ public sealed partial class DataPage
             return;
         }
 
-        var result = await DataService.UpdateAsync(edited.Id, edited.Name, edited.Value);
+        var result = await DataService.UpdateAsync(edited);
         switch (result)
         {
             case DataWriteStatus.Success:

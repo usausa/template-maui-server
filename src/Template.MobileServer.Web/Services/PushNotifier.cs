@@ -24,6 +24,10 @@ public sealed class PushNotifier
         PushService = pushService;
     }
 
+    //--------------------------------------------------------------------------------
+    // Send
+    //--------------------------------------------------------------------------------
+
     public async ValueTask<List<PushMessageEntity>> SendAsync(string? terminalId, string title, string body)
     {
         var messages = await PushService.InsertAsync(terminalId, title, body);
@@ -41,6 +45,10 @@ public sealed class PushNotifier
 
         return messages;
     }
+
+    //--------------------------------------------------------------------------------
+    // Acknowledge
+    //--------------------------------------------------------------------------------
 
     public async ValueTask<bool> AcknowledgeAsync(string terminalId, long id)
     {

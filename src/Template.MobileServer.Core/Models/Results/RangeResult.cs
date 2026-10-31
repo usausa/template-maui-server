@@ -1,4 +1,4 @@
-namespace Template.MobileServer.Models;
+namespace Template.MobileServer.Models.Results;
 
 public sealed record RangeResult<T>(
     int Total,

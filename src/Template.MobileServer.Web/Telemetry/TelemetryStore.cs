@@ -2,21 +2,16 @@ namespace Template.MobileServer.Web.Telemetry;
 
 using System.Collections.Concurrent;
 
-using Template.MobileServer.Infrastructure.Telemetry;
-
 public sealed class TelemetryStore : IDisposable
 {
-    private readonly ConcurrentDictionary<string, Entry> entries = new(StringComparer.Ordinal);
+    private const string SchemaPath = "Assets/Data/TelemetrySchema.sql";
 
-    private ITelemetryDbProvider Provider { get; }
+    private readonly ConcurrentDictionary<string, Entry> entries = new(StringComparer.Ordinal);
 
     private TelemetryService TelemetryService { get; }
 
-    public TelemetryStore(
-        ITelemetryDbProvider provider,
-        TelemetryService telemetryService)
+    public TelemetryStore(TelemetryService telemetryService)
     {
-        Provider = provider;
         TelemetryService = telemetryService;
     }
 
@@ -30,7 +25,7 @@ public sealed class TelemetryStore : IDisposable
         entries.Clear();
     }
 
-    public IReadOnlyList<string> EnumerateDevices() => Provider.EnumerateDevices();
+    public IReadOnlyList<string> EnumerateDevices() => TelemetryService.EnumerateDevices();
 
     public async ValueTask<TelemetrySaveResult> SaveAsync(TelemetryBatch batch)
     {
@@ -40,6 +35,7 @@ public sealed class TelemetryStore : IDisposable
         {
             if (!entry.Loaded)
             {
+                await TelemetryService.PrepareAsync(batch.TerminalId, SchemaPath);
                 var saved = await TelemetryService.QueryIdsAsync(batch.TerminalId);
                 entry.Add(saved.Resources, saved.Series);
                 entry.Loaded = true;
@@ -62,7 +58,7 @@ public sealed class TelemetryStore : IDisposable
         try
         {
             entry.Clear();
-            return Provider.Delete(terminalId);
+            return TelemetryService.Delete(terminalId);
         }
         finally
         {

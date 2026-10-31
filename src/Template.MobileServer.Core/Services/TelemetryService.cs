@@ -1,7 +1,7 @@
 namespace Template.MobileServer.Services;
 
 using Template.MobileServer.Accessors;
-using Template.MobileServer.Infrastructure.Telemetry;
+using Template.MobileServer.Infrastructure.Data;
 
 public sealed class TelemetrySaveResult
 {
@@ -37,7 +37,9 @@ public sealed class TelemetryService
 
     private IDialect Dialect { get; }
 
-    private ITelemetryDbProvider Provider { get; }
+    private IShardDbProvider Provider { get; }
+
+    private GenericAccessor GenericAccessor { get; }
 
     private TelemetryAccessor TelemetryAccessor { get; }
 
@@ -45,12 +47,14 @@ public sealed class TelemetryService
 
     public TelemetryService(
         IDialect dialect,
-        ITelemetryDbProvider provider,
+        IShardDbProvider provider,
+        GenericAccessor genericAccessor,
         TelemetryAccessor telemetryAccessor,
         ServiceContextProvider contextProvider)
     {
         Dialect = dialect;
         Provider = provider;
+        GenericAccessor = genericAccessor;
         TelemetryAccessor = telemetryAccessor;
         ContextProvider = contextProvider;
     }
@@ -59,15 +63,25 @@ public sealed class TelemetryService
     // Save
     //--------------------------------------------------------------------------------
 
-    public async ValueTask<TelemetryIdView> QueryIdsAsync(string terminalId, CancellationToken cancellationToken = default)
+    public async ValueTask PrepareAsync(string terminalId, string schemaPath)
+    {
+        await using var con = await Provider.OpenAsync(terminalId);
+        if (await GenericAccessor.QueryUserVersionAsync(con) == 0)
+        {
+            var schema = await File.ReadAllTextAsync(schemaPath);
+            await GenericAccessor.ExecuteSchemaAsync(con, schema);
+        }
+    }
+
+    public async ValueTask<TelemetryIdResult> QueryIdsAsync(string terminalId, CancellationToken cancellationToken = default)
     {
         await using var con = await Provider.OpenExistingAsync(terminalId, cancellationToken);
         if (con is null)
         {
-            return new TelemetryIdView([], []);
+            return new TelemetryIdResult([], []);
         }
 
-        return new TelemetryIdView(
+        return new TelemetryIdResult(
             await TelemetryAccessor.QueryResourceAllAsync(con, cancellationToken),
             await TelemetryAccessor.QueryMetricSeriesAllAsync(con, cancellationToken));
     }
@@ -113,7 +127,7 @@ public sealed class TelemetryService
             }
             else
             {
-                entity.Id = await TelemetryAccessor.InsertMetricSeriesAsync(tx, entity.Name, entity.ScopeName, entity.Unit, entity.Kind, entity.Temporality, entity.IsMonotonic, entity.AttributesJson);
+                entity.Id = await TelemetryAccessor.InsertMetricSeriesAsync(tx, entity);
                 result.AddedSeries.Add(entity);
             }
 
@@ -139,7 +153,7 @@ public sealed class TelemetryService
         foreach (var span in batch.Spans)
         {
             span.ResourceId = batch.Resource.Id;
-            if (await TelemetryAccessor.InsertSpanAsync(tx, span.TraceId, span.SpanId, span.ParentSpanId, span.Name, span.Kind, span.StartTimeUnixNano, span.EndTimeUnixNano, span.StatusCode, span.StatusMessage, span.ScopeName, span.ResourceId, span.AttributesJson, span.EventsJson, span.LinksJson) > 0)
+            if (await TelemetryAccessor.InsertSpanAsync(tx, span) > 0)
             {
                 result.Spans.Add(span);
                 traceIds.Add(span.TraceId);
@@ -175,7 +189,10 @@ public sealed class TelemetryService
     // Device
     //--------------------------------------------------------------------------------
 
-    public async ValueTask<TelemetryDeviceSummaryView?> QuerySummaryAsync(string terminalId, IEnumerable<string> metricNames, long since, int errorLimit, CancellationToken cancellationToken = default)
+    public IReadOnlyList<string> EnumerateDevices() =>
+        Provider.EnumerateKeys().Where(static x => TerminalIdFormat.IsValid(x)).ToList();
+
+    public async ValueTask<TelemetryDeviceSummaryResult?> QuerySummaryAsync(string terminalId, IEnumerable<string> metricNames, long since, int errorLimit, CancellationToken cancellationToken = default)
     {
         await using var con = await Provider.OpenExistingAsync(terminalId, cancellationToken);
         if (con is null)
@@ -189,26 +206,29 @@ public sealed class TelemetryService
             return null;
         }
 
-        return new TelemetryDeviceSummaryView(
+        return new TelemetryDeviceSummaryResult(
             info,
             await TelemetryAccessor.QueryLatestValueListAsync(con, metricNames, cancellationToken),
             await TelemetryAccessor.QueryLogSummaryAsync(con, since, cancellationToken),
             await TelemetryAccessor.QueryLogListBySeverityAsync(con, TelemetrySeverity.Error, errorLimit, cancellationToken));
     }
 
+    public bool Delete(string terminalId) =>
+        Provider.Delete(terminalId);
+
     //--------------------------------------------------------------------------------
     // Metric
     //--------------------------------------------------------------------------------
 
-    public async ValueTask<TelemetryMetricHistoryView> QueryMetricHistoryAsync(string terminalId, long since, long interval, CancellationToken cancellationToken = default)
+    public async ValueTask<TelemetryMetricHistoryResult> QueryMetricHistoryAsync(string terminalId, long since, long interval, CancellationToken cancellationToken = default)
     {
         await using var con = await Provider.OpenExistingAsync(terminalId, cancellationToken);
         if (con is null)
         {
-            return new TelemetryMetricHistoryView([], []);
+            return new TelemetryMetricHistoryResult([], []);
         }
 
-        return new TelemetryMetricHistoryView(
+        return new TelemetryMetricHistoryResult(
             await TelemetryAccessor.QueryMetricSeriesAllAsync(con, cancellationToken),
             await TelemetryAccessor.QueryMetricBucketListAsync(con, since, interval, cancellationToken));
     }
@@ -228,7 +248,7 @@ public sealed class TelemetryService
         return await TelemetryAccessor.QueryTraceListAsync(con, since, errorOnly, Dialect.Match(name), limit, cancellationToken);
     }
 
-    public async ValueTask<TelemetryTraceDetailView?> QueryTraceDetailAsync(string terminalId, string traceId, CancellationToken cancellationToken = default)
+    public async ValueTask<TelemetryTraceDetailResult?> QueryTraceDetailAsync(string terminalId, string traceId, CancellationToken cancellationToken = default)
     {
         await using var con = await Provider.OpenExistingAsync(terminalId, cancellationToken);
         if (con is null)
@@ -244,7 +264,7 @@ public sealed class TelemetryService
         }
 
         var spans = await TelemetryAccessor.QuerySpanListByTraceAsync(tx, traceId, cancellationToken);
-        return new TelemetryTraceDetailView(
+        return new TelemetryTraceDetailResult(
             trace,
             spans,
             await TelemetryAccessor.QueryLogListByTraceAsync(tx, traceId, cancellationToken),

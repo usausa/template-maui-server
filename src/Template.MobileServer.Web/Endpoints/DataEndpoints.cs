@@ -175,7 +175,8 @@ public static class DataEndpoints
         long id,
         DataUpdateRequest request)
     {
-        var result = await dataService.UpdateAsync(id, request.Name, request.Value);
+        var entity = new DataEntity { Id = id, Name = request.Name, Value = request.Value };
+        var result = await dataService.UpdateAsync(entity);
         return result switch
         {
             DataWriteStatus.Success => TypedResults.NoContent(),

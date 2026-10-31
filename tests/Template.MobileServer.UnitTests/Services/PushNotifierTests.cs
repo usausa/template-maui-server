@@ -61,12 +61,12 @@ public sealed class PushNotifierTests : IDisposable
         var changed = 0;
         notifier.Changed += (_, _) => changed++;
 
-        // Act / Assert: 送信 (宛先の端末が無ければ知らせない)
+        // Act / Assert
         var message = Assert.Single(await notifier.SendAsync("device-1", "件名", "本文"));
         await notifier.SendAsync("unknown", "件名", "本文");
         Assert.Equal(1, changed);
 
-        // Act / Assert: 応答 (2 回目は記録しないので知らせない)
+        // Act / Assert
         Assert.True(await notifier.AcknowledgeAsync("device-1", message.Id));
         Assert.False(await notifier.AcknowledgeAsync("device-1", message.Id));
         Assert.Equal(2, changed);

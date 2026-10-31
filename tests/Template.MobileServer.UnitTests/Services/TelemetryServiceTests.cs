@@ -1,6 +1,6 @@
 namespace Template.MobileServer.Services;
 
-using Template.MobileServer.Domain;
+using Template.MobileServer.Domain.Consts;
 using Template.MobileServer.Models.Entity;
 using Template.MobileServer.Models.Parameters;
 using Template.MobileServer.Telemetry;
@@ -8,6 +8,8 @@ using Template.MobileServer.Telemetry;
 public sealed class TelemetryServiceTests : IDisposable
 {
     private const string TerminalId = "device-1";
+
+    private const string SchemaPath = "Assets/Data/TelemetrySchema.sql";
 
     private static readonly DateTimeOffset Now = new(2026, 9, 27, 12, 0, 0, TimeSpan.FromHours(9));
 
@@ -70,13 +72,13 @@ public sealed class TelemetryServiceTests : IDisposable
         var child = CreateBatch([CreateSpan("0000000000000002", "0000000000000001", "Compute", 2_000, 3_000, TelemetryStatusCode.Error)]);
         var root = CreateBatch([CreateSpan("0000000000000001", string.Empty, "TelemetryTest", 1_000, 4_000, TelemetryStatusCode.Unset)]);
 
-        // Act / Assert: 子だけ
+        // Act / Assert
         var first = await storage.Store.SaveAsync(child);
         var trace = Assert.Single(first.Traces);
         Assert.Equal("Compute", trace.RootName);
         Assert.Equal(1, trace.ErrorCount);
 
-        // Act / Assert: ルートが届く
+        // Act / Assert
         var second = await storage.Store.SaveAsync(root);
         trace = Assert.Single(second.Traces);
         Assert.Equal("TelemetryTest", trace.RootName);
@@ -118,6 +120,31 @@ public sealed class TelemetryServiceTests : IDisposable
         // Assert
         Assert.True(result.FileDeleted);
         Assert.False(File.Exists(Path.Combine(storage.Root, TerminalId + ".db")));
+    }
+
+    [Fact]
+    public async Task PrepareCreatesSchema()
+    {
+        // Act
+        await storage.Service.PrepareAsync(TerminalId, SchemaPath);
+
+        // Assert
+        Assert.Equal(1L, await storage.QueryValueAsync(TerminalId, static x => x.CommandText = "PRAGMA user_version"));
+        Assert.Equal(0L, await storage.QueryValueAsync(TerminalId, static x => x.CommandText = "SELECT COUNT(*) FROM Log"));
+    }
+
+    [Fact]
+    public async Task EnumerateDevicesSkipsInvalidTerminalId()
+    {
+        // Arrange
+        await storage.Service.PrepareAsync(TerminalId, SchemaPath);
+        await File.WriteAllTextAsync(Path.Combine(storage.Root, new string('a', 65) + ".db"), string.Empty, TestContext.Current.CancellationToken);
+
+        // Act
+        var devices = storage.Service.EnumerateDevices();
+
+        // Assert
+        Assert.Equal([TerminalId], devices);
     }
 
     [Fact]

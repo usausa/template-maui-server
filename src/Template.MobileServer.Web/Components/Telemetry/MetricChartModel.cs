@@ -150,7 +150,7 @@ public sealed class MetricChartModel
     // Update
     //--------------------------------------------------------------------------------
 
-    public void Load(TelemetryMetricHistoryView history)
+    public void Load(TelemetryMetricHistoryResult history)
     {
         var series = history.Series.ToDictionary(static x => x.Id);
         foreach (var bucket in history.Buckets)

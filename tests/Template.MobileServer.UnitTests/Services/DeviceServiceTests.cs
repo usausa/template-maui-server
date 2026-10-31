@@ -39,7 +39,7 @@ public sealed class DeviceServiceTests : IDisposable
         using var scope = storage.BeginScope(Now);
         await storage.DeviceService.InsertAsync(new DeviceEntity { TerminalId = "device-1", Name = "Pixel 9a", IsEnabled = true });
 
-        // Act / Assert: 更新
+        // Act / Assert
         var updated = await storage.DeviceService.UpdateAsync(new DeviceEntity { TerminalId = "device-1", Name = "受付", GroupName = "1F", Note = "memo", IsEnabled = false });
         Assert.NotNull(updated);
         Assert.Equal("受付", updated.Name);
@@ -47,7 +47,7 @@ public sealed class DeviceServiceTests : IDisposable
         Assert.False(updated.IsEnabled);
         Assert.Null(await storage.DeviceService.UpdateAsync(new DeviceEntity { TerminalId = "unknown", Name = "x" }));
 
-        // Act / Assert: 削除
+        // Act / Assert
         Assert.Equal(DataWriteStatus.Success, await storage.DeviceService.DeleteAsync("device-1"));
         Assert.Equal(DataWriteStatus.NotFound, await storage.DeviceService.DeleteAsync("device-1"));
     }

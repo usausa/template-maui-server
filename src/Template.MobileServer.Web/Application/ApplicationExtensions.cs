@@ -36,8 +36,8 @@ using Serilog;
 using Smart.Data;
 
 using Template.MobileServer.Accessors;
+using Template.MobileServer.Infrastructure.Data;
 using Template.MobileServer.Infrastructure.Storage;
-using Template.MobileServer.Infrastructure.Telemetry;
 using Template.MobileServer.Web.Application.Authentication;
 using Template.MobileServer.Web.Application.Context;
 using Template.MobileServer.Web.Application.ExceptionHandling;
@@ -47,6 +47,7 @@ using Template.MobileServer.Web.Components;
 using Template.MobileServer.Web.Endpoints;
 using Template.MobileServer.Web.Handlers;
 using Template.MobileServer.Web.Hubs;
+using Template.MobileServer.Web.Infrastructure.Data;
 using Template.MobileServer.Web.Infrastructure.Logging;
 using Template.MobileServer.Web.Infrastructure.Routing;
 using Template.MobileServer.Web.Infrastructure.Security;
@@ -673,7 +674,11 @@ public static class ApplicationExtensions
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<TelemetryStorageOption>>().Value);
         builder.Services.AddOptions<Workers.TelemetryRetentionWorkerOption>().BindConfiguration("TelemetryRetention").ValidateDataAnnotations().ValidateOnStart();
         builder.Services.AddSingleton(static p => p.GetRequiredService<IOptions<Workers.TelemetryRetentionWorkerOption>>().Value);
-        builder.Services.AddSingleton<ITelemetryDbProvider, SqliteTelemetryDbProvider>();
+        builder.Services.AddSingleton<IShardDbProvider>(static p =>
+        {
+            var option = p.GetRequiredService<TelemetryStorageOption>();
+            return new SqliteShardDbProvider(new SqliteShardDbProviderOption { Root = option.Root, CacheSize = option.CacheSize });
+        });
         builder.Services.AddSingleton<OtlpReceiver>();
         builder.Services.AddSingleton<TelemetryStore>();
         builder.Services.AddSingleton<TelemetryBus>();
