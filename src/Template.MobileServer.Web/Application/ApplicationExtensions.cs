@@ -325,10 +325,9 @@ public static class ApplicationExtensions
     public static IHostApplicationBuilder ConfigureSignalR(this IHostApplicationBuilder builder)
     {
         // SignalR
-        builder.Services.AddSignalR(static options =>
+        builder.Services.AddSignalR(options =>
         {
-            options.KeepAliveInterval = TimeSpan.FromSeconds(15);
-            options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+            builder.Configuration.GetSection("SignalR").Bind(options);
 
             // Filter
             options.AddFilter<ServiceContextHubFilter>();
@@ -446,7 +445,9 @@ public static class ApplicationExtensions
             .AddInteractiveServerComponents(options =>
             {
                 options.DetailedErrors = builder.Environment.IsDevelopment();
-            });
+            })
+            .AddHubOptions(options => builder.Configuration.GetSection("Blazor:Hub").Bind(options));
+        builder.Services.Configure<Microsoft.AspNetCore.Components.Server.CircuitOptions>(builder.Configuration.GetSection("Blazor:Circuit"));
 
         // Error boundary logging
         builder.Services.AddScoped<Microsoft.AspNetCore.Components.Web.IErrorBoundaryLogger, ErrorBoundaryLogger>();

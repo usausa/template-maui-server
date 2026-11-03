@@ -4,7 +4,10 @@ using System.Globalization;
 using System.Net;
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -36,6 +39,27 @@ public sealed class ApplicationExtensionsTests
     }
 
     [Fact]
+    public async Task ConfigureSignalRUsesSettings()
+    {
+        // Arrange
+        var builder = WebApplication.CreateSlimBuilder();
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["SignalR:KeepAliveInterval"] = "00:00:20",
+            ["SignalR:ClientTimeoutInterval"] = "00:00:40"
+        });
+
+        // Act
+        builder.ConfigureSignalR();
+        await using var provider = builder.Services.BuildServiceProvider();
+
+        // Assert
+        var options = provider.GetRequiredService<IOptions<HubOptions>>().Value;
+        Assert.Equal(TimeSpan.FromSeconds(20), options.KeepAliveInterval);
+        Assert.Equal(TimeSpan.FromSeconds(40), options.ClientTimeoutInterval);
+    }
+
+    [Fact]
     public async Task ConfigureBlazorUsesJapaneseMudTexts()
     {
         // Arrange
@@ -57,5 +81,33 @@ public sealed class ApplicationExtensionsTests
         {
             CultureInfo.CurrentUICulture = culture;
         }
+    }
+
+    [Fact]
+    public async Task ConfigureBlazorUsesCircuitAndHubSettings()
+    {
+        // Arrange
+        var builder = WebApplication.CreateSlimBuilder();
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Blazor:Circuit:DisconnectedCircuitRetentionPeriod"] = "00:10:00",
+            ["Blazor:Hub:MaximumReceiveMessageSize"] = "65536"
+        });
+
+        // Act
+        builder.ConfigureBlazor();
+        await using var provider = builder.Services.BuildServiceProvider();
+
+        // Assert
+        Assert.Equal(TimeSpan.FromMinutes(10), provider.GetRequiredService<IOptions<CircuitOptions>>().Value.DisconnectedCircuitRetentionPeriod);
+        Assert.Equal(65536, ResolveComponentHubOptions(provider).MaximumReceiveMessageSize);
+    }
+
+    private static HubOptions ResolveComponentHubOptions(IServiceProvider services)
+    {
+        var hubType = typeof(CircuitOptions).Assembly.GetType("Microsoft.AspNetCore.Components.Server.ComponentHub", throwOnError: true)!;
+        var optionsType = typeof(IOptions<>).MakeGenericType(typeof(HubOptions<>).MakeGenericType(hubType));
+        var options = services.GetRequiredService(optionsType);
+        return (HubOptions)optionsType.GetProperty(nameof(IOptions<>.Value))!.GetValue(options)!;
     }
 }
