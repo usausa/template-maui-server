@@ -533,6 +533,7 @@ public static class ApplicationExtensions
                         .AddRuntimeInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddAspNetCoreInstrumentation()
+                        .AddView(static instrument => instrument.Meter.Name == "Microsoft.AspNetCore.Components.Lifecycle" ? MetricStreamConfiguration.Drop : null)
                         .AddApplicationInstrumentation();
 
                     if (useOtlpExporter)

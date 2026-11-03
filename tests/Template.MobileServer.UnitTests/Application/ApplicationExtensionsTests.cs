@@ -91,6 +91,7 @@ public sealed class ApplicationExtensionsTests
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["Blazor:Circuit:DisconnectedCircuitRetentionPeriod"] = "00:10:00",
+            ["Blazor:Circuit:PersistedCircuitInMemoryRetentionPeriod"] = "04:00:00",
             ["Blazor:Hub:MaximumReceiveMessageSize"] = "65536"
         });
 
@@ -99,7 +100,9 @@ public sealed class ApplicationExtensionsTests
         await using var provider = builder.Services.BuildServiceProvider();
 
         // Assert
-        Assert.Equal(TimeSpan.FromMinutes(10), provider.GetRequiredService<IOptions<CircuitOptions>>().Value.DisconnectedCircuitRetentionPeriod);
+        var circuit = provider.GetRequiredService<IOptions<CircuitOptions>>().Value;
+        Assert.Equal(TimeSpan.FromMinutes(10), circuit.DisconnectedCircuitRetentionPeriod);
+        Assert.Equal(TimeSpan.FromHours(4), circuit.PersistedCircuitInMemoryRetentionPeriod);
         Assert.Equal(65536, ResolveComponentHubOptions(provider).MaximumReceiveMessageSize);
     }
 
