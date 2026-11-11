@@ -2,8 +2,7 @@
 
 English | [日本語](README.ja.md)
 
-Server template that the template-maui family (maui / maui-blazor) communicates with.
-Based on template-blazor-server, it provides the mobile contract API and the admin pages.
+[Template](https://usausa.github.io/template/) project for Mobile Server.
 
 # 📸 Image
 
@@ -52,9 +51,6 @@ The documents in `docs` are in Japanese.
 | Project | Description |
 | --- | --- |
 | [template-maui](https://github.com/usausa/template-maui) | MAUI application template |
-| [template-maui-blazor](https://github.com/usausa/template-maui-blazor) | Blazor based application template |
-| [template-maui-keyboard](https://github.com/usausa/template-maui-keyboard) | Physical keyboard control example |
-| [template-maui-kiosk](https://github.com/usausa/template-maui-kiosk) | Kiosk / MDM application example |
 
 # 📦 My Libraries
 

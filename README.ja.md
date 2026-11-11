@@ -2,8 +2,7 @@
 
 [English](README.md) | 日本語
 
-template-maui 系(maui / maui-blazor)の通信処理の対向となるサーバーテンプレート。
-template-blazor-server をベースに、モバイル契約 API と管理画面を提供する。
+[Template](https://usausa.github.io/template/) project for Mobile Server.
 
 # 📸 画像
 
@@ -50,9 +49,6 @@ template-blazor-server をベースに、モバイル契約 API と管理画面�
 | プロジェクト | 説明 |
 | --- | --- |
 | [template-maui](https://github.com/usausa/template-maui) | MAUI アプリのテンプレート |
-| [template-maui-blazor](https://github.com/usausa/template-maui-blazor) | Blazor ベースのアプリのテンプレート |
-| [template-maui-keyboard](https://github.com/usausa/template-maui-keyboard) | 物理キー操作の見本 |
-| [template-maui-kiosk](https://github.com/usausa/template-maui-kiosk) | キオスク / MDM アプリの見本 |
 
 # 📦 自作ライブラリ
 
