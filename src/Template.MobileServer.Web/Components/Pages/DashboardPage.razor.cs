@@ -54,6 +54,9 @@ public sealed partial class DashboardPage
     public required TimeProvider TimeProvider { get; set; }
 
     [Inject]
+    public required RefreshTimerFactory RefreshTimerFactory { get; set; }
+
+    [Inject]
     public required TelemetryDeviceRegistry Registry { get; set; }
 
     [Inject]
@@ -115,7 +118,7 @@ public sealed partial class DashboardPage
         Bus.Received += OnReceived;
         Bus.DeviceChanged += OnDeviceChanged;
         Notifier.Changed += OnPushChanged;
-        refreshTimer = new RefreshTimer(TimeProvider, RefreshInterval, RefreshAsync);
+        refreshTimer = RefreshTimerFactory.Create(RefreshInterval, RefreshAsync);
     }
 
     protected override Task OnInitializedAsync() => LoadPendingAsync();

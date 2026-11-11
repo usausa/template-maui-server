@@ -43,7 +43,7 @@ public sealed class ServerFixture : WebApplicationFactory<Program>
         builder.UseSetting("Kestrel:Endpoints:Grpc:Url", $"http://127.0.0.1:{GrpcPort}");
         builder.UseSetting("Kestrel:Endpoints:Otel:Url", $"http://127.0.0.1:{OtelPort}");
         builder.UseSetting("Kestrel:Endpoints:OtelHttp:Url", $"http://127.0.0.1:{OtelHttpPort}");
-        builder.UseSetting("ConnectionStrings:Default", $"Data Source={Path.Combine(root, "data.db")};Cache=Shared;Pooling=True");
+        builder.UseSetting("ConnectionStrings:Default", $"Data Source={Path.Combine(root, "data.db")};Pooling=True");
         builder.UseSetting("Storage:Root", Path.Combine(root, "storage"));
         builder.UseSetting("TelemetryStorage:Root", Path.Combine(root, "telemetry"));
         builder.UseSetting("Prometheus:Uri", string.Empty);
