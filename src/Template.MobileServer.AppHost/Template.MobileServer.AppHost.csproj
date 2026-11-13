@@ -1,4 +1,4 @@
-<Project Sdk="Aspire.AppHost.Sdk/13.6.1">
+﻿<Project Sdk="Aspire.AppHost.Sdk/13.6.5">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -7,11 +7,6 @@
     <AspireUseCliBundle>true</AspireUseCliBundle>
     <UserSecretsId>0d8f8f34-d568-4e0e-a352-e110c487090b</UserSecretsId>
   </PropertyGroup>
-
-  <ItemGroup>
-    <!-- Transitive pin: GHSA-qhrr-8q5h-9q3h -->
-    <PackageReference Include="MessagePack" Version="3.1.12" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Template.MobileServer.Web\Template.MobileServer.Web.csproj" />
