@@ -73,7 +73,7 @@ public static class StorageEndpoints
     {
         path ??= string.Empty;
 
-        if ((path.Length == 0) || path.EndsWith('/'))
+        if ((path.Length == 0) || path.EndsWith('/', StringComparison.Ordinal))
         {
             if (!await storage.DirectoryExistsAsync(path, cancellationToken))
             {

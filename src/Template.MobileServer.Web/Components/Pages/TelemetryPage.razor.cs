@@ -605,7 +605,7 @@ public sealed partial class TelemetryPage
 
     private static string ShortScope(TelemetryLogEntity log)
     {
-        var index = log.ScopeName.LastIndexOf('.');
+        var index = log.ScopeName.LastIndexOf('.', StringComparison.Ordinal);
         return index >= 0 ? log.ScopeName[(index + 1)..] : log.ScopeName;
     }
 

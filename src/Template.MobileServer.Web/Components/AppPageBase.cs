@@ -9,7 +9,7 @@ public abstract class AppPageBase : AppComponentBase, IHandleEvent
     [Inject]
     private BlazorServiceScope ServiceScope { get; set; } = default!;
 
-    Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? arg) => HandleEventAsync(callback, arg);
+    Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem item, object? arg) => HandleEventAsync(item, arg);
 
     protected async Task HandleEventAsync(EventCallbackWorkItem callback, object? arg)
     {

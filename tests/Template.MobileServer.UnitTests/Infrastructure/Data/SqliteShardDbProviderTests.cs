@@ -60,9 +60,8 @@ public sealed class SqliteShardDbProviderTests : IDisposable
             await using var command = con.CreateCommand();
             command.CommandText = "PRAGMA journal_mode = WAL; CREATE TABLE Item (Id INTEGER)";
             await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+            Assert.True(File.Exists(path + "-wal"));
         }
-
-        Assert.True(File.Exists(path + "-wal"));
 
         // Act
         var deleted = provider.Delete("device-1");
