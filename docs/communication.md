@@ -11,7 +11,7 @@
 ## 📡 端末の監視(SignalR)
 
 - ハブ: `/hubs/monitor`(`Hubs/MonitorHub.cs`)。認証なし(接続は `ConnectionId` 単位で `DeviceRegistry` に登録し、端末の識別は `ReportDeviceStatus` の端末 ID)
-- KeepAlive 15 秒 / ClientTimeout 30 秒(クライアントの `KeepAliveInterval` / `ServerTimeout` と対にする)
+- `appsettings.json` の `SignalR`: `KeepAliveInterval` 15 秒 / `ClientTimeoutInterval` 30 秒(クライアントの `KeepAliveInterval` / `ServerTimeout` と対にする。`/hubs/push` も同じ値)
 - 端末 → サーバー: `ReportDeviceStatus(DeviceStatusMessage)`(端末 ID / 機種 / OS / 電池 / ネットワーク)。接続中の端末は `DeviceRegistry` に保持し、管理画面 `/notification` にリアルタイム表示。`/notification` の「切断」は `HubCallerContext.Abort()` で接続を閉じる(端末には再接続なしの Close が届き、端末側は初回接続からやり直す)
 - サーバー → 端末: `ServerStatus(ServerStatusMessage)`(`ServerStatus:Interval` ミリ秒ごと、既定 1 秒。プロセスの CPU 使用率(`Environment.CpuUsage` の差分、1 コア = 100%)/ ワーキングセット / 接続数。接続が無いときは配信しない)、`Notify(NotificationMessage)`(管理画面 `/notification` からの送信と、`NotificationBus` の通知(`Notification:Enable` の定期通知)の中継。中継は `MonitorNotifier` がバスを購読して行う)
 - メッセージの DTO は `Hubs/MonitorHub.cs` の先頭(`DeviceStatusMessage` / `ServerStatusMessage` / `NotificationMessage`。時刻は `DateTimeOffset`)
@@ -36,3 +36,8 @@
 - ログ: 1 回ごとの受信は Debug(サービス名、端末、受けた件数と保存した件数)、端末を識別できないリソースは Warning、無効の端末は Debug、端末の自動登録は Information、保存の失敗は Error
 - 受信上限は `TelemetryReceiver:MaxReceiveMessageSize`(既定 16 MiB、1〜16 MiB。HTTP は展開後の本文に適用し、超えたら 413。gRPC の既定は 4 MB。単項の呼び出しは Kestrel の `MaxRequestBodySize`(30 MB)も受けるため上限を 16 MiB にしている)
 - サーバー自身のトレース(ASP.NET Core の計装)から受信口のパス(`/v1` と `/opentelemetry.proto.collector.` で始まるパス)を除く
+
+## 📶 接続の保ち方
+
+- `appsettings.json` の `Kestrel:Limits`。HTTP/2 の接続(9090・4317)は、`Http2:KeepAlivePingDelay`(既定 30 秒)の間に何も届かなければ ping を送り、`Http2:KeepAlivePingTimeout`(20 秒)のうちに応答が無ければ接続を切る(項目を消すと ping を送らない)。`KeepAliveTimeout`(2 分 10 秒)は要求の無い接続を閉じるまで
+- ping の間隔は、途中のロードバランサーのアイドル(AWS NLB は 350 秒で変えられない)より短くする。長く開くチャット(`chat.ChatRoom/Connect`)がアイドルで切られなくなる

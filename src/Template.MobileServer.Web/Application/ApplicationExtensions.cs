@@ -88,6 +88,9 @@ public static class ApplicationExtensions
 
     public static IHostApplicationBuilder ConfigureHost(this WebApplicationBuilder builder)
     {
+        // Kestrel
+        builder.Services.Configure<KestrelServerOptions>(builder.Configuration.GetSection("Kestrel"));
+
         // Service
         builder.Services
             .AddWindowsService()

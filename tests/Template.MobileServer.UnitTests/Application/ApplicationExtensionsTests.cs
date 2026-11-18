@@ -19,6 +19,29 @@ using Template.MobileServer.Web.Settings;
 public sealed class ApplicationExtensionsTests
 {
     [Fact]
+    public async Task ConfigureHostUsesKestrelLimits()
+    {
+        // Arrange
+        var builder = WebApplication.CreateSlimBuilder();
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Kestrel:Limits:KeepAliveTimeout"] = "00:01:00",
+            ["Kestrel:Limits:Http2:KeepAlivePingDelay"] = "00:00:10",
+            ["Kestrel:Limits:Http2:KeepAlivePingTimeout"] = "00:00:05"
+        });
+
+        // Act
+        builder.ConfigureHost();
+        await using var provider = builder.Services.BuildServiceProvider();
+
+        // Assert
+        var limits = provider.GetRequiredService<IOptions<KestrelServerOptions>>().Value.Limits;
+        Assert.Equal(TimeSpan.FromMinutes(1), limits.KeepAliveTimeout);
+        Assert.Equal(TimeSpan.FromSeconds(10), limits.Http2.KeepAlivePingDelay);
+        Assert.Equal(TimeSpan.FromSeconds(5), limits.Http2.KeepAlivePingTimeout);
+    }
+
+    [Fact]
     public async Task ConfigureHttpUsesForwardedHeadersSetting()
     {
         // Arrange

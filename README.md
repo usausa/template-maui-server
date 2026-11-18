@@ -28,7 +28,7 @@
 | Realtime | Chat (gRPC bidirectional streaming) / Server info (gRPC unary) / Device monitoring (SignalR) / Push to devices (SignalR, undelivered queue) |
 | Telemetry | OTLP receiver (traces, metrics, logs over HTTP/protobuf and gRPC) / Per-device SQLite storage / Device registration / Retention |
 | Admin | Dashboard / Telemetry (metrics, traces, logs) / Data / Files / Chat / Notification / QR settings / Server (Blazor Server, MudBlazor) |
-| Operation | Serilog / OpenTelemetry / Health checks / Feature flags / Aspire AppHost |
+| Operation | Serilog / OpenTelemetry / Health checks / Feature flags / Keepalive ping / Aspire AppHost |
 | Test | Unit (bUnit) / Integration (WebApplicationFactory) |
 
 # 📚 Docs
@@ -41,7 +41,7 @@ The documents in `docs` are in Japanese.
 | [api.md](docs/api.md) | API list and the mobile contract |
 | [admin.md](docs/admin.md) | Admin pages |
 | [running.md](docs/running.md) | Running and tests |
-| [communication.md](docs/communication.md) | Chat (gRPC), device monitoring and push (SignalR), and telemetry (OTLP) |
+| [communication.md](docs/communication.md) | Chat (gRPC), device monitoring and push (SignalR), telemetry (OTLP), and keeping connections |
 | [qr-settings.md](docs/qr-settings.md) | QR settings format |
 
 # 🔗 Related Projects
