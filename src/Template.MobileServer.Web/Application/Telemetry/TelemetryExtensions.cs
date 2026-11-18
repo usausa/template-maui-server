@@ -3,7 +3,7 @@ namespace Template.MobileServer.Web.Application.Telemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
-public static class MeterProviderBuilderExtensions
+public static class TelemetryExtensions
 {
     public static MeterProviderBuilder AddApplicationInstrumentation(this MeterProviderBuilder builder)
     {
