@@ -12,7 +12,7 @@ public sealed partial class DataAccessor
     public partial ValueTask<int> CountAsync(string? name, CancellationToken cancellationToken);
 
     [Query]
-    public partial ValueTask<List<DataEntity>> QueryPageAsync(string? name, DataSort sort, bool desc, int limit, long offset, CancellationToken cancellationToken);
+    public partial ValueTask<List<DataEntity>> QueryPageAsync(string? name, DataSort sort, bool desc, int limit, int offset, CancellationToken cancellationToken);
 
     [Query]
     public partial ValueTask<List<DataEntity>> QueryAllAsync(CancellationToken cancellationToken);

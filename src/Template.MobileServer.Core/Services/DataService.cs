@@ -33,7 +33,12 @@ public sealed class DataService
     {
         var pattern = Dialect.Match(name);
         var total = await DataAccessor.CountAsync(pattern, cancellationToken);
-        var items = await DataAccessor.QueryPageAsync(pattern, sort, desc, size, (long)page * size, cancellationToken);
+        if (page > total / size)
+        {
+            return new PagedResult<DataEntity>(total, page, size, []);
+        }
+
+        var items = await DataAccessor.QueryPageAsync(pattern, sort, desc, size, page * size, cancellationToken);
         return new PagedResult<DataEntity>(total, page, size, items);
     }
 
