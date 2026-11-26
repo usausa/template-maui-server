@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "src/Template.MobileServer.AppHost/Template.MobileServer.AppHost.csproj"
+  }
+}
